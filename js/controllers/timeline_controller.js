@@ -16,6 +16,7 @@ export default class extends Controller {
     this.activeSegment = "latest";
     this.activePostId = null;
     this.posts = [];
+    this.isLoading = true;
     this.searchActive = false;
     this.readIds = new Set();
     this.handleClick = this.handleClick.bind(this);
@@ -24,6 +25,7 @@ export default class extends Controller {
     this.listTarget.addEventListener("click", this.handleClick);
     window.addEventListener("post:unread", this.handleUnread);
     window.addEventListener("post:read", this.handleRead);
+    this.listTarget.classList.add("is-loading");
     this.load();
   }
 
@@ -34,15 +36,24 @@ export default class extends Controller {
   }
 
   async load() {
-    const [posts, readIds] = await Promise.all([fetchTimeline(), loadReadIds()]);
-    this.readIds = new Set(readIds);
-    this.posts = posts;
-    this.posts.forEach((post) => {
-      if (this.readIds.has(post.id)) {
-        post.is_read = true;
-      }
-    });
-    this.render();
+    try {
+      const [posts, readIds] = await Promise.all([fetchTimeline(), loadReadIds()]);
+      this.readIds = new Set(readIds);
+      this.posts = posts;
+      this.posts.forEach((post) => {
+        if (this.readIds.has(post.id)) {
+          post.is_read = true;
+        }
+      });
+    }
+    catch (error) {
+      console.warn("Failed to load timeline", error);
+    }
+    finally {
+      this.isLoading = false;
+      this.listTarget.classList.remove("is-loading");
+      this.render();
+    }
   }
 
   showLatest() {
@@ -162,6 +173,10 @@ export default class extends Controller {
   }
 
   render() {
+    if (this.isLoading) {
+      return;
+    }
+
     const posts = this.getVisiblePosts();
 
     if (!posts.length) {
