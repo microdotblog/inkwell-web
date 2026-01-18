@@ -81,7 +81,7 @@ h2 {
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
+  grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
   gap: 0;
   flex: 1;
   min-height: 100%;
@@ -113,6 +113,14 @@ h2 {
   justify-content: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.sidebar-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex: 0 0 auto;
 }
 
 .segments {
