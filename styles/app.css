@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Manrope:wght@400;500;600&display=swap");
-
 :root {
   --ink-cream: #f6f1e6;
   --ink-ink: #1d1a16;
@@ -10,7 +8,7 @@
   --ink-sky: #dbe6ef;
   --ink-fade: #f2ece1;
   --ink-shadow: rgba(23, 18, 12, 0.08);
-  --pico-font-family: "Manrope", "Segoe UI", sans-serif;
+  --pico-font-family: system-ui, "San Francisco", "Segoe UI", "Roboto", sans-serif;
   --pico-border-radius: 12px;
   --pico-form-element-spacing-vertical: 0.5rem;
   --pico-form-element-spacing-horizontal: 0.75rem;
@@ -35,7 +33,7 @@ body > main {
 h1,
 h2,
 h3 {
-  font-family: "Fraunces", "Georgia", serif;
+  font-family: inherit;
   letter-spacing: -0.02em;
 }
 
@@ -90,8 +88,10 @@ h3 {
 }
 
 .sidebar-header {
-  padding: 1.5rem 1.5rem 1rem;
+  padding: 1rem;
   border-bottom: 1px solid rgba(107, 98, 88, 0.15);
+  align-items: center;
+  text-align: center;
 }
 
 .segments {
@@ -100,7 +100,7 @@ h3 {
   border-radius: 999px;
   padding: 0.25rem;
   gap: 0.25rem;
-  margin-top: 1rem;
+  /* margin-top: 1rem; */
 }
 
 .segments button {
