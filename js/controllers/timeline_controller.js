@@ -1,6 +1,7 @@
 import { Controller } from "../stimulus.js";
 import { timelineColors } from "../mock_data.js";
 import { fetchTimeline } from "../api/posts.js";
+import { loadReadIds, markRead } from "../storage/reads.js";
 
 const SEGMENT_BUCKETS = {
   latest: ["newest", "fresh"],
@@ -15,6 +16,7 @@ export default class extends Controller {
     this.activeSegment = "latest";
     this.activePostId = null;
     this.posts = [];
+    this.readIds = new Set();
     this.handleClick = this.handleClick.bind(this);
     this.listTarget.addEventListener("click", this.handleClick);
     this.load();
@@ -25,7 +27,14 @@ export default class extends Controller {
   }
 
   async load() {
-    this.posts = await fetchTimeline();
+    const [posts, readIds] = await Promise.all([fetchTimeline(), loadReadIds()]);
+    this.readIds = new Set(readIds);
+    this.posts = posts;
+    this.posts.forEach((post) => {
+      if (this.readIds.has(post.id)) {
+        post.is_read = true;
+      }
+    });
     this.render();
   }
 
@@ -67,7 +76,11 @@ export default class extends Controller {
       return;
     }
 
-    post.is_read = true;
+    if (!post.is_read) {
+      post.is_read = true;
+      this.readIds.add(postId);
+      this.persistRead(postId);
+    }
     this.activePostId = postId;
     this.render();
 
@@ -127,5 +140,14 @@ export default class extends Controller {
       hour: "numeric",
       minute: "2-digit"
     }).format(date);
+  }
+
+  async persistRead(postId) {
+    try {
+      await markRead(postId);
+    }
+    catch (error) {
+      console.warn("Failed to persist read state", error);
+    }
   }
 }
