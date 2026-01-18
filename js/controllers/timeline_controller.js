@@ -10,12 +10,13 @@ const SEGMENT_BUCKETS = {
 };
 
 export default class extends Controller {
-  static targets = ["list", "segments"];
+  static targets = ["list", "segments", "search", "searchToggle", "searchInput"];
 
   connect() {
     this.activeSegment = "latest";
     this.activePostId = null;
     this.posts = [];
+    this.searchActive = false;
     this.readIds = new Set();
     this.handleClick = this.handleClick.bind(this);
     this.listTarget.addEventListener("click", this.handleClick);
@@ -50,6 +51,33 @@ export default class extends Controller {
     this.activateSegment("fading");
   }
 
+  toggleSearch() {
+    if (this.searchActive) {
+      this.hideSearch();
+      return;
+    }
+
+    this.showSearch();
+  }
+
+  showSearch() {
+    this.searchActive = true;
+    this.segmentsTarget.hidden = true;
+    this.searchTarget.hidden = false;
+    this.searchInputTarget.focus();
+    this.updateSearchToggle();
+    this.render();
+  }
+
+  hideSearch() {
+    this.searchActive = false;
+    this.searchTarget.hidden = true;
+    this.segmentsTarget.hidden = false;
+    this.searchInputTarget.value = "";
+    this.updateSearchToggle();
+    this.render();
+  }
+
   activateSegment(segment) {
     this.activeSegment = segment;
     this.updateSegments();
@@ -62,6 +90,14 @@ export default class extends Controller {
       const isActive = button.dataset.segment === this.activeSegment;
       button.setAttribute("aria-pressed", isActive ? "true" : "false");
     });
+  }
+
+  updateSearchToggle() {
+    this.searchToggleTarget.classList.toggle("is-active", this.searchActive);
+    this.searchToggleTarget.setAttribute(
+      "aria-label",
+      this.searchActive ? "Close search" : "Search timeline"
+    );
   }
 
   handleClick(event) {
@@ -88,8 +124,7 @@ export default class extends Controller {
   }
 
   render() {
-    const buckets = SEGMENT_BUCKETS[this.activeSegment] || [];
-    const posts = this.posts.filter((post) => buckets.includes(post.age_bucket));
+    const posts = this.getVisiblePosts();
 
     if (!posts.length) {
       this.listTarget.innerHTML = "<p class=\"canvas-empty\">No posts yet.</p>";
@@ -98,6 +133,17 @@ export default class extends Controller {
 
     const items = posts.map((post) => this.renderPost(post)).join("");
     this.listTarget.innerHTML = items;
+  }
+
+  getVisiblePosts() {
+    if (this.searchActive) {
+      return [...this.posts].sort(
+        (a, b) => new Date(b.published_at) - new Date(a.published_at)
+      );
+    }
+
+    const buckets = SEGMENT_BUCKETS[this.activeSegment] || [];
+    return this.posts.filter((post) => buckets.includes(post.age_bucket));
   }
 
   renderPost(post) {

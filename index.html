@@ -6,8 +6,8 @@
     <title>Inkwell</title>
     <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
     <link rel="modulepreload" href="https://unpkg.com/@hotwired/stimulus/dist/stimulus.js">
-    <link rel="stylesheet" href="/styles/app.css?1">
-    <link rel="stylesheet" href="/styles/reader.css?1">
+    <link rel="stylesheet" href="/styles/app.css?2">
+    <link rel="stylesheet" href="/styles/reader.css?2">
   </head>
   <body>
     <main data-controller="auth session">
@@ -28,18 +28,37 @@
         <div class="layout">
           <aside class="left-pane" data-controller="timeline">
             <header class="sidebar-header">
-              <!-- <div>
-                <p class="eyebrow">Timeline</p>
-              </div> -->
-              <div class="segments" data-timeline-target="segments">
-                <button type="button" data-segment="latest" data-action="timeline#showLatest" aria-pressed="true">
-                  Latest
-                </button>
-                <button type="button" data-segment="recent" data-action="timeline#showRecent">
-                  Recent
-                </button>
-                <button type="button" data-segment="fading" data-action="timeline#showFading">
-                  Fading
+              <div class="sidebar-controls">
+                <div class="segments" data-timeline-target="segments">
+                  <button type="button" data-segment="latest" data-action="timeline#showLatest" aria-pressed="true">
+                    Latest
+                  </button>
+                  <button type="button" data-segment="recent" data-action="timeline#showRecent">
+                    Recent
+                  </button>
+                  <button type="button" data-segment="fading" data-action="timeline#showFading">
+                    Fading
+                  </button>
+                </div>
+                <div class="search-field" data-timeline-target="search" hidden>
+                  <input
+                    type="search"
+                    placeholder="Search timeline"
+                    data-timeline-target="searchInput"
+                  >
+                </div>
+                <button
+                  type="button"
+                  class="search-toggle"
+                  data-action="timeline#toggleSearch"
+                  data-timeline-target="searchToggle"
+                  aria-label="Search timeline"
+                >
+                  <svg class="icon-search" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M16.65 16.65L21 21"></path>
+                  </svg>
+                  <span class="icon-close" aria-hidden="true">&times;</span>
                 </button>
               </div>
             </header>
@@ -73,6 +92,6 @@
       </section>
     </main>
 
-    <script type="module" src="/js/app.js"></script>
+    <script type="module" src="/js/app.js?2"></script>
   </body>
 </html>
