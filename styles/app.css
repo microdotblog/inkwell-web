@@ -43,6 +43,11 @@ h2 {
   padding-bottom: 0;
 }
 
+button:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
 .auth-screen {
   display: grid;
   place-items: center;
@@ -259,7 +264,6 @@ h2 {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--row-border, rgba(47, 79, 63, 0.4)) 70%, transparent);
 }
 
-.timeline-item:focus,
 .timeline-item:focus-visible,
 .timeline-item:active {
   outline: none;
