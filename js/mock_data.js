@@ -2,21 +2,23 @@ const now = Date.now();
 const hoursAgo = (hours) => new Date(now - hours * 60 * 60 * 1000).toISOString();
 
 export const timelineColors = {
-  newest: "#f7f9fc",
-  fresh: "#eaf1f7",
-  recent: "#e2edf6",
-  fading: "#e6eaf3",
-  old: "#e9eef5",
-  stale: "#f0f2f6"
+  "day-1": "#f7f9fc",
+  "day-2": "#eef3f8",
+  "day-3": "#e5edf5",
+  "day-4": "#dde7f1",
+  "day-5": "#d6e1ed",
+  "day-6": "#cfdbe9",
+  "day-7": "#c9d6e5"
 };
 
 export const timelineBorderColors = {
-  newest: "#d9e0ea",
-  fresh: "#c9d8e5",
-  recent: "#b7cfe2",
-  fading: "#c4cddd",
-  old: "#cfd7e3",
-  stale: "#d5d9e0"
+  "day-1": "#d9e2ee",
+  "day-2": "#cedae8",
+  "day-3": "#c2d2e2",
+  "day-4": "#b7cada",
+  "day-5": "#aec3d4",
+  "day-6": "#a6bccf",
+  "day-7": "#9fb5c9"
 };
 
 export const mockPosts = [
@@ -27,10 +29,10 @@ export const mockPosts = [
     summary: "Notes on the first hour and the room it creates.",
     url: "https://example.com/post-001",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(1),
+    published_at: hoursAgo(2),
     is_read: false,
     is_archived: false,
-    age_bucket: "newest"
+    age_bucket: "day-1"
   },
   {
     id: "post-002",
@@ -39,10 +41,10 @@ export const mockPosts = [
     summary: "We can tune the feed to breathe instead of shout.",
     url: "https://example.com/post-002",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(4),
+    published_at: hoursAgo(6),
     is_read: false,
     is_archived: false,
-    age_bucket: "fresh"
+    age_bucket: "day-1"
   },
   {
     id: "post-003",
@@ -51,10 +53,10 @@ export const mockPosts = [
     summary: "A short field note from the studio window.",
     url: "https://example.com/post-003",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(9),
+    published_at: hoursAgo(12),
     is_read: true,
     is_archived: false,
-    age_bucket: "fresh"
+    age_bucket: "day-1"
   },
   {
     id: "post-004",
@@ -63,10 +65,10 @@ export const mockPosts = [
     summary: "Three tiny rituals for staying with the text.",
     url: "https://example.com/post-004",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(16),
+    published_at: hoursAgo(20),
     is_read: false,
     is_archived: false,
-    age_bucket: "recent"
+    age_bucket: "day-1"
   },
   {
     id: "post-005",
@@ -78,7 +80,7 @@ export const mockPosts = [
     published_at: hoursAgo(28),
     is_read: true,
     is_archived: false,
-    age_bucket: "recent"
+    age_bucket: "day-2"
   },
   {
     id: "post-006",
@@ -87,10 +89,10 @@ export const mockPosts = [
     summary: "Let the inbox be a shoreline, not a cliff.",
     url: "https://example.com/post-006",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(40),
+    published_at: hoursAgo(36),
     is_read: false,
     is_archived: false,
-    age_bucket: "recent"
+    age_bucket: "day-2"
   },
   {
     id: "post-007",
@@ -99,10 +101,10 @@ export const mockPosts = [
     summary: "Walking untangles the knots we carry.",
     url: "https://example.com/post-007",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(72),
+    published_at: hoursAgo(52),
     is_read: true,
     is_archived: false,
-    age_bucket: "fading"
+    age_bucket: "day-3"
   },
   {
     id: "post-008",
@@ -111,10 +113,10 @@ export const mockPosts = [
     summary: "Gentle structures for daily reading.",
     url: "https://example.com/post-008",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(96),
+    published_at: hoursAgo(76),
     is_read: false,
     is_archived: false,
-    age_bucket: "fading"
+    age_bucket: "day-4"
   },
   {
     id: "post-009",
@@ -123,10 +125,10 @@ export const mockPosts = [
     summary: "A sketch of late afternoon color.",
     url: "https://example.com/post-009",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(140),
+    published_at: hoursAgo(100),
     is_read: true,
     is_archived: true,
-    age_bucket: "old"
+    age_bucket: "day-5"
   },
   {
     id: "post-010",
@@ -135,10 +137,10 @@ export const mockPosts = [
     summary: "Build habits that respect focus.",
     url: "https://example.com/post-010",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(190),
+    published_at: hoursAgo(124),
     is_read: true,
     is_archived: true,
-    age_bucket: "old"
+    age_bucket: "day-6"
   },
   {
     id: "post-011",
@@ -147,10 +149,10 @@ export const mockPosts = [
     summary: "A list of essays for slow mornings.",
     url: "https://example.com/post-011",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(240),
+    published_at: hoursAgo(148),
     is_read: true,
     is_archived: true,
-    age_bucket: "stale"
+    age_bucket: "day-7"
   },
   {
     id: "post-012",
@@ -159,10 +161,10 @@ export const mockPosts = [
     summary: "Why older work still feels alive.",
     url: "https://example.com/post-012",
     avatar_url: "/images/avatar-placeholder.svg",
-    published_at: hoursAgo(300),
+    published_at: hoursAgo(164),
     is_read: true,
     is_archived: true,
-    age_bucket: "stale"
+    age_bucket: "day-7"
   }
 ];
 

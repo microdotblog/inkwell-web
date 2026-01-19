@@ -4,16 +4,16 @@ import { fetchTimeline } from "../api/posts.js";
 import { loadReadIds, markRead } from "../storage/reads.js";
 
 const SEGMENT_BUCKETS = {
-  latest: ["newest", "fresh"],
-  recent: ["recent"],
-  fading: ["fading", "old", "stale"]
+  today: ["day-1"],
+  recent: ["day-2", "day-3"],
+  fading: ["day-4", "day-5", "day-6", "day-7"]
 };
 
 export default class extends Controller {
   static targets = ["list", "segments", "search", "searchToggle", "searchInput"];
 
   connect() {
-    this.activeSegment = "latest";
+    this.activeSegment = "today";
     this.activePostId = null;
     this.posts = [];
     this.isLoading = true;
@@ -59,8 +59,8 @@ export default class extends Controller {
     }
   }
 
-  showLatest() {
-    this.activateSegment("latest");
+  showToday() {
+    this.activateSegment("today");
   }
 
   showRecent() {
@@ -171,7 +171,7 @@ export default class extends Controller {
     switch (event.key) {
       case "1":
         event.preventDefault();
-        this.showLatest();
+        this.showToday();
         break;
       case "2":
         event.preventDefault();

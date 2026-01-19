@@ -275,12 +275,6 @@ h2 {
   opacity: 0.6;
 }
 
-.timeline-item[data-age="fading"],
-.timeline-item[data-age="old"],
-.timeline-item[data-age="stale"] {
-  opacity: 0.7;
-}
-
 .avatar {
   width: 44px;
   height: 44px;

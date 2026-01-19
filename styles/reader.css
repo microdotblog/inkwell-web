@@ -1,13 +1,14 @@
 .reader-content {
-  font-size: 1.05rem;
+  font-size: 1rem;
   line-height: 1.8;
   color: #2a241f;
-  padding-bottom: 2rem;
+  margin-bottom: 0;
+  padding-bottom: 0;
   border-bottom: 1px solid rgba(29, 26, 22, 0.08);
 }
 
 .reader-content p {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .reader-content h3 {
@@ -19,8 +20,8 @@
 }
 
 .reader-content .lead {
-  font-size: 1.2rem;
-  color: #4a4138;
+  /* font-size: 1.2rem;
+  color: #4a4138; */
 }
 
 .reader-content .loading {
