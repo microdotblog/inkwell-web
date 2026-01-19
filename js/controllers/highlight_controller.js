@@ -48,8 +48,7 @@ export default class extends Controller {
     this.toolbarTarget.hidden = false;
   }
 
-  async create(event) {
-    const intent = event.currentTarget.dataset.intent || "highlight";
+  async create() {
     const text = this.currentSelection;
     if (!text) {
       return;
@@ -63,7 +62,7 @@ export default class extends Controller {
       html: text,
       start_offset: null,
       end_offset: null,
-      intent,
+      intent: "highlight",
       created_at: new Date().toISOString()
     };
 

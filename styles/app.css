@@ -333,6 +333,14 @@ h2 {
   gap: 1.5rem;
 }
 
+.reader-pane,
+.highlights-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100%;
+}
+
 .reader-header {
   display: flex;
   justify-content: space-between;
@@ -355,6 +363,20 @@ h2 {
   font-size: 0.85rem;
 }
 
+.highlights-toggle {
+  border: none;
+  background: transparent;
+  color: var(--ink-copper);
+  font-size: 0.75rem;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.highlights-toggle:hover {
+  color: #8c5c2f;
+}
+
 .mark-unread {
   border: 1px solid #DDD;
   background: #EFEFEF;
@@ -369,6 +391,32 @@ h2 {
 .mark-unread:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.highlights-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.highlights-back {
+  border: 1px solid rgba(29, 26, 22, 0.12);
+  background: #fff;
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.highlights-back:hover {
+  border-color: rgba(29, 26, 22, 0.2);
+  color: var(--ink-ink);
+}
+
+.highlights-title {
+  margin: 0;
+  font-size: 1rem;
 }
 
 .highlight-toolbar {
