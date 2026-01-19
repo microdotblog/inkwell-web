@@ -7,12 +7,15 @@ export default class extends Controller {
 
   connect() {
     this.handlePostOpen = this.handlePostOpen.bind(this);
+    this.handleKeydown = this.handleKeydown.bind(this);
     window.addEventListener("post:open", this.handlePostOpen);
+    window.addEventListener("keydown", this.handleKeydown);
     this.showPlaceholder();
   }
 
   disconnect() {
     window.removeEventListener("post:open", this.handlePostOpen);
+    window.removeEventListener("keydown", this.handleKeydown);
   }
 
   async handlePostOpen(event) {
@@ -68,6 +71,35 @@ export default class extends Controller {
     this.updateReadButton();
     const eventName = this.currentPostRead ? "post:read" : "post:unread";
     window.dispatchEvent(new CustomEvent(eventName, { detail: { postId: this.currentPostId } }));
+  }
+
+  handleKeydown(event) {
+    if (this.shouldIgnoreKey(event)) {
+      return;
+    }
+
+    if (event.key.toLowerCase() === "u") {
+      event.preventDefault();
+      this.toggleRead();
+    }
+  }
+
+  shouldIgnoreKey(event) {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+      return true;
+    }
+
+    const target = event.target;
+    if (!target) {
+      return false;
+    }
+
+    if (target.isContentEditable) {
+      return true;
+    }
+
+    const tagName = target.tagName;
+    return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
   }
 
   updateReadButton() {

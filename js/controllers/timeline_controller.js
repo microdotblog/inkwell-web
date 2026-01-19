@@ -22,9 +22,11 @@ export default class extends Controller {
     this.handleClick = this.handleClick.bind(this);
     this.handleUnread = this.handleUnread.bind(this);
     this.handleRead = this.handleRead.bind(this);
+    this.handleKeydown = this.handleKeydown.bind(this);
     this.listTarget.addEventListener("click", this.handleClick);
     window.addEventListener("post:unread", this.handleUnread);
     window.addEventListener("post:read", this.handleRead);
+    window.addEventListener("keydown", this.handleKeydown);
     this.listTarget.classList.add("is-loading");
     this.load();
   }
@@ -33,6 +35,7 @@ export default class extends Controller {
     this.listTarget.removeEventListener("click", this.handleClick);
     window.removeEventListener("post:unread", this.handleUnread);
     window.removeEventListener("post:read", this.handleRead);
+    window.removeEventListener("keydown", this.handleKeydown);
   }
 
   async load() {
@@ -125,19 +128,7 @@ export default class extends Controller {
 
     const postId = item.dataset.postId;
     const post = this.posts.find((entry) => entry.id === postId);
-    if (!post) {
-      return;
-    }
-
-    if (!post.is_read) {
-      post.is_read = true;
-      this.readIds.add(postId);
-      this.persistRead(postId);
-    }
-    this.activePostId = postId;
-    this.render();
-
-    window.dispatchEvent(new CustomEvent("post:open", { detail: { post } }));
+    this.openPost(post);
   }
 
   handleUnread(event) {
@@ -172,6 +163,59 @@ export default class extends Controller {
     this.render();
   }
 
+  handleKeydown(event) {
+    if (this.shouldIgnoreKey(event)) {
+      return;
+    }
+
+    switch (event.key) {
+      case "1":
+        event.preventDefault();
+        this.showLatest();
+        break;
+      case "2":
+        event.preventDefault();
+        this.showRecent();
+        break;
+      case "3":
+        event.preventDefault();
+        this.showFading();
+        break;
+      case "/":
+        event.preventDefault();
+        this.toggleSearch();
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        this.selectAdjacentPost(-1);
+        break;
+      case "ArrowDown":
+        event.preventDefault();
+        this.selectAdjacentPost(1);
+        break;
+      default:
+        break;
+    }
+  }
+
+  shouldIgnoreKey(event) {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+      return true;
+    }
+
+    const target = event.target;
+    if (!target) {
+      return false;
+    }
+
+    if (target.isContentEditable) {
+      return true;
+    }
+
+    const tagName = target.tagName;
+    return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
+  }
+
   render() {
     if (this.isLoading) {
       return;
@@ -186,6 +230,61 @@ export default class extends Controller {
 
     const items = posts.map((post) => this.renderPost(post)).join("");
     this.listTarget.innerHTML = items;
+  }
+
+  openPost(post) {
+    if (!post) {
+      return;
+    }
+
+    if (!post.is_read) {
+      post.is_read = true;
+      this.readIds.add(post.id);
+      this.persistRead(post.id);
+    }
+    this.activePostId = post.id;
+    this.render();
+
+    window.dispatchEvent(new CustomEvent("post:open", { detail: { post } }));
+    this.scrollActivePostIntoView();
+  }
+
+  selectAdjacentPost(offset) {
+    if (this.isLoading) {
+      return;
+    }
+
+    const posts = this.getVisiblePosts();
+    if (!posts.length) {
+      return;
+    }
+
+    let index = posts.findIndex((post) => post.id === this.activePostId);
+    if (index === -1) {
+      index = offset > 0 ? -1 : posts.length;
+    }
+
+    const nextIndex = index + offset;
+    if (nextIndex < 0 || nextIndex >= posts.length) {
+      return;
+    }
+
+    this.openPost(posts[nextIndex]);
+  }
+
+  scrollActivePostIntoView() {
+    if (!this.activePostId) {
+      return;
+    }
+
+    const activeItem = this.listTarget.querySelector(
+      `[data-post-id="${this.activePostId}"]`
+    );
+    if (!activeItem) {
+      return;
+    }
+
+    activeItem.scrollIntoView({ block: "nearest" });
   }
 
   getVisiblePosts() {
@@ -204,9 +303,10 @@ export default class extends Controller {
     const summary = post.summary ? `<span>${post.summary}</span>` : "";
     const formattedDate = this.formatDate(post.published_at);
     const status = post.is_archived ? "<span class=\"status-chip\">Archived</span>" : "";
+    const showReadState = post.is_read && post.id !== this.activePostId;
     const classes = [
       "timeline-item",
-      post.is_read ? "is-read" : "",
+      showReadState ? "is-read" : "",
       post.is_archived ? "is-archived" : "",
       post.id === this.activePostId ? "is-active" : ""
     ]
