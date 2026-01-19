@@ -396,6 +396,11 @@ h2 {
   background: rgba(255, 255, 255, 0.2);
 }
 
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
