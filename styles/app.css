@@ -263,6 +263,7 @@ button:focus:not(:focus-visible) {
 } */
 
 .timeline-item.is-active {
+  background: color-mix(in srgb, var(--row-color, #fff) 70%, #a9b8c9 30%);
   border-color: var(--row-border, rgba(47, 79, 63, 0.4));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--row-border, rgba(47, 79, 63, 0.4)) 70%, transparent);
 }
