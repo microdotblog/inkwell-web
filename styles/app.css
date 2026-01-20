@@ -423,6 +423,7 @@ button:focus:not(:focus-visible) {
   align-items: center;
   justify-content: center;
   width: 100%;
+  max-width: none;
   margin: 0;
 }
 
