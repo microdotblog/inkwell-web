@@ -147,28 +147,35 @@ button:focus:not(:focus-visible) {
 
 .segments {
   display: inline-flex;
-  background: #e9e9e9;
-  border-radius: 999px;
-  padding: 0.25rem;
-  gap: 0.25rem;
+  background: #f1f1f1;
+  border-radius: 7px;
+  border: 1px solid #d8d8d8;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
   /* margin-top: 1rem; */
 }
 
 .segments button {
   border: none;
   background: transparent;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.78rem;
-  border-radius: 999px;
-  color: var(--ink-muted);
+  padding: 0.4rem 0.9rem;
+  font-size: 0.7rem;
+  border-radius: 0;
+  color: var(--ink-ink);
   cursor: pointer;
   margin-bottom: 0;
+  border-right: 1px solid #d8d8d8;
+}
+
+.segments button:last-child {
+  border-right: none;
 }
 
 .segments button[aria-pressed="true"] {
-  background: rgba(255, 255, 255, 0.9);
+  background: #dedede;
   color: var(--ink-ink);
-  box-shadow: 0 10px 20px rgba(23, 18, 12, 0.08);
+  box-shadow: none;
 }
 
 .search-toggle {
@@ -231,7 +238,7 @@ button:focus:not(:focus-visible) {
   background: transparent;
   margin: 0;
   padding: 0.35rem 0.6rem 0.35rem 0.2rem;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   min-width: 160px;
   box-shadow: none;
 }
