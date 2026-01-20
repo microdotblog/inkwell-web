@@ -53,6 +53,10 @@ export async function fetchFeedUnreadEntryIds() {
   return fetchFeedsJson("/feeds/unread_entries.json");
 }
 
+export async function fetchFeedIcons() {
+  return fetchFeedsJson("/feeds/icons.json");
+}
+
 async function fetchFeedsJson(path, options = {}) {
   const url = new URL(path, `${getFeedsBaseUrl()}/`);
   const headers = new Headers(options.headers || {});

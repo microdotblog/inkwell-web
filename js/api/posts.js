@@ -2,6 +2,7 @@ import { mockPosts } from "../mock_data.js";
 import {
   cacheFeedEntries,
   fetchFeedEntries,
+  fetchFeedIcons,
   fetchFeedSubscriptions,
   fetchFeedUnreadEntryIds
 } from "./feeds.js";
@@ -10,10 +11,11 @@ const DEFAULT_AVATAR_URL = "/images/avatar-placeholder.svg";
 
 export async function fetchTimeline() {
   try {
-    const [subscriptions, entries, unreadEntryIds] = await Promise.all([
+    const [subscriptions, entries, unreadEntryIds, icons] = await Promise.all([
       fetchFeedSubscriptions(),
       fetchFeedEntries(),
-      fetchFeedUnreadEntryIds()
+      fetchFeedUnreadEntryIds(),
+      fetchFeedIcons()
     ]);
 
     cacheFeedEntries(entries);
@@ -22,6 +24,11 @@ export async function fetchTimeline() {
       subscriptions.map((subscription) => [subscription.feed_id, subscription])
     );
     const unreadSet = new Set(unreadEntryIds.map((id) => String(id)));
+    const iconMap = new Map(
+      Array.isArray(icons)
+        ? icons.map((icon) => [icon.host, icon.url]).filter(([host, url]) => host && url)
+        : []
+    );
 
     return entries.map((entry) => {
       const subscription = subscriptionMap.get(entry.feed_id);
@@ -32,7 +39,7 @@ export async function fetchTimeline() {
         title: entry.title,
         summary: entry.summary || "",
         url: entry.url,
-        avatar_url: resolveAvatar(subscription),
+        avatar_url: resolveAvatar(subscription, iconMap),
         published_at: publishedAt,
         is_read: !unreadSet.has(String(entry.id)),
         is_archived: false,
@@ -64,16 +71,52 @@ function resolveSource(subscription) {
   );
 }
 
-function resolveAvatar(subscription) {
+function resolveAvatar(subscription, iconMap) {
   if (!subscription || !subscription.json_feed) {
+    return resolveIconFallback(subscription, iconMap);
+  }
+
+  const jsonIcon =
+    subscription.json_feed.icon ||
+    subscription.json_feed.favicon ||
+    "";
+  if (jsonIcon) {
+    return jsonIcon;
+  }
+
+  return resolveIconFallback(subscription, iconMap);
+}
+
+function resolveIconFallback(subscription, iconMap) {
+  if (!subscription || !iconMap || iconMap.size === 0) {
     return DEFAULT_AVATAR_URL;
   }
 
-  return (
-    subscription.json_feed.icon ||
-    subscription.json_feed.favicon ||
-    DEFAULT_AVATAR_URL
-  );
+  const host = getSubscriptionHost(subscription);
+  if (!host) {
+    return DEFAULT_AVATAR_URL;
+  }
+
+  return iconMap.get(host) || DEFAULT_AVATAR_URL;
+}
+
+function getSubscriptionHost(subscription) {
+  const rawUrl = subscription.site_url || subscription.feed_url || "";
+  if (!rawUrl) {
+    return "";
+  }
+
+  try {
+    return new URL(rawUrl).hostname;
+  }
+  catch (error) {
+    try {
+      return new URL(`https://${rawUrl}`).hostname;
+    }
+    catch (secondError) {
+      return "";
+    }
+  }
 }
 
 function getAgeBucket(isoDate) {
