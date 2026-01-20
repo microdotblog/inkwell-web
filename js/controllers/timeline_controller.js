@@ -1,7 +1,7 @@
 import { Controller } from "../stimulus.js";
 import { timelineBorderColors, timelineColors } from "../mock_data.js";
 import { fetchTimeline } from "../api/posts.js";
-import { loadReadIds, markRead } from "../storage/reads.js";
+import { loadReadIds, markAllRead, markRead } from "../storage/reads.js";
 
 const SEGMENT_BUCKETS = {
   today: ["day-1"],
@@ -23,10 +23,12 @@ export default class extends Controller {
     this.handleUnread = this.handleUnread.bind(this);
     this.handleRead = this.handleRead.bind(this);
     this.handleKeydown = this.handleKeydown.bind(this);
+    this.handleMarkAllRead = this.handleMarkAllRead.bind(this);
     this.listTarget.addEventListener("click", this.handleClick);
     window.addEventListener("post:unread", this.handleUnread);
     window.addEventListener("post:read", this.handleRead);
     window.addEventListener("keydown", this.handleKeydown);
+    window.addEventListener("timeline:markAllRead", this.handleMarkAllRead);
     this.listTarget.classList.add("is-loading");
     this.load();
   }
@@ -36,6 +38,7 @@ export default class extends Controller {
     window.removeEventListener("post:unread", this.handleUnread);
     window.removeEventListener("post:read", this.handleRead);
     window.removeEventListener("keydown", this.handleKeydown);
+    window.removeEventListener("timeline:markAllRead", this.handleMarkAllRead);
   }
 
   async load() {
@@ -195,6 +198,25 @@ export default class extends Controller {
         break;
       default:
         break;
+    }
+  }
+
+  async handleMarkAllRead() {
+    if (!this.posts.length) {
+      return;
+    }
+
+    const ids = this.posts.map((post) => post.id);
+    try {
+      await markAllRead(ids);
+      this.readIds = new Set(ids);
+      this.posts.forEach((post) => {
+        post.is_read = true;
+      });
+      this.render();
+    }
+    catch (error) {
+      console.warn("Failed to mark all read", error);
     }
   }
 

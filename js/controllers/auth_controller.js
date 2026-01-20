@@ -28,6 +28,8 @@ export default class extends Controller {
 
   signout() {
     clearToken();
+    setMicroBlogToken("");
+    setMicroBlogAvatar("");
     this.showSignin();
   }
 

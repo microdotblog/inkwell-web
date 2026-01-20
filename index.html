@@ -40,7 +40,29 @@
           <aside class="left-pane" data-controller="timeline">
             <header class="sidebar-header">
               <div class="sidebar-controls">
-                <img class="sidebar-logo" src="/images/avatar-placeholder.svg" alt="User avatar" data-auth-target="avatar">
+                <div class="user-menu" data-controller="user-menu">
+                  <button
+                    type="button"
+                    class="avatar-button"
+                    data-user-menu-target="button"
+                    data-action="user-menu#toggle"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                  >
+                    <img class="sidebar-logo" src="/images/avatar-placeholder.svg" alt="User avatar" data-auth-target="avatar">
+                  </button>
+                  <div class="user-menu-popover" data-user-menu-target="popover" hidden>
+                    <a class="user-menu-item" href="https://micro.blog" data-action="user-menu#close">
+                      Go to Micro.blog
+                    </a>
+                    <button type="button" class="user-menu-item" data-action="user-menu#markAllRead user-menu#close">
+                      Mark All as Read
+                    </button>
+                    <button type="button" class="user-menu-item" data-action="user-menu#close auth#signout">
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
                 <div class="segments" data-timeline-target="segments">
                   <button type="button" data-segment="today" data-action="timeline#showToday" aria-pressed="true">
                     Today
