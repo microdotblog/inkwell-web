@@ -94,7 +94,10 @@ export default class extends Controller {
       return;
     }
 
-    console.info("New post placeholder for highlight", highlight.id);
+    const markdown = this.buildPostMarkdown(highlight);
+    const encoded = encodeURIComponent(markdown);
+    const url = `https://micro.blog/post?text=${encoded}`;
+    window.location.href = url;
   }
 
   async copyHighlight(event) {
@@ -140,6 +143,31 @@ export default class extends Controller {
 
     const textEl = item.querySelector(".highlight-text");
     return textEl ? textEl.textContent.trim() : "";
+  }
+
+  buildPostMarkdown(highlight) {
+    const title = (highlight.post_title || "Post").trim();
+    const url = (highlight.post_url || "").trim();
+    const link = url ? `[${title}](${url})` : title;
+    const quote = this.formatQuote(highlight.text || "");
+
+    if (!quote) {
+      return link;
+    }
+
+    return `${link}\n\n${quote}`;
+  }
+
+  formatQuote(text) {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return "";
+    }
+
+    return trimmed
+      .split(/\r?\n/)
+      .map((line) => `> ${line}`)
+      .join("\n");
   }
 
   async copyToClipboard(text) {

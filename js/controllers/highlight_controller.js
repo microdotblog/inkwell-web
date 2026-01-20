@@ -58,6 +58,7 @@ export default class extends Controller {
       id: `hl-${Date.now()}`,
       post_id: this.contentTarget.dataset.postId || "",
       post_url: this.contentTarget.dataset.postUrl || "",
+      post_title: this.contentTarget.dataset.postTitle || "",
       text,
       html: text,
       start_offset: null,

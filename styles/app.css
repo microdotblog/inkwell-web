@@ -30,6 +30,10 @@ body > main {
   padding-block: 0;
 }
 
+article {
+  box-shadow: none;
+}
+
 h1,
 h2,
 h3 {
@@ -223,7 +227,6 @@ button:focus:not(:focus-visible) {
   box-shadow: none;
 }
 
-
 .timeline {
   padding: 10px;
   overflow-y: auto;
@@ -336,6 +339,13 @@ button:focus:not(:focus-visible) {
   gap: 1.5rem;
 }
 
+.right-pane .right-content {
+  width: 100%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;  
+}
+
 .reader-pane,
 .highlights-pane {
   display: flex;
@@ -349,6 +359,7 @@ button:focus:not(:focus-visible) {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  margin-bottom: 15px;
 }
 
 .reader-actions {
@@ -374,6 +385,7 @@ button:focus:not(:focus-visible) {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .reader-avatar {
@@ -419,6 +431,7 @@ button:focus:not(:focus-visible) {
   font-size: 0.7rem;
   padding: 0.35rem 0.65rem;
   border-radius: 999px;
+  margin-bottom: 0;
 }
 
 .highlight-toolbar button:hover {

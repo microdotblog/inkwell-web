@@ -24,24 +24,28 @@ export default class extends Controller {
       return;
     }
 
+    this.currentPostTitle = post.title || "Untitled";
     this.currentPostId = post.id;
     this.currentPostRead = Boolean(post.is_read);
     this.markUnreadTarget.disabled = false;
     this.updateReadButton();
-    this.setTitle(post.title || "Untitled");
+    this.setTitle(this.currentPostTitle);
     this.metaTarget.textContent = `${post.source} - ${this.formatDate(post.published_at)}`;
     this.contentTarget.innerHTML = "<p class=\"loading\">Loading readable view...</p>";
     this.avatarTarget.hidden = false;
     this.avatarTarget.src = post.avatar_url || "/images/avatar-placeholder.svg";
     this.avatarTarget.alt = "";
+    this.contentTarget.dataset.postTitle = this.currentPostTitle;
 
     const payload = await fetchReadableContent(post.id);
     const html = payload.html || `<p>${post.summary || "No preview available yet."}</p>`;
-    this.setTitle(payload.title || post.title || "Untitled");
+    this.currentPostTitle = payload.title || post.title || "Untitled";
+    this.setTitle(this.currentPostTitle);
     this.metaTarget.textContent = payload.byline || `${post.source} - ${this.formatDate(post.published_at)}`;
     this.contentTarget.innerHTML = html;
     this.contentTarget.dataset.postId = post.id;
     this.contentTarget.dataset.postUrl = post.url;
+    this.contentTarget.dataset.postTitle = this.currentPostTitle;
     this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
   }
 
@@ -54,6 +58,7 @@ export default class extends Controller {
     this.avatarTarget.src = "/images/avatar-placeholder.svg";
     this.avatarTarget.alt = "";
     this.setTitle("Select a post");
+    this.contentTarget.dataset.postTitle = "";
     this.contentTarget.innerHTML = "<p class=\"loading\">Choose a post from the timeline to begin reading.</p>";
   }
 

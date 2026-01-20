@@ -70,57 +70,59 @@
           </aside>
 
           <section class="right-pane" data-controller="reader highlight highlights">
-            <header class="reader-header">
-              <div class="segments reader-tabs">
-                <button
-                  type="button"
-                  class="reader-tab"
-                  data-action="highlights#showReader"
-                  data-highlights-target="readerTab"
-                  aria-pressed="true"
-                >
-                  <img class="reader-avatar" src="/images/avatar-placeholder.svg" alt="" data-reader-target="avatar" hidden>
-                  <span data-reader-target="title">Select a post</span>
-                </button>
-                <button
-                  type="button"
-                  class="highlights-toggle"
-                  data-action="highlights#showHighlights"
-                  data-highlights-target="toggle"
-                  aria-pressed="false"
-                  hidden
-                >
-                  0 highlights
-                </button>
+            <div class="right-content">              
+              <header class="reader-header">
+                <div class="segments reader-tabs">
+                  <button
+                    type="button"
+                    class="reader-tab"
+                    data-action="highlights#showReader"
+                    data-highlights-target="readerTab"
+                    aria-pressed="true"
+                  >
+                    <img class="reader-avatar" src="/images/avatar-placeholder.svg" alt="" data-reader-target="avatar" hidden>
+                    <span data-reader-target="title">Select a post</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="highlights-toggle"
+                    data-action="highlights#showHighlights"
+                    data-highlights-target="toggle"
+                    aria-pressed="false"
+                    hidden
+                  >
+                    0 highlights
+                  </button>
+                </div>
+                <div class="reader-actions">
+                  <p class="reader-meta" data-reader-target="meta"></p>
+                  <button
+                    type="button"
+                    class="mark-unread"
+                    data-reader-target="markUnread"
+                    data-action="reader#toggleRead"
+                    disabled
+                  >
+                    Mark unread
+                  </button>
+                </div>
+              </header>
+  
+              <div class="reader-pane" data-highlights-target="readerPane">
+                <article
+                  class="reader-content"
+                  data-reader-target="content"
+                  data-highlight-target="content"
+                ></article>
+  
+                <div class="highlight-toolbar" data-highlight-target="toolbar" hidden>
+                  <button type="button" data-action="highlight#create">Highlight</button>
+                </div>
               </div>
-              <div class="reader-actions">
-                <p class="reader-meta" data-reader-target="meta"></p>
-                <button
-                  type="button"
-                  class="mark-unread"
-                  data-reader-target="markUnread"
-                  data-action="reader#toggleRead"
-                  disabled
-                >
-                  Mark unread
-                </button>
+  
+              <div class="highlights-pane" data-highlights-target="highlightsPane" hidden>
+                <div class="highlights-list" data-highlights-target="list"></div>
               </div>
-            </header>
-
-            <div class="reader-pane" data-highlights-target="readerPane">
-              <article
-                class="reader-content"
-                data-reader-target="content"
-                data-highlight-target="content"
-              ></article>
-
-              <div class="highlight-toolbar" data-highlight-target="toolbar" hidden>
-                <button type="button" data-action="highlight#create">Highlight</button>
-              </div>
-            </div>
-
-            <div class="highlights-pane" data-highlights-target="highlightsPane" hidden>
-              <div class="highlights-list" data-highlights-target="list"></div>
             </div>
           </section>
         </div>
