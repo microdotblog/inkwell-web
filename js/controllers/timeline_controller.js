@@ -116,7 +116,7 @@ export default class extends Controller {
     this.searchToggleTarget.classList.toggle("is-active", this.searchActive);
     this.searchToggleTarget.setAttribute(
       "aria-label",
-      this.searchActive ? "Close search" : "Search timeline"
+      this.searchActive ? "Close search" : "Search"
     );
   }
 

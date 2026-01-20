@@ -41,7 +41,7 @@ export default class extends Controller {
     const html = payload.html || `<p>${post.summary || "No preview available yet."}</p>`;
     this.currentPostTitle = payload.title || post.title || "Untitled";
     this.setTitle(this.currentPostTitle);
-    this.metaTarget.textContent = payload.byline || `${post.source} - ${this.formatDate(post.published_at)}`;
+    this.metaTarget.textContent = `${post.source} - ${this.formatDate(post.published_at)}`;
     this.contentTarget.innerHTML = html;
     this.contentTarget.dataset.postId = post.id;
     this.contentTarget.dataset.postUrl = post.url;

@@ -171,7 +171,6 @@ export const mockPosts = [
 export const mockReaderContent = {
   "post-001": {
     title: "The Quiet Edge of Morning",
-    byline: "Alex Chen - 5 min read",
     html: `
       <p class="lead">Morning arrives with a different texture when you give it a few minutes of air.</p>
       <p>Today I kept my phone face down and let the coffee find its pace. The room felt wider. The first page of the notebook was suddenly enough.</p>
@@ -182,7 +181,6 @@ export const mockReaderContent = {
   },
   "post-002": {
     title: "Designing a calmer timeline",
-    byline: "Rae Patel - 7 min read",
     html: `
       <p class="lead">A feed is a room. We can decide how loud the chairs scrape.</p>
       <p>I have been watching my own scrolling habits and noticing the moments that make me exhale. Those are the moments I want to keep.</p>
@@ -191,7 +189,6 @@ export const mockReaderContent = {
   },
   "post-004": {
     title: "How to keep a reading stack",
-    byline: "Morgan Lee - 4 min read",
     html: `
       <p class="lead">A stack is a promise, not a list.</p>
       <p>Keep the stack short. Three to five pieces, tops. The stack should fit in a single glance.</p>
@@ -200,7 +197,6 @@ export const mockReaderContent = {
   },
   "post-007": {
     title: "The long walk home",
-    byline: "Ira Soto - 6 min read",
     html: `
       <p class="lead">Walking lets the day decompress.</p>
       <p>Even a short loop around the block is enough to reset the nervous system. I bring one question with me and let the street answer.</p>
@@ -209,7 +205,6 @@ export const mockReaderContent = {
   },
   "post-009": {
     title: "As the light changes",
-    byline: "Jules Park - 3 min read",
     html: `
       <p class="lead">Late afternoon light turns everything into a sketch.</p>
       <p>I like to put unfinished work near a window at this hour. The glow adds perspective.</p>
