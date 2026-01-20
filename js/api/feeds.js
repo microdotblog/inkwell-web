@@ -1,5 +1,6 @@
 const MICRO_BLOG_BASE_URL = "http://localhost:3000";
 const MICRO_BLOG_TOKEN_KEY = "inkwell_microblog_token";
+const MICRO_BLOG_AVATAR_KEY = "inkwell_microblog_avatar";
 
 const entryCache = new Map();
 
@@ -25,6 +26,51 @@ export function setMicroBlogToken(token) {
 
   localStorage.setItem(MICRO_BLOG_TOKEN_KEY, trimmed);
   return trimmed;
+}
+
+export function getMicroBlogAvatar() {
+  const stored = localStorage.getItem(MICRO_BLOG_AVATAR_KEY);
+  if (stored && stored.trim()) {
+    return stored.trim();
+  }
+
+  return "";
+}
+
+export function setMicroBlogAvatar(avatarUrl) {
+  const trimmed = (avatarUrl || "").trim();
+  if (!trimmed) {
+    localStorage.removeItem(MICRO_BLOG_AVATAR_KEY);
+    return "";
+  }
+
+  localStorage.setItem(MICRO_BLOG_AVATAR_KEY, trimmed);
+  return trimmed;
+}
+
+export async function fetchMicroBlogAvatar() {
+  const token = getMicroBlogToken();
+  if (!token) {
+    return "";
+  }
+
+  const url = new URL("/account/verify", `${MICRO_BLOG_BASE_URL}/`);
+  const body = new URLSearchParams({ token });
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Accept": "application/json"
+    },
+    body
+  });
+
+  if (!response.ok) {
+    throw new Error(`Micro.blog verify failed: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  return setMicroBlogAvatar(payload?.avatar || "");
 }
 
 export function cacheFeedEntries(entries) {
