@@ -30,7 +30,7 @@ export default class extends Controller {
     this.markUnreadTarget.disabled = false;
     this.updateReadButton();
     this.setTitle(this.currentPostTitle);
-    this.metaTarget.textContent = `${post.source} - ${this.formatDate(post.published_at)}`;
+    this.setMeta(post);
     this.contentTarget.innerHTML = "<p class=\"loading\">Loading readable view...</p>";
     this.avatarTarget.hidden = false;
     this.avatarTarget.src = post.avatar_url || "/images/avatar-placeholder.svg";
@@ -41,7 +41,7 @@ export default class extends Controller {
     const html = payload.html || `<p>${post.summary || "No preview available yet."}</p>`;
     this.currentPostTitle = payload.title || post.title || "Untitled";
     this.setTitle(this.currentPostTitle);
-    this.metaTarget.textContent = `${post.source} - ${this.formatDate(post.published_at)}`;
+    this.setMeta(post);
     this.contentTarget.innerHTML = html;
     this.contentTarget.dataset.postId = post.id;
     this.contentTarget.dataset.postUrl = post.url;
@@ -127,6 +127,38 @@ export default class extends Controller {
     const label = this.truncateTitle(trimmed || "Untitled");
     this.titleTarget.textContent = label;
     this.titleTarget.title = trimmed || "Untitled";
+  }
+
+  setMeta(post) {
+    if (!this.metaTarget || !post) {
+      return;
+    }
+
+    const source = post.source || "";
+    const formattedDate = this.formatDate(post.published_at);
+    this.metaTarget.textContent = "";
+
+    const fragment = document.createDocumentFragment();
+    if (source) {
+      fragment.append(document.createTextNode(source));
+    }
+
+    if (formattedDate) {
+      if (source) {
+        fragment.append(document.createTextNode(" - "));
+      }
+      if (post.url) {
+        const link = document.createElement("a");
+        link.href = post.url;
+        link.textContent = formattedDate;
+        fragment.append(link);
+      }
+      else {
+        fragment.append(document.createTextNode(formattedDate));
+      }
+    }
+
+    this.metaTarget.append(fragment);
   }
 
   truncateTitle(title) {

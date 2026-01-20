@@ -8,6 +8,7 @@
   --ink-sky: #dbe6ef;
   --ink-fade: #f2ece1;
   --ink-shadow: rgba(23, 18, 12, 0.08);
+  --ink-link: #4779b2;
   --pico-font-family: system-ui, "San Francisco", "Segoe UI", "Roboto", sans-serif;
   --pico-border-radius: 12px;
   --pico-form-element-spacing-vertical: 0.5rem;
@@ -22,6 +23,10 @@ body {
   background: radial-gradient(circle at top, #fdfaf3 0%, #f2e8d8 55%, #e6d8c6 100%);
   color: var(--ink-ink);
   min-height: 100vh;
+}
+
+a {
+  color: var(--ink-link);
 }
 
 body > main {
@@ -385,6 +390,15 @@ button:focus:not(:focus-visible) {
   margin: 0;
   color: var(--ink-muted);
   font-size: 0.85rem;
+}
+
+.reader-meta a {
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.reader-meta a:hover {
+  text-decoration: underline;
 }
 
 .reader-tabs {

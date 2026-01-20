@@ -15,7 +15,7 @@
 }
 
 .reader-content a {
-  color: var(--ink-copper);
+  color: var(--ink-link);
 }
 
 .reader-content .lead {
@@ -77,8 +77,10 @@
 }
 
 .btn-sm {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   padding: 0.2rem 0.65rem;
+  border-radius: 7px;
+  background-color: #f8f8f8;
 }
 
 .highlight-action:hover {
