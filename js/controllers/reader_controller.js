@@ -1,5 +1,6 @@
 import { Controller } from "../stimulus.js";
 import { fetchReadableContent } from "../api/content.js";
+import { markFeedEntriesUnread } from "../api/feeds.js";
 import { markRead, markUnread } from "../storage/reads.js";
 
 export default class extends Controller {
@@ -86,6 +87,7 @@ export default class extends Controller {
     try {
       if (this.currentPostRead) {
         await markUnread(this.currentPostId);
+        await markFeedEntriesUnread([this.currentPostId]);
       }
       else {
         await markRead(this.currentPostId);

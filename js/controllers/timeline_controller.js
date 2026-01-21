@@ -1,6 +1,7 @@
 import { Controller } from "../stimulus.js";
 import { timelineBorderColors, timelineColors } from "../mock_data.js";
 import { fetchTimeline } from "../api/posts.js";
+import { markFeedEntriesRead } from "../api/feeds.js";
 import { loadReadIds, markAllRead, markRead } from "../storage/reads.js";
 
 const SEGMENT_BUCKETS = {
@@ -20,6 +21,8 @@ export default class extends Controller {
     this.isSyncing = false;
     this.searchActive = false;
     this.readIds = new Set();
+    this.pendingReadIds = new Set();
+    this.readSyncTimer = null;
     this.handleClick = this.handleClick.bind(this);
     this.handleUnread = this.handleUnread.bind(this);
     this.handleRead = this.handleRead.bind(this);
@@ -43,6 +46,7 @@ export default class extends Controller {
     window.removeEventListener("keydown", this.handleKeydown);
     window.removeEventListener("timeline:markAllRead", this.handleMarkAllRead);
     window.removeEventListener("auth:ready", this.handleAuthReady);
+    this.clearReadSyncTimer();
   }
 
   async load() {
@@ -186,6 +190,8 @@ export default class extends Controller {
 
     post.is_read = true;
     this.readIds.add(postId);
+    this.queueRead(postId);
+    this.scheduleReadSync();
     this.render();
   }
 
@@ -291,8 +297,13 @@ export default class extends Controller {
       this.readIds.add(post.id);
       this.persistRead(post.id);
     }
+    const selectionChanged = post.id !== this.activePostId;
     this.activePostId = post.id;
     this.render();
+    if (selectionChanged) {
+      this.queueRead(post.id);
+      this.scheduleReadSync();
+    }
 
     window.dispatchEvent(new CustomEvent("post:open", { detail: { post } }));
     this.scrollActivePostIntoView();
@@ -413,6 +424,48 @@ export default class extends Controller {
     }
     catch (error) {
       console.warn("Failed to persist read state", error);
+    }
+  }
+
+  queueRead(postId) {
+    if (!postId) {
+      return;
+    }
+
+    this.pendingReadIds.add(String(postId));
+  }
+
+  scheduleReadSync() {
+    this.clearReadSyncTimer();
+    this.readSyncTimer = window.setTimeout(() => {
+      this.readSyncTimer = null;
+      this.flushReadQueue();
+    }, 3000);
+  }
+
+  clearReadSyncTimer() {
+    if (!this.readSyncTimer) {
+      return;
+    }
+
+    window.clearTimeout(this.readSyncTimer);
+    this.readSyncTimer = null;
+  }
+
+  async flushReadQueue() {
+    if (this.pendingReadIds.size === 0) {
+      return;
+    }
+
+    const ids = Array.from(this.pendingReadIds);
+    this.pendingReadIds.clear();
+
+    try {
+      await markFeedEntriesRead(ids);
+    }
+    catch (error) {
+      console.warn("Failed to sync read entries", error);
+      ids.forEach((id) => this.pendingReadIds.add(id));
     }
   }
 }

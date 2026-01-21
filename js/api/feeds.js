@@ -143,6 +143,46 @@ export async function fetchFeedIcons() {
   return fetchFeedsJson("/feeds/icons.json");
 }
 
+export async function markFeedEntriesRead(entryIds) {
+  const ids = Array.isArray(entryIds) ? entryIds.filter(Boolean).map(String) : [];
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const unreadEntries = ids.map((id) => {
+    const numericId = Number(id);
+    return Number.isNaN(numericId) ? id : numericId;
+  });
+
+  return fetchFeedsJson("/feeds/unread_entries.json", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ unread_entries: unreadEntries })
+  });
+}
+
+export async function markFeedEntriesUnread(entryIds) {
+  const ids = Array.isArray(entryIds) ? entryIds.filter(Boolean).map(String) : [];
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const unreadEntries = ids.map((id) => {
+    const numericId = Number(id);
+    return Number.isNaN(numericId) ? id : numericId;
+  });
+
+  return fetchFeedsJson("/feeds/unread_entries.json", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ unread_entries: unreadEntries })
+  });
+}
+
 async function fetchFeedsJson(path, options = {}) {
   const url = new URL(path, `${getFeedsBaseUrl()}/`);
   const headers = new Headers(options.headers || {});
