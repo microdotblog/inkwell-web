@@ -20,7 +20,7 @@
 }
 
 body {
-  background: radial-gradient(circle at top, #fdfaf3 0%, #f2e8d8 55%, #e6d8c6 100%);
+  background: #fff;
   color: var(--ink-ink);
   min-height: 100vh;
 }
