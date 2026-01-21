@@ -55,6 +55,12 @@
                     <a class="user-menu-item" href="https://micro.blog" data-action="user-menu#close">
                       Go to Micro.blog
                     </a>
+					<button type="button" class="user-menu-item" data-action="user-menu#openSubscriptions user-menu#close" data-user-menu-mode="subscribe">
+						Subscribe...
+					</button>
+					<button type="button" class="user-menu-item" data-action="user-menu#openSubscriptions user-menu#close" data-user-menu-mode="manage">
+						Manage Feeds
+					</button>
                     <button type="button" class="user-menu-item" data-action="user-menu#markAllRead user-menu#close">
                       Mark All as Read
                     </button>
@@ -103,60 +109,89 @@
             <div class="timeline" data-timeline-target="list"></div>
           </aside>
 
-          <section class="right-pane" data-controller="reader highlight highlights">
+          <section class="right-pane" data-controller="reader highlight highlights subscriptions">
             <div class="right-content">              
-              <header class="reader-header">
-                <div class="segments reader-tabs">
-                  <button
-                    type="button"
-                    class="reader-tab"
-                    data-action="highlights#showReader"
-                    data-highlights-target="readerTab"
-                    aria-pressed="true"
-                  >
-                    <img class="reader-avatar" src="/images/blank_avatar.png" alt="" data-reader-target="avatar" hidden>
-                    <span data-reader-target="title">Select a post</span>
-                  </button>
-                  <button
-                    type="button"
-                    class="highlights-toggle"
-                    data-action="highlights#showHighlights"
-                    data-highlights-target="toggle"
-                    aria-pressed="false"
-                    hidden
-                  >
-                    0 highlights
-                  </button>
-                </div>
-                <div class="reader-actions">
-                  <p class="reader-meta" data-reader-target="meta"></p>
-                  <button
-                    type="button"
-                    class="mark-unread"
-                    data-reader-target="markUnread"
-                    data-action="reader#toggleRead"
-                    disabled
-                  >
-                    Mark unread
-                  </button>
-                </div>
-              </header>
-  
-              <div class="reader-pane" data-highlights-target="readerPane">
-                <article
-                  class="reader-content"
-                  data-reader-target="content"
-                  data-highlight-target="content"
-                ></article>
-  
-                <div class="highlight-toolbar" data-highlight-target="toolbar" hidden>
-                  <button type="button" data-action="highlight#create">Highlight</button>
-                </div>
-              </div>
-  
-              <div class="highlights-pane" data-highlights-target="highlightsPane" hidden>
-                <div class="highlights-list" data-highlights-target="list"></div>
-              </div>
+				<div class="reader-view" data-subscriptions-target="readerView">
+					<header class="reader-header">
+						<div class="segments reader-tabs">
+							<button
+								type="button"
+								class="reader-tab"
+								data-action="highlights#showReader"
+								data-highlights-target="readerTab"
+								aria-pressed="true"
+							>
+								<img class="reader-avatar" src="/images/blank_avatar.png" alt="" data-reader-target="avatar" hidden>
+								<span data-reader-target="title">Select a post</span>
+							</button>
+							<button
+								type="button"
+								class="highlights-toggle"
+								data-action="highlights#showHighlights"
+								data-highlights-target="toggle"
+								aria-pressed="false"
+								hidden
+							>
+								0 highlights
+							</button>
+						</div>
+						<div class="reader-actions">
+							<p class="reader-meta" data-reader-target="meta"></p>
+							<button
+								type="button"
+								class="mark-unread"
+								data-reader-target="markUnread"
+								data-action="reader#toggleRead"
+								disabled
+							>
+								Mark unread
+							</button>
+						</div>
+					</header>
+
+					<div class="reader-pane" data-highlights-target="readerPane">
+						<article
+							class="reader-content"
+							data-reader-target="content"
+							data-highlight-target="content"
+						></article>
+
+						<div class="highlight-toolbar" data-highlight-target="toolbar" hidden>
+							<button type="button" data-action="highlight#create">Highlight</button>
+						</div>
+					</div>
+
+					<div class="highlights-pane" data-highlights-target="highlightsPane" hidden>
+						<div class="highlights-list" data-highlights-target="list"></div>
+					</div>
+				</div>
+
+				<section class="subscriptions-pane" data-subscriptions-target="pane" hidden>
+					<header class="subscriptions-header">
+						<h2>Subscriptions</h2>
+					</header>
+					<div class="subscriptions-form" data-subscriptions-target="formWrapper" hidden>
+						<form data-action="subscriptions#subscribe">
+							<div class="subscriptions-form-row">
+								<input
+									type="url"
+									placeholder="RSS or JSON Feed URL"
+									autocomplete="off"
+									spellcheck="false"
+									data-subscriptions-target="input"
+								>
+								<button type="submit" class="contrast" data-subscriptions-target="submit">
+									Subscribe
+								</button>
+							</div>
+							<div class="subscriptions-status">
+								<img class="subscriptions-spinner" src="/images/progress_spinner.svg" alt="" aria-hidden="true" data-subscriptions-target="spinner" hidden>
+								<span class="subscriptions-status-text" data-subscriptions-target="status" hidden></span>
+							</div>
+						</form>
+					</div>
+					<div class="subscriptions-list" data-subscriptions-target="list"></div>
+				</section>
             </div>
           </section>
         </div>

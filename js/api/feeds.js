@@ -91,6 +91,50 @@ export async function fetchFeedSubscriptions() {
   return fetchFeedsJson("/feeds/subscriptions.json?mode=extended");
 }
 
+export async function createFeedSubscription(feed_url) {
+	const trimmed = (feed_url || "").trim();
+	if (!trimmed) {
+		return null;
+	}
+
+	return fetchFeedsJson("/feeds/subscriptions.json", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({ feed_url: trimmed })
+	});
+}
+
+export async function deleteFeedSubscription(subscription_id) {
+	if (!subscription_id) {
+		return null;
+	}
+
+	const url = new URL(`/feeds/subscriptions/${subscription_id}.json`, `${getFeedsBaseUrl()}/`);
+	const headers = new Headers();
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+	headers.set("Accept", "application/json");
+
+	const response = await fetch(url, {
+		method: "DELETE",
+		headers
+	});
+
+	if (!response.ok) {
+		throw new Error(`Feeds request failed: ${response.status}`);
+	}
+
+	if (response.status === 204) {
+		return null;
+	}
+
+	return response.json();
+}
+
 export async function fetchFeedEntries() {
   const perPage = 100;
   const entries = [];

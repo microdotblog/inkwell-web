@@ -40,6 +40,13 @@ export default class extends Controller {
     window.dispatchEvent(new CustomEvent("timeline:markAllRead"));
   }
 
+	openSubscriptions(event) {
+		const menu_mode = event.currentTarget?.dataset.userMenuMode || "manage";
+		window.dispatchEvent(
+			new CustomEvent("subscriptions:open", { detail: { mode: menu_mode } })
+		);
+	}
+
   handleDocumentClick(event) {
     if (this.element.contains(event.target)) {
       return;
