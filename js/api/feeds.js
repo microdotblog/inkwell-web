@@ -113,6 +113,7 @@ export async function createFeedSubscription(feed_url) {
 		body: JSON.stringify({ feed_url: trimmed })
 	});
 
+	// 300 Multiple Choices
 	if (response.status === 300) {
 		return response.json();
 	}
