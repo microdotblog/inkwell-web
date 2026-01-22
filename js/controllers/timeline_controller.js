@@ -291,7 +291,7 @@ export default class extends Controller {
     const posts = this.getVisiblePosts();
 
     if (!posts.length) {
-      this.listTarget.innerHTML = "<p class=\"canvas-empty\">No posts yet.</p>";
+      this.listTarget.innerHTML = "<p class=\"canvas-empty\"><!-- No posts. --></p>";
       return;
     }
 
