@@ -60,6 +60,7 @@ export default class extends Controller {
 
 	handlePostOpen() {
 		this.hidePane();
+		this.setReaderEmptyState(false);
 	}
 
 	showPane() {
@@ -69,6 +70,8 @@ export default class extends Controller {
 		this.paneTarget.hidden = false;
 		this.readerViewTarget.hidden = true;
 		this.is_visible = true;
+		this.setReaderEmptyState(false);
+		this.resetScrollPosition();
 	}
 
 	hidePane() {
@@ -78,6 +81,7 @@ export default class extends Controller {
 		this.paneTarget.hidden = true;
 		this.readerViewTarget.hidden = false;
 		this.is_visible = false;
+		this.restoreReaderEmptyState();
 	}
 
 	updateFormVisibility() {
@@ -240,6 +244,23 @@ export default class extends Controller {
 	clearStatus() {
 		this.statusTarget.textContent = "";
 		this.statusTarget.hidden = true;
+	}
+
+	resetScrollPosition() {
+		this.element.scrollTop = 0;
+	}
+
+	restoreReaderEmptyState() {
+		this.setReaderEmptyState(this.isReaderEmpty());
+	}
+
+	setReaderEmptyState(is_empty) {
+		this.element.classList.toggle("is-empty", is_empty);
+	}
+
+	isReaderEmpty() {
+		const content = this.readerViewTarget.querySelector("[data-reader-target=\"content\"]");
+		return !content?.dataset.postId;
 	}
 
 	escapeHtml(value) {
