@@ -224,6 +224,7 @@ button:focus:not(:focus-visible) {
   font-size: 0.8rem;
   cursor: pointer;
   text-decoration: none;
+  margin-bottom: 0;
 }
 
 .user-menu-item:hover {

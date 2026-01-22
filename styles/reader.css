@@ -109,25 +109,18 @@
   gap: 0.5rem;
 }
 
-.highlight-action {
-  border: 1px solid rgba(29, 26, 22, 0.12);
-  background: #fff;
-  color: var(--ink-muted);
-  border-radius: 999px;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.75rem;
-  cursor: pointer;
-  margin-bottom: 0;
-}
-
 .btn-sm {
   font-size: 0.6rem;
   padding: 0.2rem 0.5rem;
   border-radius: 7px;
   background-color: #f8f8f8;
+  border: 1px solid rgba(29, 26, 22, 0.12);
+  color: var(--ink-muted);
+  cursor: pointer;
+  margin-bottom: 0;
 }
 
-.highlight-action:hover {
+.btn-sm:hover {
   border-color: rgba(29, 26, 22, 0.2);
   color: var(--ink-ink);
 }

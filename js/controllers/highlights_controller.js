@@ -70,9 +70,9 @@ export default class extends Controller {
           <div class="highlight-item" data-highlight-id="${highlight.id}">
             <div class="highlight-text">${highlight.text}</div>
             <div class="highlight-actions">
-              <button type="button" class="highlight-action btn-sm" data-action="highlights#newPost">New Post...</button>
-              <button type="button" class="highlight-action btn-sm" data-action="highlights#copyHighlight">Copy</button>
-              <button type="button" class="highlight-action btn-sm is-destructive" data-action="highlights#deleteHighlight">Delete</button>
+              <button type="button" class="btn-sm" data-action="highlights#newPost">New Post...</button>
+              <button type="button" class="btn-sm" data-action="highlights#copyHighlight">Copy</button>
+              <button type="button" class="btn-sm is-destructive" data-action="highlights#deleteHighlight">Delete</button>
             </div>
           </div>
         `;
