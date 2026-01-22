@@ -52,6 +52,21 @@ h2 {
   padding-bottom: 0;
 }
 
+button[type="submit"] {
+	font-size: 0.9rem;
+	padding-left: 7px;
+	padding-right: 7px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	height: 40px;
+}
+
+input[type="text"], input[type="password"], input[type="url"] {
+	font-size: 0.9rem;
+	height: 40px;
+	padding: 10px;
+}
+
 button:focus:not(:focus-visible) {
   outline: none;
   box-shadow: none;
@@ -559,25 +574,30 @@ button:focus:not(:focus-visible) {
 
 .subscriptions-header h2 {
 	margin: 0;
-	font-size: 1.35rem;
+	font-size: 1rem;
 }
 
 .subscriptions-form {
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
+	margin-top: var(--pico-spacing);
 }
 
 .subscriptions-form-row {
 	display: flex;
 	align-items: center;
 	gap: 0.75rem;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 }
 
 .subscriptions-form-row input {
 	flex: 1;
-	min-width: 220px;
+	min-width: 0;
+}
+
+.subscriptions-form-row button {
+	max-width: 120px;
 }
 
 .subscriptions-status {
@@ -605,9 +625,7 @@ button:focus:not(:focus-visible) {
 	align-items: center;
 	justify-content: space-between;
 	gap: 1rem;
-	padding: 0.85rem 1rem;
-	border-radius: 14px;
-	border: 1px solid rgba(29, 26, 22, 0.12);
+	padding: 0.5rem 0rem;
 	background: #fff;
 }
 
