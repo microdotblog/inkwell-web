@@ -91,6 +91,69 @@ export async function fetchFeedSubscriptions() {
   return fetchFeedsJson("/feeds/subscriptions.json?mode=extended");
 }
 
+export async function createFeedSubscription(feed_url) {
+	const trimmed = (feed_url || "").trim();
+	if (!trimmed) {
+		return null;
+	}
+
+	const url = new URL("/feeds/subscriptions.json", `${getFeedsBaseUrl()}/`);
+	const headers = new Headers({
+		"Content-Type": "application/json",
+		"Accept": "application/json"
+	});
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+
+	const response = await fetch(url, {
+		method: "POST",
+		headers,
+		body: JSON.stringify({ feed_url: trimmed })
+	});
+
+	// 300 Multiple Choices
+	if (response.status === 300) {
+		return response.json();
+	}
+
+	if (!response.ok) {
+		throw new Error(`Feeds request failed: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+export async function deleteFeedSubscription(subscription_id) {
+	if (!subscription_id) {
+		return null;
+	}
+
+	const url = new URL(`/feeds/subscriptions/${subscription_id}.json`, `${getFeedsBaseUrl()}/`);
+	const headers = new Headers();
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+	headers.set("Accept", "application/json");
+
+	const response = await fetch(url, {
+		method: "DELETE",
+		headers
+	});
+
+	if (!response.ok) {
+		throw new Error(`Feeds request failed: ${response.status}`);
+	}
+
+	if (response.status === 204) {
+		return null;
+	}
+
+	return response.json();
+}
+
 export async function fetchFeedEntries() {
   const perPage = 100;
   const entries = [];
