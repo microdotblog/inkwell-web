@@ -1,4 +1,6 @@
 import { Controller } from "../stimulus.js";
+import { mockSubscriptions } from "../mock_data.js";
+import { USE_MOCK_DATA } from "../config.js";
 import {
 	createFeedSubscription,
 	deleteFeedSubscription,
@@ -106,8 +108,14 @@ export default class extends Controller {
 		}
 		catch (error) {
 			console.warn("Failed to load subscriptions", error);
-			this.subscriptions = [];
-			this.showStatus("Unable to load subscriptions.");
+			if (USE_MOCK_DATA) {
+				this.subscriptions = [...mockSubscriptions];
+				this.clearStatus();
+			}
+			else {
+				this.subscriptions = [];
+				this.showStatus("Unable to load subscriptions.");
+			}
 		}
 		finally {
 			this.is_loading = false;

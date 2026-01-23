@@ -1,6 +1,6 @@
 import { Controller } from "../stimulus.js";
 import { timelineBorderColors, timelineColors } from "../mock_data.js";
-import { fetchTimeline } from "../api/posts.js";
+import { fetchTimelineData } from "../api/posts.js";
 import { markFeedEntriesRead } from "../api/feeds.js";
 import { loadReadIds, markAllRead, markRead } from "../storage/reads.js";
 
@@ -21,6 +21,7 @@ export default class extends Controller {
     this.posts = [];
     this.isLoading = true;
     this.isSyncing = false;
+		this.subscriptionCount = null;
     this.searchActive = false;
 		this.searchQuery = "";
     this.readIds = new Set();
@@ -63,9 +64,13 @@ export default class extends Controller {
 
     this.setSyncing(true);
     try {
-      const [posts, readIds] = await Promise.all([fetchTimeline(), loadReadIds()]);
-      this.readIds = new Set(readIds);
-      this.posts = posts;
+      const [timeline_data, read_ids] = await Promise.all([
+				fetchTimelineData(),
+				loadReadIds()
+			]);
+      this.readIds = new Set(read_ids);
+      this.posts = timeline_data.posts || [];
+			this.subscriptionCount = timeline_data.subscription_count;
       this.posts.forEach((post) => {
         if (this.readIds.has(post.id)) {
           post.is_read = true;
@@ -352,6 +357,10 @@ export default class extends Controller {
     const posts = this.getVisiblePosts();
 
     if (!posts.length) {
+			if (this.subscriptionCount == 0) {
+				this.listTarget.innerHTML = this.renderNoSubscriptions();
+				return;
+			}
       this.listTarget.innerHTML = "<p class=\"canvas-empty\"><!-- No posts. --></p>";
       return;
     }
@@ -359,6 +368,26 @@ export default class extends Controller {
     const items = posts.map((post) => this.renderPost(post)).join("");
     this.listTarget.innerHTML = items;
   }
+
+	renderNoSubscriptions() {
+		return `
+			<p class="canvas-empty timeline-empty">
+				No subscriptions.<br>
+				<button
+					type="button"
+					class="btn-sm"
+					data-action="timeline#openSubscriptions"
+				>New Feed...</button>
+			</p>
+		`;
+	}
+
+	openSubscriptions(event) {
+		event?.preventDefault();
+		window.dispatchEvent(
+			new CustomEvent("subscriptions:open", { detail: { mode: "subscribe" } })
+		);
+	}
 
   openPost(post) {
     if (!post) {

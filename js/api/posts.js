@@ -1,4 +1,5 @@
 import { mockPosts } from "../mock_data.js";
+import { USE_MOCK_DATA } from "../config.js";
 import {
   cacheFeedEntries,
   fetchFeedEntries,
@@ -9,7 +10,7 @@ import {
 
 const DEFAULT_AVATAR_URL = "/images/blank_avatar.png";
 
-export async function fetchTimeline() {
+export async function fetchTimelineData() {
   try {
     const [subscriptions, entries, unreadEntryIds, icons] = await Promise.all([
       fetchFeedSubscriptions(),
@@ -19,6 +20,7 @@ export async function fetchTimeline() {
     ]);
 
     cacheFeedEntries(entries);
+		const subscription_count = Array.isArray(subscriptions) ? subscriptions.length : 0;
 
     const subscriptionMap = new Map(
       subscriptions.map((subscription) => [subscription.feed_id, subscription])
@@ -30,7 +32,7 @@ export async function fetchTimeline() {
         : []
     );
 
-    return entries.map((entry) => {
+    const posts = entries.map((entry) => {
       const subscription = subscriptionMap.get(entry.feed_id);
       const publishedAt = entry.published || entry.created_at || new Date().toISOString();
       return {
@@ -47,11 +49,21 @@ export async function fetchTimeline() {
         age_bucket: getAgeBucket(publishedAt)
       };
     });
+
+		return { posts, subscription_count };
   }
   catch (error) {
-    console.error("Failed to load feeds timeline", error);
-    return [...mockPosts];
+		if (USE_MOCK_DATA) {
+			console.error("Failed to load feeds timeline", error);
+			return { posts: [...mockPosts], subscription_count: null };
+		}
+		throw error;
   }
+}
+
+export async function fetchTimeline() {
+	const timeline_data = await fetchTimelineData();
+	return timeline_data.posts;
 }
 
 export async function fetchPostsBySource(source) {

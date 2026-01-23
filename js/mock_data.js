@@ -168,6 +168,44 @@ export const mockPosts = [
   }
 ];
 
+export const mockSubscriptions = [
+	{
+		id: "sub-001",
+		feed_id: "feed-001",
+		title: "Micro.blog",
+		site_url: "https://micro.blog",
+		feed_url: "https://micro.blog/feed.xml"
+	},
+	{
+		id: "sub-002",
+		feed_id: "feed-002",
+		title: "Desk Notes",
+		site_url: "https://example.com/desk-notes",
+		feed_url: "https://example.com/desk-notes/feed.xml"
+	},
+	{
+		id: "sub-003",
+		feed_id: "feed-003",
+		title: "Leaf & Ink",
+		site_url: "https://example.com/leaf-ink",
+		feed_url: "https://example.com/leaf-ink/feed.xml"
+	},
+	{
+		id: "sub-004",
+		feed_id: "feed-004",
+		title: "Signal Drift",
+		site_url: "https://example.com/signal-drift",
+		feed_url: "https://example.com/signal-drift/feed.xml"
+	},
+	{
+		id: "sub-005",
+		feed_id: "feed-005",
+		title: "Studio Log",
+		site_url: "https://example.com/studio-log",
+		feed_url: "https://example.com/studio-log/feed.xml"
+	}
+];
+
 export const mockReaderContent = {
   "post-001": {
     title: "The Quiet Edge of Morning",
