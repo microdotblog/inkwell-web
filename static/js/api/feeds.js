@@ -50,28 +50,30 @@ export function setMicroBlogAvatar(avatarUrl) {
 }
 
 export async function fetchMicroBlogAvatar() {
-  const token = getMicroBlogToken();
-  if (!token) {
-    return "";
-  }
+	const token = getMicroBlogToken();
+	if (!token) {
+		return "";
+	}
 
-  const url = new URL("/account/verify", `${MICRO_BLOG_BASE_URL}/`);
-  const body = new URLSearchParams({ token });
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Accept": "application/json"
-    },
-    body
-  });
+	const url = new URL("/account/verify", `${MICRO_BLOG_BASE_URL}/`);
+	const body = new URLSearchParams({ token });
+	const headers = new Headers({
+		"Content-Type": "application/x-www-form-urlencoded",
+		"Accept": "application/json"
+	});
+	headers.set("Authorization", `Bearer ${token}`);
+	const response = await fetch(url, {
+		method: "POST",
+		headers,
+		body
+	});
 
-  if (!response.ok) {
-    throw new Error(`Micro.blog verify failed: ${response.status}`);
-  }
+	if (!response.ok) {
+		throw new Error(`Micro.blog verify failed: ${response.status}`);
+	}
 
-  const payload = await response.json();
-  return setMicroBlogAvatar(payload?.avatar || "");
+	const payload = await response.json();
+	return setMicroBlogAvatar(payload?.avatar || "");
 }
 
 export function cacheFeedEntries(entries) {

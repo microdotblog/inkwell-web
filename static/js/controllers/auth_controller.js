@@ -1,120 +1,207 @@
 import { Controller } from "../stimulus.js";
-import { getToken, saveToken, clearToken } from "../api/auth.js";
 import {
-  fetchMicroBlogAvatar,
-  getMicroBlogAvatar,
-  getMicroBlogToken,
-  setMicroBlogAvatar,
-  setMicroBlogToken
+	fetchMicroBlogAvatar,
+	getMicroBlogAvatar,
+	getMicroBlogToken,
+	setMicroBlogAvatar,
+	setMicroBlogToken
 } from "../api/feeds.js";
 
+const MICRO_BLOG_AUTH_URL = "https://micro.blog/indieauth/auth";
+const MICRO_BLOG_TOKEN_URL = "https://micro.blog/indieauth/token";
+const OAUTH_STATE_KEY = "inkwell_oauth_state";
+const LEGACY_TOKEN_KEY = "inkwell_token";
+
 export default class extends Controller {
-  static targets = ["signin", "app", "tokenInput", "avatar"];
+	static targets = ["signin", "app", "avatar"];
 
-  connect() {
-    if (this.hasTokenInputTarget) {
-      this.tokenInputTarget.value = getMicroBlogToken() || "";
-    }
-    this.updateAvatarFromStorage();
-    this.restoreSession();
-  }
+	async connect() {
+		this.updateAvatarFromStorage();
+		await this.completeOAuthSignin();
+		this.restoreSession();
+	}
 
-  signin() {
-    this.saveMicroBlogToken();
-    const token = "mock-token";
-    saveToken(token);
-    this.showApp();
-  }
+	signin() {
+		const state_value = this.createOAuthState();
+		if (!state_value) {
+			return;
+		}
+		const app_url = this.getAppUrl();
+		const params = new URLSearchParams({
+			client_id: app_url,
+			scope: "create",
+			state: state_value,
+			response_type: "code",
+			redirect_uri: app_url
+		});
+		const auth_url = `${MICRO_BLOG_AUTH_URL}?${params.toString()}`;
+		window.location.assign(auth_url);
+	}
 
-  signout() {
-    clearToken();
-    setMicroBlogToken("");
-    setMicroBlogAvatar("");
-    this.showSignin();
-  }
+	signout() {
+		localStorage.removeItem(OAUTH_STATE_KEY);
+		localStorage.removeItem(LEGACY_TOKEN_KEY);
+		this.stripOAuthParams(new URL(window.location.href));
+		setMicroBlogToken("");
+		setMicroBlogAvatar("");
+		this.showSignin();
+	}
 
-  restoreSession() {
-    const token = getToken();
-    const microBlogToken = getMicroBlogToken();
-    if (token || microBlogToken) {
-      this.showApp();
-      return;
-    }
+	restoreSession() {
+		const micro_blog_token = getMicroBlogToken();
+		if (micro_blog_token) {
+			this.showApp();
+			return;
+		}
 
-    this.showSignin();
-  }
+		this.showSignin();
+	}
 
-  showApp() {
+	showApp() {
 		this.element.dataset.authState = "signed-in";
 		this.appTarget.hidden = false;
 		this.signinTarget.hidden = true;
 		this.updateAvatarFromStorage();
 		this.syncAvatar();
 		window.dispatchEvent(new CustomEvent("auth:ready"));
-  }
+	}
 
-  showSignin() {
+	showSignin() {
 		this.element.dataset.authState = "signed-out";
 		this.signinTarget.hidden = false;
 		this.appTarget.hidden = true;
 		this.preloadSigninBackground();
-  }
+	}
 
-  preloadSigninBackground() {
-    if (!this.hasSigninTarget || this.signinBackgroundLoading || this.signinBackgroundLoaded) {
-      return;
-    }
+	preloadSigninBackground() {
+		if (!this.hasSigninTarget || this.signinBackgroundLoading || this.signinBackgroundLoaded) {
+			return;
+		}
 
-    this.signinBackgroundLoading = true;
-    const image = new Image();
-    image.onload = () => {
-      this.signinBackgroundLoaded = true;
-      this.signinBackgroundLoading = false;
-      this.signinTarget.classList.add("auth-screen--hi-res");
-    };
-    image.onerror = () => {
-      this.signinBackgroundLoading = false;
-    };
-    image.src = "/images/homepage/background_6_high.jpg";
-  }
+		this.signinBackgroundLoading = true;
+		const image = new Image();
+		image.onload = () => {
+			this.signinBackgroundLoaded = true;
+			this.signinBackgroundLoading = false;
+			this.signinTarget.classList.add("auth-screen--hi-res");
+		};
+		image.onerror = () => {
+			this.signinBackgroundLoading = false;
+		};
+		image.src = "/images/homepage/background_6_high.jpg";
+	}
 
-  saveMicroBlogToken(event) {
-    if (!this.hasTokenInputTarget) {
-      return;
-    }
-    const value = event?.target?.value ?? this.tokenInputTarget.value;
-    setMicroBlogToken(value);
-    if (!value) {
-      setMicroBlogAvatar("");
-      this.updateAvatarFromStorage();
-      return;
-    }
-    this.syncAvatar();
-  }
+	updateAvatarFromStorage() {
+		if (!this.hasAvatarTarget) {
+			return;
+		}
+		const avatar = getMicroBlogAvatar();
+		this.avatarTarget.src = avatar || "/images/blank_avatar.png";
+		this.avatarTarget.alt = "User avatar";
+	}
 
-  updateAvatarFromStorage() {
-    if (!this.hasAvatarTarget) {
-      return;
-    }
-    const avatar = getMicroBlogAvatar();
-    this.avatarTarget.src = avatar || "/images/blank_avatar.png";
-    this.avatarTarget.alt = "User avatar";
-  }
+	async syncAvatar() {
+		if (!getMicroBlogToken() || !this.hasAvatarTarget) {
+			return;
+		}
 
-  async syncAvatar() {
-    if (!getMicroBlogToken() || !this.hasAvatarTarget) {
-      return;
-    }
+		try {
+			const avatar = await fetchMicroBlogAvatar();
+			if (avatar) {
+				this.avatarTarget.src = avatar;
+				this.avatarTarget.alt = "User avatar";
+			}
+		}
+		catch (error) {
+			console.warn("Failed to fetch Micro.blog avatar", error);
+		}
+	}
 
-    try {
-      const avatar = await fetchMicroBlogAvatar();
-      if (avatar) {
-        this.avatarTarget.src = avatar;
-        this.avatarTarget.alt = "User avatar";
-      }
-    }
-    catch (error) {
-      console.warn("Failed to fetch Micro.blog avatar", error);
-    }
-  }
+	getAppUrl() {
+		const current_url = new URL(window.location.href);
+		return `${current_url.origin}${current_url.pathname}`;
+	}
+
+	createOAuthState() {
+		if (!window.crypto?.getRandomValues) {
+			return "";
+		}
+		const state_bytes = new Uint8Array(16);
+		window.crypto.getRandomValues(state_bytes);
+		const state_value = Array.from(state_bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+		localStorage.setItem(OAUTH_STATE_KEY, state_value);
+		return state_value;
+	}
+
+	clearOAuthState() {
+		localStorage.removeItem(OAUTH_STATE_KEY);
+	}
+
+	stripOAuthParams(current_url) {
+		if (!current_url.search) {
+			return;
+		}
+		current_url.searchParams.delete("code");
+		current_url.searchParams.delete("state");
+		window.history.replaceState({}, document.title, current_url.toString());
+	}
+
+	async completeOAuthSignin() {
+		const current_url = new URL(window.location.href);
+		const auth_code = current_url.searchParams.get("code");
+		if (!auth_code) {
+			return;
+		}
+		const returned_state = current_url.searchParams.get("state");
+		const stored_state = localStorage.getItem(OAUTH_STATE_KEY);
+		this.stripOAuthParams(current_url);
+		this.clearOAuthState();
+
+		if (!returned_state || !stored_state || returned_state != stored_state) {
+			console.warn("Micro.blog OAuth state mismatch");
+			return;
+		}
+
+		try {
+			const app_url = this.getAppUrl();
+			const access_token = await this.fetchAccessToken(auth_code, app_url);
+			if (!access_token) {
+				return;
+			}
+			setMicroBlogToken(access_token);
+			this.showApp();
+		}
+		catch (error) {
+			console.warn("Failed to sign in with Micro.blog", error);
+		}
+	}
+
+	async fetchAccessToken(auth_code, app_url) {
+		const body = new URLSearchParams({
+			code: auth_code,
+			client_id: app_url,
+			grant_type: "authorization_code",
+			redirect_uri: app_url
+		});
+		const response = await fetch(MICRO_BLOG_TOKEN_URL, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+				"Accept": "application/json"
+			},
+			body
+		});
+
+		if (!response.ok) {
+			throw new Error(`Micro.blog token exchange failed: ${response.status}`);
+		}
+
+		const payload = await response.json();
+		const access_token = payload?.access_token;
+		const profile_photo = payload?.profile?.photo;
+		if (profile_photo) {
+			setMicroBlogAvatar(profile_photo);
+		}
+		return access_token || "";
+	}
 }
