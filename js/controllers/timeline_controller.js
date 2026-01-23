@@ -10,6 +10,7 @@ const SEGMENT_BUCKETS = {
   fading: ["day-4", "day-5", "day-6", "day-7"]
 };
 const HIDE_READ_KEY = "inkwell_hide_read";
+const SUMMARY_TRUNCATE_LENGTH = 35;
 
 export default class extends Controller {
   static targets = ["list", "segments", "search", "searchToggle", "searchInput"];
@@ -477,7 +478,7 @@ export default class extends Controller {
     const summaryMarkup = summaryText
       ? `<div class="timeline-summary">${summarySnippet}</div>`
       : "";
-	const show_time_only = !this.searchActive && this.activeSegment === "today";
+	const show_time_only = this.isToday(post.published_at);
 	const formattedDate = show_time_only
 		? this.formatTime(post.published_at)
 		: this.formatDate(post.published_at);
@@ -541,13 +542,22 @@ export default class extends Controller {
 		}).format(date);
 	}
 
+	isToday(isoDate) {
+		const date = new Date(isoDate);
+		const today = new Date();
+		return (
+			(date.getFullYear() == today.getFullYear()) &&
+			(date.getMonth() == today.getMonth()) &&
+			(date.getDate() == today.getDate())
+		);
+	}
+
   truncateSummary(summary) {
-    const maxLength = 100;
-    if (summary.length <= maxLength) {
+    if (summary.length <= SUMMARY_TRUNCATE_LENGTH) {
       return summary;
     }
 
-    return `${summary.slice(0, maxLength).trimEnd()}...`;
+    return `${summary.slice(0, SUMMARY_TRUNCATE_LENGTH).trimEnd()}...`;
   }
 
 	loadHideReadSetting() {

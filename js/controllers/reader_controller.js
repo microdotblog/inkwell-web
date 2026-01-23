@@ -74,6 +74,7 @@ export default class extends Controller {
           <li><code>/</code> — search posts</li>
           <li><code>u</code> — toggle read status</li>
 					<li><code>h</code> — toggle hiding read posts</li>
+					<li><code>r</code> — refresh</li>
         </ul>
         <p>What is the <code>Fading</code> tab? Posts older than a few days are collected here. After a week, they are automatically archived, so your unread posts never get out of control.</p>
       </div>
