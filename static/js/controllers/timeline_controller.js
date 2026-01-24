@@ -501,16 +501,19 @@ export default class extends Controller {
 
   renderPost(post) {
     const title = post.title ? post.title.trim() : "";
-    const hasTitle = Boolean(title);
-    const summaryText = post.summary ? post.summary.trim() : "";
-    const summarySnippet = summaryText ? this.truncateSummary(summaryText) : "";
-    const summaryMarkup = summaryText
-      ? `<div class="timeline-summary">${summarySnippet}</div>`
+    const safe_title = this.escapeHtml(title);
+    const hasTitle = Boolean(safe_title);
+    const summary_text = post.summary ? post.summary.trim() : "";
+    const safe_summary = this.escapeHtml(summary_text);
+    const summary_snippet = safe_summary ? this.truncateSummary(safe_summary) : "";
+    const summaryMarkup = safe_summary
+      ? `<div class="timeline-summary">${summary_snippet}</div>`
       : "";
-	const show_time_only = this.isToday(post.published_at);
-	const formattedDate = show_time_only
-		? this.formatTime(post.published_at)
-		: this.formatDate(post.published_at);
+    const safe_source = this.escapeHtml(post.source || "");
+    const show_time_only = this.isToday(post.published_at);
+    const formattedDate = show_time_only
+      ? this.formatTime(post.published_at)
+      : this.formatDate(post.published_at);
     const status = post.is_archived ? "<span class=\"status-chip\">Archived</span>" : "";
     const showReadState = post.is_read && post.id !== this.activePostId;
     const classes = [
@@ -525,12 +528,12 @@ export default class extends Controller {
     const color = timelineColors[post.age_bucket] || "#fff";
     const borderColor = timelineBorderColors[post.age_bucket] || "rgba(47, 79, 63, 0.4)";
     const titleMarkup = hasTitle
-      ? `<div class="timeline-title">${title}</div>`
-      : `<div class="timeline-title timeline-title--source">${post.source}</div>`;
+      ? `<div class="timeline-title">${safe_title}</div>`
+      : `<div class="timeline-title timeline-title--source">${safe_source}</div>`;
     const metaClass = hasTitle ? "timeline-meta" : "timeline-meta timeline-meta--compact";
     const metaContent = hasTitle
       ? `
-        <span>${post.source}</span>
+        <span>${safe_source}</span>
         ${status}
         <span class="timeline-date">${formattedDate}</span>
       `
@@ -541,7 +544,7 @@ export default class extends Controller {
 
     return `
       <button type="button" class="${classes}" data-post-id="${post.id}" data-age="${post.age_bucket}" style="--row-color: ${color}; --row-border: ${borderColor};">
-        <img class="avatar" src="${post.avatar_url}" alt="${post.source}">
+        <img class="avatar" src="${post.avatar_url}" alt="${safe_source}">
         <div>
           ${titleMarkup}
           ${summaryMarkup}
@@ -588,6 +591,26 @@ export default class extends Controller {
 
     return `${summary.slice(0, SUMMARY_TRUNCATE_LENGTH).trimEnd()}...`;
   }
+
+	escapeHtml(value) {
+		const text = value || "";
+		return text.replace(/[&<>"']/g, (character) => {
+			switch (character) {
+				case "&":
+					return "&amp;";
+				case "<":
+					return "&lt;";
+				case ">":
+					return "&gt;";
+				case "\"":
+					return "&quot;";
+				case "'":
+					return "&#39;";
+				default:
+					return character;
+			}
+		});
+	}
 
 	loadHideReadSetting() {
 		const stored_hide_read = localStorage.getItem(HIDE_READ_KEY);

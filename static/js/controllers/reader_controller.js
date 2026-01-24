@@ -40,11 +40,16 @@ export default class extends Controller {
     this.contentTarget.dataset.postTitle = this.currentPostTitle;
 
     const payload = await fetchReadableContent(post.id);
-    const html = payload.html || `<p>${post.summary || "No preview available yet."}</p>`;
+		const summary_fallback = post.summary || "No preview available yet.";
+		const safe_summary = this.escapeHtml(summary_fallback);
+		let safe_html = `<p>${safe_summary}</p>`;
+		if (payload.html) {
+			safe_html = this.escapeHtml(payload.html);
+		}
     this.currentPostTitle = payload.title || post.title || "Untitled";
     this.setTitle(this.currentPostTitle);
     this.setMeta(post);
-    this.contentTarget.innerHTML = html;
+    this.contentTarget.innerHTML = safe_html;
     this.contentTarget.dataset.postId = post.id;
     this.contentTarget.dataset.postUrl = post.url;
     this.contentTarget.dataset.postTitle = this.currentPostTitle;
@@ -225,4 +230,24 @@ export default class extends Controller {
       day: "numeric"
     }).format(date);
   }
+
+	escapeHtml(value) {
+		const text = value || "";
+		return text.replace(/[&<>"']/g, (character) => {
+			switch (character) {
+				case "&":
+					return "&amp;";
+				case "<":
+					return "&lt;";
+				case ">":
+					return "&gt;";
+				case "\"":
+					return "&quot;";
+				case "'":
+					return "&#39;";
+				default:
+					return character;
+			}
+		});
+	}
 }
