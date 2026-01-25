@@ -174,15 +174,27 @@ export default class extends Controller {
   }
 
   handleClick(event) {
-    const item = event.target.closest("[data-post-id]");
-    if (!item) {
-      return;
-    }
+		const item = event.target.closest("[data-post-id]");
+		if (!item) {
+			if (event.target == this.listTarget) {
+				this.clearActivePost();
+			}
+			return;
+		}
 
-    const postId = item.dataset.postId;
-    const post = this.posts.find((entry) => entry.id === postId);
-    this.openPost(post);
+		const postId = item.dataset.postId;
+		const post = this.posts.find((entry) => entry.id === postId);
+		this.openPost(post);
   }
+
+	clearActivePost() {
+		if (!this.activePostId) {
+			return;
+		}
+
+		this.activePostId = null;
+		this.render();
+	}
 
   handleUnread(event) {
     const postId = event.detail?.postId;
