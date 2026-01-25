@@ -863,17 +863,18 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 @media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
+	.layout {
+		grid-template-columns: 1fr;
+		grid-template-rows: 40% 60%;
+		height: 100vh;
+	}
 
-  .left-pane,
-  .right-pane {
-    height: auto;
-  }
+	.left-pane,
+	.right-pane {
+		height: 100%;
+	}
 
-  .left-pane {
-    border-right: none;
-  }
+	.left-pane {
+		border-right: none;
+	}
 }

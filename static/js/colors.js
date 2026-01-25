@@ -1,5 +1,5 @@
 export const timelineCellColors = {
-	"day-1": "#B8C4DD",
+	"day-1": "#CAD4E8",
 	"day-2": "#CDD6EA",
 	"day-3": "#E3E8F2",
 	"day-4": "#F1F4F8",
