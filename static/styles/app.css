@@ -543,12 +543,12 @@ button:focus:not(:focus-visible) {
 .right-pane {
   position: relative;
   background: #fff;
-  /* box-shadow: 0 30px 80px var(--ink-shadow); */
   padding: 1rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  margin-bottom: 0;
 }
 
 .right-pane.is-empty {
