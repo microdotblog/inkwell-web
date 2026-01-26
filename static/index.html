@@ -194,6 +194,18 @@
 						<div class="subscriptions-import-row">
 							<span class="subscriptions-import-text" data-subscriptions-target="importText" aria-live="polite"></span>
 							<progress max="0" value="0" data-subscriptions-target="importProgress"></progress>
+							<button
+								type="button"
+								class="subscriptions-import-cancel"
+								data-subscriptions-target="importCancel"
+								data-action="subscriptions#cancelImport"
+								aria-label="Cancel import"
+							>
+								<svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+									<path d="M6 6L18 18"></path>
+									<path d="M18 6L6 18"></path>
+								</svg>
+							</button>
 						</div>
 					</div>
 					<div class="subscriptions-failed" data-subscriptions-target="failedSection" hidden>

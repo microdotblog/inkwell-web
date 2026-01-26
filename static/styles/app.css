@@ -703,6 +703,33 @@ button:focus:not(:focus-visible) {
 	margin-bottom: 0;
 }
 
+.subscriptions-import-cancel {
+	border: 1px solid #DDD;
+	background: #f8f8f8;
+	color: var(--ink-muted);
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	margin-bottom: 0;
+	padding: 0;
+}
+
+.subscriptions-import-cancel svg {
+	width: 12px;
+	height: 12px;
+	min-width: 12px;
+	display: block;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
 .subscriptions-import-text {
 	color: var(--ink-muted);
 	font-size: 0.7rem;

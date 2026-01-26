@@ -20,6 +20,7 @@ export default class extends Controller {
 		"importInput",
 		"importButton",
 		"importStatus",
+		"importCancel",
 		"importProgress",
 		"importText",
 		"failedSection",
@@ -33,6 +34,7 @@ export default class extends Controller {
 		this.is_importing = false;
 		this.is_visible = false;
 		this.failed_list_visible = false;
+		this.cancel_import = false;
 		this.failed_imports_storage_key = "inkwell_failed_import_urls";
 		this.mode = "manage";
 		this.import_delay_ms = 250;
@@ -235,6 +237,7 @@ export default class extends Controller {
 		}
 
 		this.is_importing = true;
+		this.cancel_import = false;
 		this.clearFailedImports();
 		this.setImporting(true);
 		this.clearStatus();
@@ -250,6 +253,9 @@ export default class extends Controller {
 			this.setImportProgress(0, feed_urls.length, 0);
 			const totals = await this.importFeedUrls(feed_urls);
 			await this.loadSubscriptions();
+			if (this.cancel_import) {
+				return;
+			}
 
 			if (totals.failed_count == 0) {
 				this.showStatus(`Imported ${totals.imported_count} feeds.`);
@@ -264,6 +270,7 @@ export default class extends Controller {
 			this.showStatus("Unable to import OPML file.");
 		}
 		finally {
+			this.cancel_import = false;
 			this.setImporting(false);
 		}
 	}
@@ -273,6 +280,9 @@ export default class extends Controller {
 		let failed_count = 0;
 
 		for (const feed_url of feed_urls) {
+			if (this.cancel_import) {
+				break;
+			}
 			try {
 				const payload = await createFeedSubscription(feed_url);
 				if (Array.isArray(payload)) {
@@ -280,11 +290,19 @@ export default class extends Controller {
 				}
 			}
 			catch (error) {
-				failed_count += 1;
-				this.addFailedImportUrl(feed_url);
+				if (!this.cancel_import) {
+					failed_count += 1;
+					this.addFailedImportUrl(feed_url);
+				}
 			}
 			imported_count += 1;
+			if (this.cancel_import) {
+				break;
+			}
 			this.setImportProgress(imported_count, feed_urls.length, failed_count);
+			if (this.cancel_import) {
+				break;
+			}
 			await this.delay(this.import_delay_ms);
 		}
 
@@ -349,6 +367,7 @@ export default class extends Controller {
 		this.importStatusTarget.hidden = !(is_importing || has_failed);
 		this.importButtonTarget.disabled = is_importing;
 		this.importInputTarget.disabled = is_importing;
+		this.importCancelTarget.hidden = !is_importing;
 		if (!is_importing) {
 			if (has_failed) {
 				this.setImportFailedSummary(failed_urls.length);
@@ -400,6 +419,17 @@ export default class extends Controller {
 		this.importProgressTarget.max = safe_failed;
 		this.importProgressTarget.value = safe_failed;
 		this.importTextTarget.innerHTML = `Last import (<a href="#" data-action="subscriptions#toggleFailedImports">${safe_failed} failed</a>)`;
+	}
+
+	cancelImport(event) {
+		event.preventDefault();
+		if (!this.is_importing) {
+			this.resetImportStatus();
+			return;
+		}
+		this.cancel_import = true;
+		this.resetImportStatus();
+		this.setImporting(false);
 	}
 
 	toggleFailedImports(event) {
