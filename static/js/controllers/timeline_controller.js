@@ -1,7 +1,13 @@
 import { Controller } from "../stimulus.js";
 import { timelineBorderColors, timelineCellColors, timelineSelectedColors } from "../colors.js";
-import { fetchTimelineData } from "../api/posts.js";
-import { markFeedEntriesRead, starFeedEntries, unstarFeedEntries } from "../api/feeds.js";
+import { DEFAULT_AVATAR_URL, fetchTimelineData } from "../api/posts.js";
+import {
+	fetchFeedIcons,
+	fetchFeedStarredEntryIds,
+	markFeedEntriesRead,
+	starFeedEntries,
+	unstarFeedEntries
+} from "../api/feeds.js";
 import { loadReadIds, markAllRead, markRead } from "../storage/reads.js";
 
 const SEGMENT_BUCKETS = {
@@ -21,6 +27,7 @@ export default class extends Controller {
     this.posts = [];
     this.isLoading = true;
     this.isSyncing = false;
+		this.timeline_load_token = 0;
 		this.subscriptionCount = null;
     this.searchActive = false;
 		this.searchQuery = "";
@@ -65,6 +72,9 @@ export default class extends Controller {
       return;
     }
 
+		const load_token = this.timeline_load_token + 1;
+		this.timeline_load_token = load_token;
+
     this.setSyncing(true);
     try {
       const [timeline_data, read_ids] = await Promise.all([
@@ -79,6 +89,8 @@ export default class extends Controller {
           post.is_read = true;
         }
       });
+
+			this.scheduleTimelineExtras(load_token);
     }
     catch (error) {
       console.warn("Failed to load timeline", error);
@@ -94,6 +106,112 @@ export default class extends Controller {
   syncTimeline() {
     this.load();
   }
+
+	scheduleTimelineExtras(load_token) {
+		if (!this.posts.length) {
+			return;
+		}
+
+		this.loadTimelineIcons(load_token);
+		this.loadTimelineBookmarks(load_token);
+	}
+
+	async loadTimelineIcons(load_token) {
+		try {
+			const icons = await fetchFeedIcons();
+			if (this.timeline_load_token != load_token) {
+				return;
+			}
+
+			const icon_map = new Map(
+				Array.isArray(icons)
+					? icons.map((icon) => [icon.host, icon.url]).filter(([host, url]) => host && url)
+					: []
+			);
+			if (icon_map.size == 0) {
+				return;
+			}
+
+			let did_update = false;
+			this.posts.forEach((post) => {
+				if (!post || post.avatar_url != DEFAULT_AVATAR_URL) {
+					return;
+				}
+
+				const host = this.getHostFromUrl(post.source_url);
+				if (!host) {
+					return;
+				}
+
+				const icon_url = icon_map.get(host);
+				if (icon_url && post.avatar_url != icon_url) {
+					post.avatar_url = icon_url;
+					did_update = true;
+				}
+			});
+
+			if (did_update) {
+				this.render();
+			}
+		}
+		catch (error) {
+			console.warn("Failed to load feed icons", error);
+		}
+	}
+
+	async loadTimelineBookmarks(load_token) {
+		try {
+			const starred_entry_ids = await fetchFeedStarredEntryIds();
+			if (this.timeline_load_token != load_token) {
+				return;
+			}
+
+			const starred_set = new Set(
+				Array.isArray(starred_entry_ids)
+					? starred_entry_ids.map((id) => String(id))
+					: []
+			);
+
+			let did_update = false;
+			this.posts.forEach((post) => {
+				if (this.bookmark_toggling.has(post.id)) {
+					return;
+				}
+
+				const should_bookmark = starred_set.has(post.id);
+				if (post.is_bookmarked != should_bookmark) {
+					post.is_bookmarked = should_bookmark;
+					did_update = true;
+				}
+			});
+
+			if (did_update) {
+				this.render();
+			}
+		}
+		catch (error) {
+			console.warn("Failed to load starred entries", error);
+		}
+	}
+
+	getHostFromUrl(raw_url) {
+		const trimmed = (raw_url || "").trim();
+		if (!trimmed) {
+			return "";
+		}
+
+		try {
+			return new URL(trimmed).hostname;
+		}
+		catch (error) {
+			try {
+				return new URL(`https://${trimmed}`).hostname;
+			}
+			catch (secondError) {
+				return "";
+			}
+		}
+	}
 
   showToday() {
     this.activateSegment("today");

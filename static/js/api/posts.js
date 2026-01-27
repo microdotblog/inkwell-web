@@ -3,22 +3,18 @@ import { USE_MOCK_DATA } from "../config.js";
 import {
   cacheFeedEntries,
   fetchFeedEntries,
-  fetchFeedIcons,
   fetchFeedSubscriptions,
-  fetchFeedUnreadEntryIds,
-	fetchFeedStarredEntryIds
+  fetchFeedUnreadEntryIds
 } from "./feeds.js";
 
-const DEFAULT_AVATAR_URL = "/images/blank_avatar.png";
+export const DEFAULT_AVATAR_URL = "/images/blank_avatar.png";
 
 export async function fetchTimelineData() {
   try {
-    const [subscriptions, entries, unreadEntryIds, icons, starred_entry_ids] = await Promise.all([
+    const [subscriptions, entries, unreadEntryIds] = await Promise.all([
       fetchFeedSubscriptions(),
       fetchFeedEntries(),
-      fetchFeedUnreadEntryIds(),
-      fetchFeedIcons(),
-			fetchFeedStarredEntryIds()
+      fetchFeedUnreadEntryIds()
     ]);
 
     cacheFeedEntries(entries);
@@ -28,14 +24,8 @@ export async function fetchTimelineData() {
       subscriptions.map((subscription) => [subscription.feed_id, subscription])
     );
     const unreadSet = new Set(unreadEntryIds.map((id) => String(id)));
-    const iconMap = new Map(
-      Array.isArray(icons)
-        ? icons.map((icon) => [icon.host, icon.url]).filter(([host, url]) => host && url)
-        : []
-    );
-		const starred_set = new Set(
-			Array.isArray(starred_entry_ids) ? starred_entry_ids.map((id) => String(id)) : []
-		);
+		const icon_map = new Map();
+		const starred_set = new Set();
 
     const posts = entries.map((entry) => {
       const subscription = subscriptionMap.get(entry.feed_id);
@@ -47,7 +37,7 @@ export async function fetchTimelineData() {
         title: entry.title,
         summary: entry.summary || "",
         url: entry.url,
-        avatar_url: resolveAvatar(subscription, iconMap),
+        avatar_url: resolveAvatar(subscription, icon_map),
         published_at: publishedAt,
         is_read: !unreadSet.has(String(entry.id)),
 				is_bookmarked: starred_set.has(String(entry.id)),
