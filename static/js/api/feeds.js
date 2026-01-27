@@ -52,7 +52,7 @@ export function setMicroBlogAvatar(avatarUrl) {
 export async function fetchMicroBlogAvatar() {
 	const token = getMicroBlogToken();
 	if (!token) {
-		return "";
+		return { avatar: "", has_inkwell: true };
 	}
 
 	const url = new URL("/account/verify", `${MICRO_BLOG_BASE_URL}/`);
@@ -73,7 +73,9 @@ export async function fetchMicroBlogAvatar() {
 	}
 
 	const payload = await response.json();
-	return setMicroBlogAvatar(payload?.avatar || "");
+	const avatar = setMicroBlogAvatar(payload?.avatar || "");
+	const has_inkwell = payload?.has_inkwell;
+	return { avatar, has_inkwell };
 }
 
 export function cacheFeedEntries(entries) {

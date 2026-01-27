@@ -107,10 +107,14 @@ export default class extends Controller {
 		}
 
 		try {
-			const avatar = await fetchMicroBlogAvatar();
+			const verify_payload = await fetchMicroBlogAvatar();
+			const avatar = verify_payload?.avatar;
 			if (avatar) {
 				this.avatarTarget.src = avatar;
 				this.avatarTarget.alt = "User avatar";
+			}
+			if (!verify_payload?.has_inkwell) {
+				alert("Inkwell is not yet enabled for your Micro.blog account.");
 			}
 		}
 		catch (error) {
