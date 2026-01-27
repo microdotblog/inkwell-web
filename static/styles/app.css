@@ -536,6 +536,7 @@ button:focus:not(:focus-visible) {
 	align-items: center;
 	gap: 0.45rem;
 	flex-basis: 100%;
+    font-size: 0.7rem;
 }
 
 .timeline-date-row .timeline-date {
@@ -543,7 +544,7 @@ button:focus:not(:focus-visible) {
 }
 
 .timeline-bookmark {
-	font-size: 0.65rem;
+	font-size: 0.7rem;
 }
 
 .timeline-bookmark-icon {
