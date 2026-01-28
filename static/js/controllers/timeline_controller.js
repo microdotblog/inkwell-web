@@ -495,24 +495,26 @@ export default class extends Controller {
 		return this.searchInputTarget === active_element;
 	}
 
-  async handleMarkAllRead() {
-    if (!this.posts.length) {
-      return;
-    }
+	async handleMarkAllRead() {
+		if (!this.posts.length) {
+			return;
+		}
 
-    const ids = this.posts.map((post) => post.id);
-    try {
-      await markAllRead(ids);
-      this.readIds = new Set(ids);
-      this.posts.forEach((post) => {
-        post.is_read = true;
-      });
-      this.render();
-    }
-    catch (error) {
-      console.warn("Failed to mark all read", error);
-    }
-  }
+		const ids = this.posts.map((post) => post.id);
+		try {
+			await markFeedEntriesRead(ids);
+			await markAllRead(ids);
+			this.pendingReadIds.clear();
+			this.readIds = new Set(ids);
+			this.posts.forEach((post) => {
+				post.is_read = true;
+			});
+			this.render();
+		}
+		catch (error) {
+			console.warn("Failed to mark all read", error);
+		}
+	}
 
   handleAuthReady() {
     this.load();
