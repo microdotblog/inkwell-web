@@ -6,21 +6,24 @@ import { markRead, markUnread } from "../storage/reads.js";
 export default class extends Controller {
   static targets = ["content", "title", "meta", "markUnread", "avatar"];
 
-  connect() {
-    this.handlePostOpen = this.handlePostOpen.bind(this);
+	connect() {
+		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleWelcome = this.handleWelcome.bind(this);
-    this.handleKeydown = this.handleKeydown.bind(this);
-    window.addEventListener("post:open", this.handlePostOpen);
+		this.handleClear = this.handleClear.bind(this);
+		this.handleKeydown = this.handleKeydown.bind(this);
+		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("reader:welcome", this.handleWelcome);
-    window.addEventListener("keydown", this.handleKeydown);
-    this.showPlaceholder();
-  }
+		window.addEventListener("reader:clear", this.handleClear);
+		window.addEventListener("keydown", this.handleKeydown);
+		this.showPlaceholder();
+	}
 
-  disconnect() {
-    window.removeEventListener("post:open", this.handlePostOpen);
+	disconnect() {
+		window.removeEventListener("post:open", this.handlePostOpen);
 		window.removeEventListener("reader:welcome", this.handleWelcome);
-    window.removeEventListener("keydown", this.handleKeydown);
-  }
+		window.removeEventListener("reader:clear", this.handleClear);
+		window.removeEventListener("keydown", this.handleKeydown);
+	}
 
   async handlePostOpen(event) {
     const { post } = event.detail;
@@ -29,6 +32,7 @@ export default class extends Controller {
     }
 
     this.element.classList.remove("is-empty");
+		this.element.hidden = false;
     this.currentPostTitle = post.title || "Untitled";
     this.currentPostId = post.id;
     this.currentPostRead = Boolean(post.is_read);
@@ -62,8 +66,31 @@ export default class extends Controller {
 		this.showPlaceholder();
 	}
 
+	handleClear() {
+		this.clearReader();
+	}
+
+	clearReader() {
+		this.currentPostId = null;
+		this.currentPostRead = false;
+		this.markUnreadTarget.disabled = true;
+		this.updateReadButton();
+		this.avatarTarget.hidden = true;
+		this.avatarTarget.src = "/images/blank_avatar.png";
+		this.avatarTarget.alt = "";
+		this.setTitle("");
+		this.metaTarget.textContent = "";
+		this.contentTarget.dataset.postId = "";
+		this.contentTarget.dataset.postUrl = "";
+		this.contentTarget.dataset.postTitle = "";
+		this.contentTarget.innerHTML = "";
+		this.element.classList.remove("is-empty");
+		this.element.hidden = true;
+	}
+
 	showPlaceholder() {
 		this.element.classList.add("is-empty");
+		this.element.hidden = false;
 		this.currentPostId = null;
 		this.currentPostRead = false;
 		this.markUnreadTarget.disabled = true;

@@ -66,6 +66,7 @@ export default class extends Controller {
 	handleOpen(event) {
 		const mode = event.detail?.mode || "manage";
 		this.mode = mode;
+		this.element.hidden = false;
 		this.showPane();
 		this.updateFormVisibility();
 		this.loadSubscriptions();

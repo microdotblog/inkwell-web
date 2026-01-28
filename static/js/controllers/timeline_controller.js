@@ -292,12 +292,18 @@ export default class extends Controller {
     );
   }
 
-  handleClick(event) {
+	handleClick(event) {
 		const item = event.target.closest("[data-post-id]");
 		if (!item) {
 			if (event.target == this.listTarget) {
 				this.clearActivePost();
 			}
+			return;
+		}
+
+		if (event.metaKey) {
+			this.clearActivePost();
+			window.dispatchEvent(new CustomEvent("reader:clear"));
 			return;
 		}
 
