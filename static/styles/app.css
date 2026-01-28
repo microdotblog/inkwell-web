@@ -196,11 +196,11 @@ button:focus:not(:focus-visible) {
 }
 
 .sidebar-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: center;
   gap: 1rem;
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .sidebar-logo {
@@ -259,17 +259,19 @@ button:focus:not(:focus-visible) {
 }
 
 .segments {
-  display: inline-flex;
+  display: flex;
   background: #f8f8f8;
   border-radius: 7px;
   border: 1px solid #d8d8d8;
   padding: 0;
   gap: 0;
   overflow: hidden;
+  width: 100%;
   /* margin-top: 1rem; */
 }
 
 .segments button {
+  flex: 1 1 0;
   border: none;
   background: transparent;
   padding: 0.4rem 0.6rem;
@@ -377,19 +379,40 @@ button:focus:not(:focus-visible) {
 
 .search-field {
   display: inline-flex;
-  height: 44px;
+  height: 40px;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.2rem;
   background: #FFF;
   border-radius: 999px;
-  padding: 0.25rem 0.4rem;
+  padding: 0.2rem 0.35rem;
+  width: 100%;
 }
 
-.search-field input {
+.search-field .search-icon {
+  margin-left: 5px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  display: block;
+  fill: none;
+  stroke: var(--ink-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.search-field input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: none;
+  background-position: initial;
+  background-repeat: initial;
+  background-size: initial;
+  padding-inline-start: 0;
   border: none;
   background: transparent;
   margin: 0;
-  padding: 0.35rem 0.6rem 0.35rem 0.2rem;
+  padding: 0.2rem 0.4rem 0.2rem 0.15rem;
   font-size: 0.7rem;
   min-width: 160px;
   box-shadow: none;

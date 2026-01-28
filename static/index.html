@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Inkwell</title>
-    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/styles/pico.css">
     <link rel="modulepreload" href="https://unpkg.com/@hotwired/stimulus/dist/stimulus.js">
     <link rel="stylesheet" href="/styles/app.css?20260121.1">
     <link rel="stylesheet" href="/styles/reader.css?20260121.1">
@@ -69,6 +69,10 @@
                   </button>
                 </div>
                 <div class="search-field" data-timeline-target="search" hidden>
+                  <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M16.65 16.65L21 21"></path>
+                  </svg>
                   <input
                     type="search"
                     placeholder="Search"
