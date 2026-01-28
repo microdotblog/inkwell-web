@@ -956,7 +956,7 @@ export default class extends Controller {
 			return;
 		}
 
-		const visible_posts = this.getBasePosts();
+		const visible_posts = this.posts;
 		this.hideReadSnapshotIds = new Set(
 			visible_posts.filter((post) => post.is_read).map((post) => post.id)
 		);
