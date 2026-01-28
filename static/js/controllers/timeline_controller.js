@@ -50,6 +50,7 @@ export default class extends Controller {
 		this.handleSearchKeydown = this.handleSearchKeydown.bind(this);
 		this.handleMarkAllRead = this.handleMarkAllRead.bind(this);
 		this.handleToggleBookmark = this.handleToggleBookmark.bind(this);
+		this.handleToggleHideRead = this.handleToggleHideRead.bind(this);
 		this.handleAuthReady = this.handleAuthReady.bind(this);
 		this.handleTimelineSync = this.handleTimelineSync.bind(this);
     this.listTarget.addEventListener("click", this.handleClick);
@@ -59,6 +60,7 @@ export default class extends Controller {
 		window.addEventListener("keydown", this.handleKeydown);
 		window.addEventListener("timeline:markAllRead", this.handleMarkAllRead);
 		window.addEventListener("timeline:toggleBookmark", this.handleToggleBookmark);
+		window.addEventListener("timeline:toggleHideRead", this.handleToggleHideRead);
 		window.addEventListener("auth:ready", this.handleAuthReady);
 		window.addEventListener("timeline:sync", this.handleTimelineSync);
     this.listTarget.classList.add("is-loading");
@@ -74,6 +76,7 @@ export default class extends Controller {
 		window.removeEventListener("keydown", this.handleKeydown);
 		window.removeEventListener("timeline:markAllRead", this.handleMarkAllRead);
 		window.removeEventListener("timeline:toggleBookmark", this.handleToggleBookmark);
+		window.removeEventListener("timeline:toggleHideRead", this.handleToggleHideRead);
 		window.removeEventListener("auth:ready", this.handleAuthReady);
 		window.removeEventListener("timeline:sync", this.handleTimelineSync);
     this.clearReadSyncTimer();
@@ -582,6 +585,20 @@ export default class extends Controller {
 
 	handleToggleBookmark() {
 		this.toggleBookmark();
+	}
+
+	handleToggleHideRead() {
+		const should_ignore = this.shouldIgnoreKey({
+			defaultPrevented: false,
+			metaKey: false,
+			ctrlKey: false,
+			altKey: false,
+			target: document.activeElement
+		});
+		if (should_ignore) {
+			return;
+		}
+		this.toggleHideRead();
 	}
 
   handleAuthReady() {
