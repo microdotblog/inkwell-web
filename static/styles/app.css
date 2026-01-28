@@ -259,38 +259,45 @@ button:focus:not(:focus-visible) {
 }
 
 .segments {
-  display: flex;
-  background: #f8f8f8;
-  border-radius: 7px;
-  border: 1px solid #d8d8d8;
-  padding: 0;
-  gap: 0;
-  overflow: hidden;
-  width: 100%;
-  /* margin-top: 1rem; */
+	display: inline-flex;
+	background: #f8f8f8;
+	border-radius: 7px;
+	border: 1px solid #d8d8d8;
+	padding: 0;
+	gap: 0;
+	overflow: hidden;
+	/* margin-top: 1rem; */
 }
 
 .segments button {
-  flex: 1 1 0;
-  border: none;
-  background: transparent;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.7rem;
-  border-radius: 0;
-  color: var(--ink-ink);
-  cursor: pointer;
-  margin-bottom: 0;
-  border-right: 1px solid #d8d8d8;
+	border: none;
+	background: transparent;
+	padding: 0.4rem 0.6rem;
+	font-size: 0.7rem;
+	border-radius: 0;
+	color: var(--ink-ink);
+	cursor: pointer;
+	margin-bottom: 0;
+	border-right: 1px solid #d8d8d8;
+}
+
+.sidebar-header .segments {
+	display: flex;
+	width: 100%;
+}
+
+.sidebar-header .segments button {
+	flex: 1 1 0;
 }
 
 .segments button:last-child {
-  border-right: none;
+	border-right: none;
 }
 
 .segments button[aria-pressed="true"] {
-  background: #eaeaea;
-  color: var(--ink-ink);
-  box-shadow: none;
+	background: #eaeaea;
+	color: var(--ink-ink);
+	box-shadow: none;
 }
 
 .search-toggle {
