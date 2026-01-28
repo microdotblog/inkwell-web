@@ -160,12 +160,6 @@ export default class extends Controller {
 		this.close();
 	}
 
-	markAllRead(event) {
-		event.preventDefault();
-		window.dispatchEvent(new CustomEvent("timeline:markAllRead"));
-		this.close();
-	}
-
 	toggleBookmark(event) {
 		event.preventDefault();
 		if (!this.current_post_id) {
