@@ -847,6 +847,35 @@ button:focus:not(:focus-visible) {
 	background: #fff;
 }
 
+.subscription-item--edit {
+	gap: 0.75rem;
+}
+
+.subscription-edit {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 0.8rem;
+	height: 34px;
+	padding: 0.35rem 0.6rem;
+	margin-bottom: 0;
+}
+
+.subscription-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.subscriptions-spinner--inline {
+	width: 16px;
+	height: 16px;
+	animation: spinner-rotate 0.9s linear infinite;
+}
+
+.subscription-item button {
+	margin-left: 5px;
+}
+
 .subscription-info {
 	display: flex;
 	flex-direction: column;

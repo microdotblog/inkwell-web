@@ -4,7 +4,8 @@ import { USE_MOCK_DATA } from "../config.js";
 import {
 	createFeedSubscription,
 	deleteFeedSubscription,
-	fetchFeedSubscriptions
+	fetchFeedSubscriptions,
+	updateFeedSubscription
 } from "../api/feeds.js";
 
 export default class extends Controller {
@@ -36,6 +37,10 @@ export default class extends Controller {
 		this.failed_list_visible = false;
 		this.cancel_import = false;
 		this.failed_imports_storage_key = "inkwell_failed_import_urls";
+		this.subscriptions_storage_key = "inkwell_subscriptions_cache";
+		this.rename_subscription_id = "";
+		this.rename_value = "";
+		this.rename_is_loading = false;
 		this.mode = "manage";
 		this.import_delay_ms = 250;
 		this.handleOpen = this.handleOpen.bind(this);
@@ -138,22 +143,29 @@ export default class extends Controller {
 		try {
 			const payload = await fetchFeedSubscriptions();
 			this.subscriptions = Array.isArray(payload) ? payload : [];
+			this.setStoredSubscriptions(this.subscriptions);
 		}
 		catch (error) {
 			console.warn("Failed to load subscriptions", error);
 			if (USE_MOCK_DATA) {
 				this.subscriptions = [...mockSubscriptions];
+				this.setStoredSubscriptions(this.subscriptions);
 				this.clearStatus();
 			}
 			else {
-				this.subscriptions = [];
+				const cached = this.getStoredSubscriptions();
+				this.subscriptions = cached.length ? cached : [];
 				let response_text = "";
 				if (error && typeof error.response_text == "string") {
 					response_text = error.response_text.trim();
 				}
-				const status_message = response_text
-					? `Unable to load subscriptions. ${response_text}`
-					: "Unable to load subscriptions.";
+				const status_message = cached.length
+					? "Unable to refresh subscriptions. Showing cached list."
+					: (
+						response_text
+							? `Unable to load subscriptions. ${response_text}`
+							: "Unable to load subscriptions."
+					);
 				this.showStatus(status_message);
 			}
 		}
@@ -219,6 +231,116 @@ export default class extends Controller {
 		finally {
 			button.disabled = false;
 		}
+	}
+
+	startRename(event) {
+		event.preventDefault();
+		this.clearStatus();
+
+		if (this.is_loading) {
+			this.showStatus("Loading subscriptions. Please try again.");
+			return;
+		}
+
+		const item = event.currentTarget.closest("[data-subscription-id]");
+		const subscription_id = item?.dataset.subscriptionId;
+		if (!subscription_id) {
+			return;
+		}
+
+		const subscription = this.subscriptions.find((entry) => entry.id == subscription_id) || null;
+		this.rename_subscription_id = subscription_id;
+		this.rename_value = this.getSubscriptionTitle(subscription);
+		this.rename_is_loading = false;
+		this.render();
+		this.focusRenameInput(subscription_id);
+	}
+
+	updateRenameValue(event) {
+		this.rename_value = event.target.value;
+	}
+
+	handleRenameKeydown(event) {
+		if (event.key == "Escape") {
+			event.preventDefault();
+			this.cancelRename();
+			return;
+		}
+
+		if (event.key == "Enter") {
+			event.preventDefault();
+			this.updateRename(event);
+		}
+	}
+
+	focusRenameInput(subscription_id) {
+		requestAnimationFrame(() => {
+			const input = this.element.querySelector(`[data-rename-input="${subscription_id}"]`);
+			if (input) {
+				input.focus();
+				input.select();
+			}
+		});
+	}
+
+	async updateRename(event) {
+		event.preventDefault();
+		if (this.rename_is_loading) {
+			return;
+		}
+
+		const item = event.currentTarget.closest("[data-subscription-id]");
+		const subscription_id = item?.dataset.subscriptionId;
+		if (!subscription_id) {
+			return;
+		}
+
+		const subscription = this.subscriptions.find((entry) => entry.id == subscription_id) || null;
+		const current_title = this.getSubscriptionTitle(subscription);
+		const trimmed_title = (this.rename_value || "").trim();
+		if (!trimmed_title) {
+			this.showStatus("Feed name cannot be empty.");
+			return;
+		}
+
+		if (trimmed_title == current_title.trim()) {
+			this.rename_subscription_id = "";
+			this.rename_value = "";
+			this.render();
+			return;
+		}
+
+		this.rename_is_loading = true;
+		this.render();
+
+		try {
+			const updated = await updateFeedSubscription(subscription_id, trimmed_title);
+			if (subscription) {
+				subscription.title = updated?.title || trimmed_title;
+			}
+			this.setStoredSubscriptions(this.subscriptions);
+			this.rename_subscription_id = "";
+			this.rename_value = "";
+			this.rename_is_loading = false;
+			await this.loadSubscriptions();
+			this.showStatus("Feed renamed.");
+		}
+		catch (error) {
+			console.warn("Failed to rename subscription", error);
+			this.rename_is_loading = false;
+			this.render();
+			this.showStatus("Unable to rename feed.");
+		}
+	}
+
+	cancelRename(event) {
+		event?.preventDefault();
+		if (this.rename_is_loading) {
+			return;
+		}
+		this.rename_subscription_id = "";
+		this.rename_value = "";
+		this.render();
 	}
 
 	importSubscriptions(event) {
@@ -581,18 +703,50 @@ export default class extends Controller {
 
 		const items = sorted
 			.map((subscription) => {
+				const is_editing = subscription.id == this.rename_subscription_id;
 				const title = this.escapeHtml(this.getSubscriptionTitle(subscription));
 				const url = this.escapeHtml(this.getSubscriptionUrl(subscription));
 				const link = url ? `<a href="${url}">${url}</a>` : "";
+				const safe_value = this.escapeHtml(this.rename_value || this.getSubscriptionTitle(subscription));
+				const spinner_hidden = (is_editing && this.rename_is_loading) ? "" : "hidden";
+				const update_disabled = (is_editing && this.rename_is_loading) ? "disabled" : "";
+				if (is_editing) {
+					return `
+						<div class="subscription-item subscription-item--edit" data-subscription-id="${subscription.id}">
+							<input
+								type="text"
+								class="subscription-edit"
+								value="${safe_value}"
+								data-rename-input="${subscription.id}"
+								data-action="input->subscriptions#updateRenameValue keydown->subscriptions#handleRenameKeydown"
+								${update_disabled}
+							>
+							<div class="subscription-actions">
+								<img class="subscriptions-spinner subscriptions-spinner--inline" src="/images/progress_spinner.svg" alt="" aria-hidden="true" ${spinner_hidden}>
+								<button type="button" class="subscription-cancel btn-sm" data-action="subscriptions#cancelRename" ${update_disabled}>
+									Cancel
+								</button>
+								<button type="button" class="subscription-update btn-sm" data-action="subscriptions#updateRename" ${update_disabled}>
+									Update
+								</button>
+							</div>
+						</div>
+					`;
+				}
 				return `
 					<div class="subscription-item" data-subscription-id="${subscription.id}">
 						<div class="subscription-info">
 							<p class="subscription-title">${title}</p>
 							<p class="subscription-url">${link}</p>
 						</div>
-						<button type="button" class="subscription-remove btn-sm" data-action="subscriptions#remove">
-							Remove
-						</button>
+						<div>
+							<button type="button" class="subscription-rename btn-sm" data-action="subscriptions#startRename">
+								Rename
+							</button>
+							<button type="button" class="subscription-remove btn-sm" data-action="subscriptions#remove">
+								Remove
+							</button>
+						</div>
 					</div>
 				`;
 			})
@@ -715,6 +869,35 @@ export default class extends Controller {
 		}
 		catch (error) {
 			return trimmed;
+		}
+	}
+
+	getStoredSubscriptions() {
+		try {
+			const stored = localStorage.getItem(this.subscriptions_storage_key);
+			if (!stored) {
+				return [];
+			}
+			const parsed = JSON.parse(stored);
+			return Array.isArray(parsed) ? parsed : [];
+		}
+		catch (error) {
+			return [];
+		}
+	}
+
+	setStoredSubscriptions(subscriptions) {
+		const cleaned = Array.isArray(subscriptions) ? subscriptions : [];
+		try {
+			if (cleaned.length == 0) {
+				localStorage.removeItem(this.subscriptions_storage_key);
+			}
+			else {
+				localStorage.setItem(this.subscriptions_storage_key, JSON.stringify(cleaned));
+			}
+		}
+		catch (error) {
+			// Ignore storage errors.
 		}
 	}
 

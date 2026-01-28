@@ -159,6 +159,21 @@ export async function deleteFeedSubscription(subscription_id) {
 	return response.json();
 }
 
+export async function updateFeedSubscription(subscription_id, title) {
+	if (!subscription_id) {
+		return null;
+	}
+
+	const trimmed_title = (title || "").trim();
+	return fetchFeedsJson(`/feeds/subscriptions/${subscription_id}.json`, {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({ title: trimmed_title })
+	});
+}
+
 export async function fetchFeedEntries() {
   const perPage = 100;
   const entries = [];
