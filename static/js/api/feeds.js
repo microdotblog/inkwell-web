@@ -175,47 +175,47 @@ export async function updateFeedSubscription(subscription_id, title) {
 }
 
 export async function fetchFeedEntries() {
-  const perPage = 100;
-  const entries = [];
-  let page = 1;
-  let hasMore = true;
-  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-  const cutoffTime = Date.now() - sevenDaysMs;
+	const perPage = 50;
+	const entries = [];
+	let page = 1;
+	let hasMore = true;
+	const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+	const cutoffTime = Date.now() - sevenDaysMs;
 
-  while (hasMore) {
-    const params = new URLSearchParams({
-      per_page: String(perPage),
-      page: String(page)
-    });
-    const pageEntries = await fetchFeedsJson(`/feeds/entries.json?${params.toString()}`);
+	while (hasMore) {
+		const params = new URLSearchParams({
+			per_page: String(perPage),
+			page: String(page)
+		});
+		const pageEntries = await fetchFeedsJson(`/feeds/entries.json?${params.toString()}`);
 
-    if (!Array.isArray(pageEntries) || pageEntries.length === 0) {
-      break;
-    }
+		if (!Array.isArray(pageEntries) || pageEntries.length === 0) {
+			break;
+		}
 
-    let stopIndex = pageEntries.length;
-    for (let i = 0; i < pageEntries.length; i += 1) {
-      const entry = pageEntries[i];
-      const rawDate = entry?.published || entry?.created_at;
-      if (!rawDate) {
-        continue;
-      }
-      const entryTime = new Date(rawDate).getTime();
-      if (!Number.isNaN(entryTime) && entryTime < cutoffTime) {
-        stopIndex = i;
-        hasMore = false;
-        break;
-      }
-    }
+		let stopIndex = pageEntries.length;
+		for (let i = 0; i < pageEntries.length; i += 1) {
+			const entry = pageEntries[i];
+			const rawDate = entry?.published || entry?.created_at;
+			if (!rawDate) {
+				continue;
+			}
+			const entryTime = new Date(rawDate).getTime();
+			if (!Number.isNaN(entryTime) && entryTime < cutoffTime) {
+				stopIndex = i;
+				hasMore = false;
+				break;
+			}
+		}
 
-    entries.push(...pageEntries.slice(0, stopIndex));
-    if (!hasMore) {
-      break;
-    }
-    page += 1;
-  }
+		entries.push(...pageEntries.slice(0, stopIndex));
+		if (!hasMore) {
+			break;
+		}
+		page += 1;
+	}
 
-  return entries;
+	return entries;
 }
 
 export async function fetchFeedUnreadEntryIds() {
