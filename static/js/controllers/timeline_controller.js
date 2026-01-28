@@ -405,7 +405,13 @@ export default class extends Controller {
   }
 
 	handleSearchKeydown(event) {
-		if (event.key !== "Enter") {
+		if (event.key == "Escape") {
+			event.preventDefault();
+			this.hideSearch();
+			return;
+		}
+
+		if (event.key != "Enter") {
 			return;
 		}
 
