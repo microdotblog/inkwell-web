@@ -43,6 +43,10 @@ export default class extends Controller {
 		window.dispatchEvent(new CustomEvent("timeline:markAllRead"));
 	}
 
+	refresh() {
+		window.dispatchEvent(new CustomEvent("timeline:sync"));
+	}
+
 	toggleHideRead() {
 		window.dispatchEvent(new CustomEvent("timeline:toggleHideRead"));
 		this.updateHideReadLabel();
