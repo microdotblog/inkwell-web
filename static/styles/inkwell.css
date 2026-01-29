@@ -1162,8 +1162,7 @@ button:focus:not(:focus-visible) {
 }
 
 .reader-tabs.is-single {
-  border: none;
-  /* background: transparent; */
+  border: 1px solid transparent;
 }
 
 .reader-avatar {
