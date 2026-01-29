@@ -2,6 +2,7 @@
 const MICRO_BLOG_BASE_URL = "https://micro.blog";
 const MICRO_BLOG_TOKEN_KEY = "inkwell_microblog_token";
 const MICRO_BLOG_AVATAR_KEY = "inkwell_microblog_avatar";
+const MICRO_BLOG_AI_KEY = "inkwell_is_using_ai";
 
 const entryCache = new Map();
 
@@ -49,10 +50,36 @@ export function setMicroBlogAvatar(avatarUrl) {
   return trimmed;
 }
 
+export function getMicroBlogIsUsingAI() {
+	const stored = localStorage.getItem(MICRO_BLOG_AI_KEY);
+	if (stored == "false") {
+		return false;
+	}
+	if (stored == "true") {
+		return true;
+	}
+
+	return true;
+}
+
+export function setMicroBlogIsUsingAI(is_using_ai) {
+	if (is_using_ai == true || is_using_ai == "true") {
+		localStorage.setItem(MICRO_BLOG_AI_KEY, "true");
+		return true;
+	}
+	if (is_using_ai == false || is_using_ai == "false") {
+		localStorage.setItem(MICRO_BLOG_AI_KEY, "false");
+		return false;
+	}
+
+	localStorage.removeItem(MICRO_BLOG_AI_KEY);
+	return null;
+}
+
 export async function fetchMicroBlogAvatar() {
 	const token = getMicroBlogToken();
 	if (!token) {
-		return { avatar: "", has_inkwell: true };
+		return { avatar: "", has_inkwell: true, is_using_ai: getMicroBlogIsUsingAI() };
 	}
 
 	const url = new URL("/account/verify", `${MICRO_BLOG_BASE_URL}/`);
@@ -75,7 +102,11 @@ export async function fetchMicroBlogAvatar() {
 	const payload = await response.json();
 	const avatar = setMicroBlogAvatar(payload?.avatar || "");
 	const has_inkwell = payload?.has_inkwell;
-	return { avatar, has_inkwell };
+	const is_using_ai = payload?.is_using_ai;
+	if (is_using_ai != null) {
+		setMicroBlogIsUsingAI(is_using_ai);
+	}
+	return { avatar, has_inkwell, is_using_ai: getMicroBlogIsUsingAI() };
 }
 
 export function cacheFeedEntries(entries) {

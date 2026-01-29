@@ -4,6 +4,7 @@ import {
 	getMicroBlogAvatar,
 	getMicroBlogToken,
 	setMicroBlogAvatar,
+	setMicroBlogIsUsingAI,
 	setMicroBlogToken
 } from "../api/feeds.js";
 
@@ -45,6 +46,7 @@ export default class extends Controller {
 		this.stripOAuthParams(new URL(window.location.href));
 		setMicroBlogToken("");
 		setMicroBlogAvatar("");
+		setMicroBlogIsUsingAI(null);
 		this.showSignin();
 	}
 
@@ -116,6 +118,10 @@ export default class extends Controller {
 			if (!verify_payload?.has_inkwell) {
 				alert("Inkwell is not yet enabled for your Micro.blog account.");
 			}
+			const is_using_ai = verify_payload?.is_using_ai;
+			window.dispatchEvent(
+				new CustomEvent("auth:verify", { detail: { is_using_ai } })
+			);
 		}
 		catch (error) {
 			console.warn("Failed to fetch Micro.blog avatar", error);

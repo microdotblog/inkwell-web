@@ -4,6 +4,7 @@ import { DEFAULT_AVATAR_URL, fetchTimelineData } from "../api/posts.js";
 import {
 	fetchFeedIcons,
 	fetchFeedStarredEntryIds,
+	getMicroBlogIsUsingAI,
 	markFeedEntriesRead,
 	summarizeFeedEntries,
 	starFeedEntries,
@@ -56,6 +57,7 @@ export default class extends Controller {
 		this.handleToggleBookmark = this.handleToggleBookmark.bind(this);
 		this.handleToggleHideRead = this.handleToggleHideRead.bind(this);
 		this.handleAuthReady = this.handleAuthReady.bind(this);
+		this.handleAuthVerify = this.handleAuthVerify.bind(this);
 		this.handleTimelineSync = this.handleTimelineSync.bind(this);
     this.listTarget.addEventListener("click", this.handleClick);
 		this.listTarget.addEventListener("error", this.handleAvatarError, true);
@@ -67,6 +69,7 @@ export default class extends Controller {
 		window.addEventListener("timeline:toggleBookmark", this.handleToggleBookmark);
 		window.addEventListener("timeline:toggleHideRead", this.handleToggleHideRead);
 		window.addEventListener("auth:ready", this.handleAuthReady);
+		window.addEventListener("auth:verify", this.handleAuthVerify);
 		window.addEventListener("timeline:sync", this.handleTimelineSync);
     this.listTarget.classList.add("is-loading");
     this.load();
@@ -84,6 +87,7 @@ export default class extends Controller {
 		window.removeEventListener("timeline:toggleBookmark", this.handleToggleBookmark);
 		window.removeEventListener("timeline:toggleHideRead", this.handleToggleHideRead);
 		window.removeEventListener("auth:ready", this.handleAuthReady);
+		window.removeEventListener("auth:verify", this.handleAuthVerify);
 		window.removeEventListener("timeline:sync", this.handleTimelineSync);
     this.clearReadSyncTimer();
 		this.stopRefreshTimer();
@@ -643,9 +647,13 @@ export default class extends Controller {
 		this.toggleHideRead();
 	}
 
-  handleAuthReady() {
-    this.load();
-  }
+	handleAuthReady() {
+		this.load();
+	}
+
+	handleAuthVerify() {
+		this.render();
+	}
 
   shouldIgnoreKey(event) {
     if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
@@ -671,10 +679,8 @@ export default class extends Controller {
     }
 
     const posts = this.getVisiblePosts();
-		const should_render_summary = this.activeSegment == "fading" && !this.searchActive;
-		const has_unread_posts = should_render_summary
-			? posts.some((post) => !post.is_read)
-			: false;
+		const is_using_ai = getMicroBlogIsUsingAI();
+		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && is_using_ai;
 
     if (!posts.length) {
 			if (this.subscriptionCount == 0) {
@@ -682,7 +688,7 @@ export default class extends Controller {
 				return;
 			}
 			if (should_render_summary) {
-				this.listTarget.innerHTML = `${this.renderSummaryItem(has_unread_posts)}<p class="canvas-empty"><!-- No posts. --></p>`;
+				this.listTarget.innerHTML = `${this.renderSummaryItem(false)}<p class="canvas-empty"><!-- No posts. --></p>`;
 				return;
 			}
       this.listTarget.innerHTML = "<p class=\"canvas-empty\"><!-- No posts. --></p>";
@@ -690,7 +696,7 @@ export default class extends Controller {
     }
 
     const items = posts.map((post) => this.renderPost(post)).join("");
-		this.listTarget.innerHTML = should_render_summary ? `${this.renderSummaryItem(has_unread_posts)}${items}` : items;
+		this.listTarget.innerHTML = should_render_summary ? `${this.renderSummaryItem(true)}${items}` : items;
   }
 
 	renderNoSubscriptions() {
@@ -706,8 +712,8 @@ export default class extends Controller {
 		`;
 	}
 
-	renderSummaryItem(has_unread_posts) {
-		const is_disabled = !has_unread_posts || this.summary_is_loading;
+	renderSummaryItem(has_posts) {
+		const is_disabled = !has_posts || this.summary_is_loading;
 		const spinner_hidden = this.summary_is_loading ? "" : "hidden";
 		const disabled_attribute = is_disabled ? "disabled" : "";
 		return `
@@ -717,7 +723,7 @@ export default class extends Controller {
 					class="btn-sm"
 					data-action="timeline#summarizeFading"
 					${disabled_attribute}
-				>Summarize Unread Posts</button>
+				>Reading Recap</button>
 				<img class="timeline-summary-spinner" src="/images/progress_spinner.svg" alt="" aria-hidden="true" ${spinner_hidden}>
 			</div>
 		`;
@@ -747,12 +753,7 @@ export default class extends Controller {
 			return;
 		}
 
-		const unread_posts = summary_posts.filter((post) => !post.is_read);
-		if (!unread_posts.length) {
-			return;
-		}
-
-		const entry_ids = unread_posts.map((post) => post.id);
+		const entry_ids = summary_posts.map((post) => post.id);
 		const request_token = this.summary_request_token + 1;
 		this.summary_request_token = request_token;
 		this.summary_is_loading = true;
