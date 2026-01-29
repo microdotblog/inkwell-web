@@ -821,8 +821,8 @@ export default class extends Controller {
       .filter(Boolean)
       .join(" ");
 
-    const color = timelineCellColors[post.age_bucket] || "#fff";
-    const borderColor = timelineBorderColors[post.age_bucket] || "rgba(47, 79, 63, 0.4)";
+    const color = timelineCellColors[post.age_bucket] || "var(--ink-row-default)";
+    const borderColor = timelineBorderColors[post.age_bucket] || "var(--ink-row-border)";
 		const selected_background = timelineSelectedColors.background;
 		const selected_text = timelineSelectedColors.text;
 		const selected_border = timelineSelectedColors.border;

@@ -8,6 +8,10 @@ import HighlightController from "./controllers/highlight_controller.js?20260121.
 import HighlightsController from "./controllers/highlights_controller.js?20260121.1";
 import SubscriptionsController from "./controllers/subscriptions_controller.js?20260121.1";
 import ReaderMenuController from "./controllers/reader_menu_controller.js?20260121.1";
+import ThemesController from "./controllers/themes_controller.js?20260121.1";
+import { initThemes } from "./theme_manager.js?20260121.1";
+
+initThemes();
 
 const application = Application.start();
 application.register("auth", AuthController);
@@ -19,3 +23,4 @@ application.register("highlight", HighlightController);
 application.register("highlights", HighlightsController);
 application.register("subscriptions", SubscriptionsController);
 application.register("reader-menu", ReaderMenuController);
+application.register("themes", ThemesController);

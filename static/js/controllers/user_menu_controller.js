@@ -73,6 +73,10 @@ export default class extends Controller {
 		window.dispatchEvent(new CustomEvent("subscriptions:close"));
 	}
 
+	openThemes() {
+		window.dispatchEvent(new CustomEvent("themes:open"));
+	}
+
 	handleDocumentClick(event) {
 		if (this.element.contains(event.target)) {
 			return;

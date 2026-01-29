@@ -1,45 +1,25 @@
 export const timelineCellColors = {
-	"day-1": "#CDD6EA",
-	"day-2": "#E3E8F2",
-	"day-3": "#E3E8F2",
-	"day-4": "#F1F4F8",
-	"day-5": "#F1F4F8",
-	"day-6": "#F1F4F8",
-	"day-7": "#F1F4F8"
+	"day-1": "var(--ink-day-1-cell)",
+	"day-2": "var(--ink-day-2-cell)",
+	"day-3": "var(--ink-day-3-cell)",
+	"day-4": "var(--ink-day-4-cell)",
+	"day-5": "var(--ink-day-5-cell)",
+	"day-6": "var(--ink-day-6-cell)",
+	"day-7": "var(--ink-day-7-cell)"
 };
 
 export const timelineBorderColors = {
-	"day-1": "#BEC7DC",
-	"day-2": "#D5DBE7",
-	"day-3": "#D5DBE7",
-	"day-4": "#E3E7EE",
-	"day-5": "#E3E7EE",
-	"day-6": "#E3E7EE",
-	"day-7": "#E3E7EE"
+	"day-1": "var(--ink-day-1-border)",
+	"day-2": "var(--ink-day-2-border)",
+	"day-3": "var(--ink-day-3-border)",
+	"day-4": "var(--ink-day-4-border)",
+	"day-5": "var(--ink-day-5-border)",
+	"day-6": "var(--ink-day-6-border)",
+	"day-7": "var(--ink-day-7-border)"
 };
 
 export const timelineSelectedColors = {
-	background: "#355C7D",
-	text: "#FFFFFF",
-	border: "#355C7D"
+	background: "var(--ink-timeline-selected-background)",
+	text: "var(--ink-timeline-selected-text)",
+	border: "var(--ink-timeline-selected-border)"
 };
-
-// export const timelineCellColors = {
-	// "day-1": "#CAD4E8",
-	// "day-2": "#CDD6EA",
-	// "day-3": "#E3E8F2",
-	// "day-4": "#F1F4F8",
-	// "day-5": "#F5F7FA",
-	// "day-6": "#F8F9FB",
-	// "day-7": "#FBFCFD"
-// };
-// 
-// export const timelineBorderColors = {
-	// "day-1": "#A9B4CF",
-	// "day-2": "#BEC7DC",
-	// "day-3": "#D5DBE7",
-	// "day-4": "#E3E7EE",
-	// "day-5": "#EAEDF3",
-	// "day-6": "#F0F2F6",
-	// "day-7": "#F4F6F9"
-// };
