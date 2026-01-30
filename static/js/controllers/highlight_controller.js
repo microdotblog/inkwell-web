@@ -7,18 +7,26 @@ export default class extends Controller {
   connect() {
     this.handleSelection = this.handleSelection.bind(this);
     this.hideToolbar = this.hideToolbar.bind(this);
+		this.handleSummary = this.handleSummary.bind(this);
     this.contentTarget.addEventListener("mouseup", this.handleSelection);
     this.contentTarget.addEventListener("keyup", this.handleSelection);
+		window.addEventListener("reader:summary", this.handleSummary);
     document.addEventListener("scroll", this.hideToolbar, true);
   }
 
   disconnect() {
     this.contentTarget.removeEventListener("mouseup", this.handleSelection);
     this.contentTarget.removeEventListener("keyup", this.handleSelection);
+		window.removeEventListener("reader:summary", this.handleSummary);
     document.removeEventListener("scroll", this.hideToolbar, true);
   }
 
   handleSelection() {
+		if (this.isSummaryMode()) {
+			this.hideToolbar();
+			return;
+		}
+
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.rangeCount) {
       this.hideToolbar();
@@ -49,6 +57,10 @@ export default class extends Controller {
   }
 
   async create() {
+		if (this.isSummaryMode()) {
+			return;
+		}
+
     const text = this.currentSelection;
     if (!text) {
       return;
@@ -79,6 +91,10 @@ export default class extends Controller {
   }
 
 	newPost() {
+		if (this.isSummaryMode()) {
+			return;
+		}
+
 		const text = this.currentSelection;
 		if (!text) {
 			return;
@@ -122,4 +138,12 @@ export default class extends Controller {
   hideToolbar() {
     this.toolbarTarget.hidden = true;
   }
+
+	handleSummary() {
+		this.hideToolbar();
+	}
+
+	isSummaryMode() {
+		return this.element.classList.contains("is-summary");
+	}
 }

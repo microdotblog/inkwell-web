@@ -352,7 +352,7 @@ export async function summarizeFeedEntries(entryIds) {
 		return Number.isNaN(numeric_id) ? id : numeric_id;
 	});
 
-	const url = new URL("/feeds/summarize", `${getFeedsBaseUrl()}/`);
+	const url = new URL("/feeds/recap", `${getFeedsBaseUrl()}/`);
 	const headers = new Headers({
 		"Content-Type": "application/json",
 		"Accept": "text/html"
@@ -365,7 +365,7 @@ export async function summarizeFeedEntries(entryIds) {
 	const response = await fetch(url, {
 		method: "POST",
 		headers,
-		body: JSON.stringify({ entry_ids })
+		body: JSON.stringify(entry_ids)
 	});
 
 	if (!response.ok) {

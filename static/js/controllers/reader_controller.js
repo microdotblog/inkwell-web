@@ -41,6 +41,7 @@ export default class extends Controller {
       return;
     }
 
+		this.setSummaryMode(false);
     this.element.classList.remove("is-empty");
 		this.element.hidden = false;
     this.currentPostTitle = post.title || "Untitled";
@@ -94,6 +95,7 @@ export default class extends Controller {
 
 	handleSummary(event) {
 		const summary_html = event.detail?.html || "";
+		this.setSummaryMode(true);
 		this.element.classList.remove("is-empty");
 		this.element.hidden = false;
 		this.currentPostId = null;
@@ -112,6 +114,7 @@ export default class extends Controller {
 	}
 
 	clearReader() {
+		this.setSummaryMode(false);
 		this.currentPostId = null;
 		this.currentPostRead = false;
 		this.avatarTarget.hidden = true;
@@ -128,6 +131,7 @@ export default class extends Controller {
 	}
 
 	showPlaceholder() {
+		this.setSummaryMode(false);
 		this.element.classList.add("is-empty");
 		this.element.hidden = false;
 		this.currentPostId = null;
@@ -159,7 +163,11 @@ export default class extends Controller {
 			</div>
 		`;
 		this.preloadWelcomeBackground();
-    }
+	}
+
+	setSummaryMode(is_summary) {
+		this.element.classList.toggle("is-summary", is_summary);
+	}
 
 	preloadWelcomeBackground() {
 		if (this.welcomeBackgroundLoading || this.welcomeBackgroundLoaded) {

@@ -748,6 +748,10 @@ button:focus:not(:focus-visible) {
   display: none;
 }
 
+.right-pane.is-summary .reader-header {
+	display: none;
+}
+
 .right-pane.is-empty .right-content {
   display: flex;
   flex: 1;
@@ -1177,6 +1181,10 @@ button:focus:not(:focus-visible) {
 .reader-tabs.is-single button[aria-pressed="true"] {
   background: transparent;
   color: var(--ink-text);
+}
+
+.reading-recap h2 {
+	margin-bottom: 0.7rem;
 }
 
 .reader-tabs.is-single {
