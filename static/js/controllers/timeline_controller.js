@@ -680,7 +680,7 @@ export default class extends Controller {
 
 		const posts = this.getVisiblePosts();
 		const is_using_ai = getMicroBlogIsUsingAI();
-		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && is_using_ai;
+		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && is_using_ai && posts.length > 0;
 		const summary_count = posts.length;
 		const summary_label = summary_count == 1 ? "post" : "posts";
 
