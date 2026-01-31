@@ -673,31 +673,33 @@ export default class extends Controller {
     return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
   }
 
-  render() {
-    if (this.isLoading) {
-      return;
-    }
+	render() {
+		if (this.isLoading) {
+			return;
+		}
 
-    const posts = this.getVisiblePosts();
+		const posts = this.getVisiblePosts();
 		const is_using_ai = getMicroBlogIsUsingAI();
 		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && is_using_ai;
+		const summary_count = posts.length;
+		const summary_label = summary_count == 1 ? "post" : "posts";
 
-    if (!posts.length) {
+		if (!posts.length) {
 			if (this.subscriptionCount == 0) {
 				this.listTarget.innerHTML = this.renderNoSubscriptions();
 				return;
 			}
 			if (should_render_summary) {
-				this.listTarget.innerHTML = `${this.renderSummaryItem(false)}<p class="canvas-empty"><!-- No posts. --></p>`;
+				this.listTarget.innerHTML = `${this.renderSummaryItem(false, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
 				return;
 			}
-      this.listTarget.innerHTML = "<p class=\"canvas-empty\"><!-- No posts. --></p>";
-      return;
-    }
+			this.listTarget.innerHTML = "<p class=\"canvas-empty\"><!-- No posts. --></p>";
+			return;
+		}
 
-    const items = posts.map((post) => this.renderPost(post)).join("");
-		this.listTarget.innerHTML = should_render_summary ? `${this.renderSummaryItem(true)}${items}` : items;
-  }
+		const items = posts.map((post) => this.renderPost(post)).join("");
+		this.listTarget.innerHTML = should_render_summary ? `${this.renderSummaryItem(true, summary_count, summary_label)}${items}` : items;
+	}
 
 	renderNoSubscriptions() {
 		return `
@@ -712,7 +714,7 @@ export default class extends Controller {
 		`;
 	}
 
-	renderSummaryItem(has_posts) {
+	renderSummaryItem(has_posts, summary_count, summary_label) {
 		const is_disabled = !has_posts || this.summary_is_loading;
 		const spinner_hidden = this.summary_is_loading ? "" : "hidden";
 		const disabled_attribute = is_disabled ? "disabled" : "";
@@ -724,6 +726,7 @@ export default class extends Controller {
 					data-action="timeline#summarizeFading"
 					${disabled_attribute}
 				>Reading Recap</button>
+				<span class="timeline-summary-detail">${summary_count} older ${summary_label}, grouped and summarized</span>
 				<img class="timeline-summary-spinner" src="/images/progress_spinner.svg" alt="" aria-hidden="true" ${spinner_hidden}>
 			</div>
 		`;

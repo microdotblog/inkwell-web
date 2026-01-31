@@ -540,6 +540,11 @@ button:focus:not(:focus-visible) {
 	background-color: var(--ink-day-4-cell);
 }
 
+.timeline-summary-detail {
+	font-size: 0.7rem;
+	color: var(--ink-muted);
+}
+
 .timeline-summary-spinner {
 	width: 16px;
 	height: 16px;
