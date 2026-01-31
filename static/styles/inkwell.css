@@ -100,8 +100,14 @@ h2 {
 }
 
 blockquote {
-	padding-top: 0;
+	background: var(--ink-segment-background);
+	padding-top: 8px;
+	padding-bottom: 10px;
+}
+
+blockquote p:last-child {
 	padding-bottom: 0;
+	margin-bottom: 0;
 }
 
 button[type="submit"] {
