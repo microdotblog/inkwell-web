@@ -362,20 +362,36 @@ export async function summarizeFeedEntries(entryIds) {
 		headers.set("Authorization", `Bearer ${token}`);
 	}
 
-	const response = await fetch(url, {
-		method: "POST",
-		headers,
-		body: JSON.stringify(entry_ids)
-	});
+	const max_attempts = 10;
+	const retry_delay_ms = 5000;
 
-	if (!response.ok) {
-		const response_text = await response.text();
-		const request_error = new Error(`Feeds summarize failed: ${response.status}`);
-		request_error.response_text = response_text;
-		throw request_error;
+	for (let attempt = 1; attempt <= max_attempts; attempt++) {
+		const response = await fetch(url, {
+			method: "POST",
+			headers,
+			body: JSON.stringify(entry_ids)
+		});
+
+		if (response.status == 202) {
+			if (attempt < max_attempts) {
+				await new Promise((resolve) => setTimeout(resolve, retry_delay_ms));
+				continue;
+			}
+			console.warn("Feeds summarize timed out after 10 attempts");
+			return "";
+		}
+
+		if (!response.ok) {
+			const response_text = await response.text();
+			const request_error = new Error(`Feeds summarize failed: ${response.status}`);
+			request_error.response_text = response_text;
+			throw request_error;
+		}
+
+		return response.text();
 	}
 
-	return response.text();
+	return "";
 }
 
 async function fetchFeedsJson(path, options = {}) {

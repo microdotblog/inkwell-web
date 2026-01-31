@@ -726,7 +726,7 @@ export default class extends Controller {
 					data-action="timeline#summarizeFading"
 					${disabled_attribute}
 				>Reading Recap</button>
-				<span class="timeline-summary-detail">${summary_count} ${summary_label}, grouped and summarized</span>
+				<span class="timeline-summary-detail">${summary_count} older ${summary_label}, grouped</span>
 				<img class="timeline-summary-spinner" src="/images/progress_spinner.svg" alt="" aria-hidden="true" ${spinner_hidden}>
 			</div>
 		`;
