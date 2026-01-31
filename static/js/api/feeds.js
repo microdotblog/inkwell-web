@@ -208,52 +208,52 @@ export async function updateFeedSubscription(subscription_id, title) {
 }
 
 export async function fetchFeedEntries() {
-	const perPage = 50;
+	const per_page = 50;
 	const entries = [];
 	let page = 1;
-	let hasMore = true;
+	let has_more = true;
 	const cached_limit = 25;
 	let cached_count = 0;
-	const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-	const cutoffTime = Date.now() - sevenDaysMs;
+	const seven_days_ms = 7 * 24 * 60 * 60 * 1000;
+	const cutoff_time = Date.now() - seven_days_ms;
 
-	while (hasMore) {
+	while (has_more) {
 		const params = new URLSearchParams({
-			per_page: String(perPage),
+			per_page: String(per_page),
 			page: String(page)
 		});
-		const pageEntries = await fetchFeedsJson(`/feeds/entries.json?${params.toString()}`);
+		const page_entries = await fetchFeedsJson(`/feeds/entries.json?${params.toString()}`);
 
-		if (!Array.isArray(pageEntries) || pageEntries.length === 0) {
+		if (!Array.isArray(page_entries) || page_entries.length === 0) {
 			break;
 		}
 
-		let stopIndex = pageEntries.length;
-		for (let i = 0; i < pageEntries.length; i += 1) {
-			const entry = pageEntries[i];
-			const rawDate = entry?.published || entry?.created_at;
-			if (!rawDate) {
+		let stop_index = page_entries.length;
+		for (let i = 0; i < page_entries.length; i += 1) {
+			const entry = page_entries[i];
+			const raw_date = entry?.published || entry?.created_at;
+			if (!raw_date) {
 				continue;
 			}
-			const entryTime = new Date(rawDate).getTime();
-			if (!Number.isNaN(entryTime) && entryTime < cutoffTime) {
-				stopIndex = i;
-				hasMore = false;
+			const entry_time = new Date(raw_date).getTime();
+			if (!Number.isNaN(entry_time) && entry_time < cutoff_time) {
+				stop_index = i;
+				has_more = false;
 				break;
 			}
 
 			if (entry?.id != null && entryCache.has(String(entry.id))) {
 				cached_count += 1;
 				if (cached_count >= cached_limit) {
-					stopIndex = i + 1;
-					hasMore = false;
+					stop_index = i + 1;
+					has_more = false;
 					break;
 				}
 			}
 		}
 
-		entries.push(...pageEntries.slice(0, stopIndex));
-		if (!hasMore) {
+		entries.push(...page_entries.slice(0, stop_index));
+		if (!has_more) {
 			break;
 		}
 		page += 1;
