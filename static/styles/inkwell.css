@@ -207,6 +207,7 @@ button:focus:not(:focus-visible) {
   min-height: 100vh;
   display: flex;
   height: 100vh;
+	margin-bottom: 0;
   /* padding: 0.5rem; */
 }
 
