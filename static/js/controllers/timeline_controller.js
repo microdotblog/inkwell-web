@@ -53,6 +53,8 @@ export default class extends Controller {
 		this.handleAvatarError = this.handleAvatarError.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
 		this.handleSearchKeydown = this.handleSearchKeydown.bind(this);
+		this.handleSearchInput = this.handleSearchInput.bind(this);
+		this.search_input_debounce_timer = null;
 		this.handleMarkAllRead = this.handleMarkAllRead.bind(this);
 		this.handleToggleBookmark = this.handleToggleBookmark.bind(this);
 		this.handleToggleHideRead = this.handleToggleHideRead.bind(this);
@@ -62,6 +64,7 @@ export default class extends Controller {
     this.listTarget.addEventListener("click", this.handleClick);
 		this.listTarget.addEventListener("error", this.handleAvatarError, true);
 		this.searchInputTarget.addEventListener("keydown", this.handleSearchKeydown);
+		this.searchInputTarget.addEventListener("input", this.handleSearchInput);
     window.addEventListener("post:unread", this.handleUnread);
 		window.addEventListener("post:read", this.handleRead);
 		window.addEventListener("keydown", this.handleKeydown);
@@ -80,6 +83,8 @@ export default class extends Controller {
     this.listTarget.removeEventListener("click", this.handleClick);
 		this.listTarget.removeEventListener("error", this.handleAvatarError, true);
 		this.searchInputTarget.removeEventListener("keydown", this.handleSearchKeydown);
+		this.searchInputTarget.removeEventListener("input", this.handleSearchInput);
+		this.clearSearchInputDebounce();
     window.removeEventListener("post:unread", this.handleUnread);
 		window.removeEventListener("post:read", this.handleRead);
 		window.removeEventListener("keydown", this.handleKeydown);
@@ -510,12 +515,25 @@ export default class extends Controller {
 			return;
 		}
 
-		if (event.key != "Enter") {
-			return;
+		if (event.key == "Enter") {
+			event.preventDefault();
+			this.performSearch();
 		}
+	}
 
-		event.preventDefault();
-		this.performSearch();
+	handleSearchInput() {
+		this.clearSearchInputDebounce();
+		this.search_input_debounce_timer = setTimeout(() => {
+			this.search_input_debounce_timer = null;
+			this.performSearch();
+		}, 100);
+	}
+
+	clearSearchInputDebounce() {
+		if (this.search_input_debounce_timer != null) {
+			clearTimeout(this.search_input_debounce_timer);
+			this.search_input_debounce_timer = null;
+		}
 	}
 
 	performSearch() {
