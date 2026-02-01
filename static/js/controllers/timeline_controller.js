@@ -461,6 +461,7 @@ export default class extends Controller {
 			}
 			else {
 				replace_state({});
+				this.activeFeedId = null;
 				this.clearActivePost(true);
 				window.dispatchEvent(new CustomEvent("reader:welcome"));
 			}
