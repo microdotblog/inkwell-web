@@ -15,6 +15,7 @@ export default class extends Controller {
 		this.handleClear = this.handleClear.bind(this);
 		this.handleResolvingRoute = this.handleResolvingRoute.bind(this);
 		this.handleSummary = this.handleSummary.bind(this);
+		this.handleSummaryAvatarError = this.handleSummaryAvatarError.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
 		this.handleToggleRead = this.handleToggleRead.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
@@ -25,6 +26,7 @@ export default class extends Controller {
 		window.addEventListener("reader:toggleRead", this.handleToggleRead);
 		window.addEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.addEventListener("error", this.handleAvatarError);
+		this.contentTarget.addEventListener("error", this.handleSummaryAvatarError, true);
 		const route = parse_hash();
 		if (route.postId || route.feedId || route.feedUrl) {
 			this.showResolving();
@@ -43,6 +45,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:toggleRead", this.handleToggleRead);
 		window.removeEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.removeEventListener("error", this.handleAvatarError);
+		this.contentTarget.removeEventListener("error", this.handleSummaryAvatarError, true);
 	}
 
   async handlePostOpen(event) {
@@ -84,6 +87,29 @@ export default class extends Controller {
 	handleAvatarError(event) {
 		const image_el = event.target;
 		if (!image_el || image_el.tagName != "IMG") {
+			return;
+		}
+
+		const current_src = image_el.getAttribute("src") || "";
+		if (current_src == DEFAULT_AVATAR_URL) {
+			return;
+		}
+
+		image_el.src = DEFAULT_AVATAR_URL;
+	}
+
+	handleSummaryAvatarError(event) {
+		const image_el = event.target;
+		if (!image_el || image_el.tagName != "IMG") {
+			return;
+		}
+
+		if (!this.contentTarget.contains(image_el)) {
+			return;
+		}
+
+		const header = image_el.closest(".reading-recap h2");
+		if (!header) {
 			return;
 		}
 
