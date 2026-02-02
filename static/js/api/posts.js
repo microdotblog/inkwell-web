@@ -153,13 +153,16 @@ function getSubscriptionHost(subscription) {
 }
 
 function getAgeBucket(isoDate) {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) {
-    return "day-7";
-  }
+	const date = new Date(isoDate);
+	if (Number.isNaN(date.getTime())) {
+		return "day-7";
+	}
 
-  const diffMs = Date.now() - date.getTime();
-  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  const bucket = Math.min(Math.max(diffDays, 0), 6) + 1;
-  return `day-${bucket}`;
+	const now = new Date();
+	const today_midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	const entry_midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	const diffMs = today_midnight.getTime() - entry_midnight.getTime();
+	const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+	const bucket = Math.min(Math.max(diffDays, 0), 6) + 1;
+	return `day-${bucket}`;
 }
