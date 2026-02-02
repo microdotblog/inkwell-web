@@ -111,7 +111,7 @@ export default class extends Controller {
     }
 
 		const initial_route = parse_hash();
-		if (initial_route.postId || initial_route.feedId || initial_route.feedUrl) {
+		if (this.isLoading && (initial_route.postId || initial_route.feedId || initial_route.feedUrl)) {
 			window.dispatchEvent(new CustomEvent("reader:resolvingRoute"));
 		}
 
@@ -144,7 +144,7 @@ export default class extends Controller {
       }
     }
     finally {
-      this.apply_route_from_url(parse_hash());
+      this.apply_route_from_url(parse_hash(), this.isLoading);
       this.isLoading = false;
       this.listTarget.classList.remove("is-loading");
       this.render();
@@ -438,7 +438,7 @@ export default class extends Controller {
 		return sub && sub.feed_id != null ? String(sub.feed_id) : null;
 	}
 
-	apply_route_from_url(state) {
+	apply_route_from_url(state, should_update_reader = true) {
 		if (!state) {
 			state = parse_hash();
 		}
@@ -458,6 +458,11 @@ export default class extends Controller {
 				this.subscriptions.some((s) => String(s.feed_id || "") == this.activeFeedId));
 		if (this.activeFeedId && !has_feed) {
 			this.activeFeedId = null;
+		}
+		if (!should_update_reader) {
+			this.applying_route = false;
+			this.render();
+			return;
 		}
 		if (state.postId != null && state.postId != "") {
 			const post = this.posts.find((p) => p.id == state.postId);
