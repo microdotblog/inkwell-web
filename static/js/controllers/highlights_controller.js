@@ -152,29 +152,41 @@ export default class extends Controller {
     }
   }
 
-  async deleteHighlight(event) {
-    const highlight = this.getHighlightFromEvent(event);
-    if (!highlight) {
-      return;
-    }
+	async deleteHighlight(event) {
+		const highlight = this.getHighlightFromEvent(event);
+		if (!highlight) {
+			return;
+		}
 
-    try {
-			if (highlight.highlight_id) {
+		let remote_failed = false;
+		if (highlight.highlight_id) {
+			try {
 				await deleteMicroBlogHighlight({
 					post_id: highlight.post_id,
 					highlight_id: highlight.highlight_id
 				});
 			}
-      await deleteHighlight(highlight.post_id, highlight.id);
-    }
-    catch (error) {
-      console.warn("Failed to delete highlight", error);
-      return;
-    }
+			catch (error) {
+				remote_failed = true;
+				console.warn("Failed to delete Micro.blog highlight", error);
+			}
+		}
 
-    this.highlights = this.highlights.filter((item) => item.id !== highlight.id);
-    this.render();
-  }
+		try {
+			await deleteHighlight(highlight.post_id, highlight.id);
+		}
+		catch (error) {
+			console.warn("Failed to delete highlight locally", error);
+			return;
+		}
+
+		this.highlights = this.highlights.filter((item) => item.id != highlight.id);
+		this.render();
+
+		if (remote_failed) {
+			console.warn("Micro.blog highlight delete failed; local highlight removed");
+		}
+	}
 
   getHighlightFromEvent(event) {
     const item = event.currentTarget.closest(".highlight-item");
