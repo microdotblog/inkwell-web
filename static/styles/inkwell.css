@@ -1216,7 +1216,7 @@ button:focus:not(:focus-visible) {
 }
 
 .reading-recap h2 {
-	margin-bottom: 0.7rem;
+	margin-bottom: 1rem;
 	display: flex;
 	align-items: center;
 	gap: 0.4rem;
