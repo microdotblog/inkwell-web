@@ -207,7 +207,11 @@ export default class extends Controller {
 		const quote = this.formatQuote(selection_text);
 		const markdown = quote ? `${link}:\n\n${quote}` : link;
 		const encoded = encodeURIComponent(markdown);
-		window.location.href = `https://micro.blog/post?text=${encoded}`;
+		const url = `https://micro.blog/post?text=${encoded}`;
+		const new_window = window.open(url, "_blank", "noopener");
+		if (!new_window) {
+			window.location.href = url;
+		}
 		this.close();
 	}
 
