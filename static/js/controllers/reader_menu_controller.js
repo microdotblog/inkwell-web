@@ -7,6 +7,8 @@ export default class extends Controller {
 		this.current_post_id = "";
 		this.current_post_url = "";
 		this.current_post_title = "";
+		this.current_post_source = "";
+		this.current_post_has_title = false;
 		this.is_read = false;
 		this.is_bookmarked = false;
 		this.handleDocumentClick = this.handleDocumentClick.bind(this);
@@ -91,6 +93,8 @@ export default class extends Controller {
 		this.current_post_id = post.id;
 		this.current_post_url = (post.url || "").trim();
 		this.current_post_title = (post.title || "").trim();
+		this.current_post_source = (post.source || "").trim();
+		this.current_post_has_title = this.hasPostTitle(this.current_post_title, post.summary);
 		this.is_read = Boolean(post.is_read);
 		this.is_bookmarked = Boolean(post.is_bookmarked);
 		this.updateMenuState();
@@ -136,6 +140,8 @@ export default class extends Controller {
 		this.current_post_id = "";
 		this.current_post_url = "";
 		this.current_post_title = "";
+		this.current_post_source = "";
+		this.current_post_has_title = false;
 		this.is_read = false;
 		this.is_bookmarked = false;
 		this.updateMenuState();
@@ -192,8 +198,11 @@ export default class extends Controller {
 			return;
 		}
 
-		const title = this.current_post_title || "Post";
-		const link = `[${title}](${this.current_post_url})`;
+		let link_title = this.current_post_title;
+		if (!this.current_post_has_title || !link_title || link_title.toLowerCase() == "untitled") {
+			link_title = this.current_post_source || "Post";
+		}
+		const link = `[${link_title}](${this.current_post_url})`;
 		const selection_text = this.getSelectedText();
 		const quote = this.formatQuote(selection_text);
 		const markdown = quote ? `${link}:\n\n${quote}` : link;
@@ -253,5 +262,28 @@ export default class extends Controller {
 			.split(/\r?\n/)
 			.map((line) => `> ${line}`)
 			.join("\n");
+	}
+
+	hasPostTitle(title, summary) {
+		const normalized_title = (title || "").trim().replace(/\s+/g, " ");
+		if (!normalized_title || normalized_title.toLowerCase() == "untitled") {
+			return false;
+		}
+
+		const normalized_summary = (summary || "").trim().replace(/\s+/g, " ");
+		if (normalized_summary) {
+			if (normalized_summary == normalized_title) {
+				return false;
+			}
+
+			const shared_prefix = normalized_title.startsWith(normalized_summary) ||
+				normalized_summary.startsWith(normalized_title);
+			const prefix_length = Math.min(normalized_title.length, normalized_summary.length);
+			if (shared_prefix && prefix_length >= 40) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

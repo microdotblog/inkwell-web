@@ -67,7 +67,11 @@ export default class extends Controller {
     this.avatarTarget.hidden = false;
     this.avatarTarget.src = post.avatar_url || "/images/blank_avatar.png";
     this.avatarTarget.alt = "";
-    this.contentTarget.dataset.postTitle = this.currentPostTitle;
+		const post_title = (post.title || "").trim();
+		const post_has_title = this.hasPostTitle(post_title, post.summary);
+		this.contentTarget.dataset.postTitle = post_title;
+		this.contentTarget.dataset.postSource = post.source || "";
+		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
 
     const payload = await fetchReadableContent(post.id);
 		const summary_fallback = post.summary || "No preview available yet.";
@@ -81,7 +85,9 @@ export default class extends Controller {
     this.contentTarget.innerHTML = safe_html;
     this.contentTarget.dataset.postId = post.id;
     this.contentTarget.dataset.postUrl = post.url;
-    this.contentTarget.dataset.postTitle = this.currentPostTitle;
+		this.contentTarget.dataset.postTitle = post_title;
+		this.contentTarget.dataset.postSource = post.source || "";
+		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
     this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
   }
 
@@ -149,6 +155,8 @@ export default class extends Controller {
 		this.contentTarget.dataset.postId = "";
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
+		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = "";
 	}
 
@@ -170,6 +178,8 @@ export default class extends Controller {
 		this.contentTarget.dataset.postId = "";
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
+		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = this.sanitizeHtml(summary_html);
 	}
 
@@ -186,6 +196,8 @@ export default class extends Controller {
 		this.contentTarget.dataset.postId = "";
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
+		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = "";
 		this.element.classList.remove("is-empty");
 		this.element.hidden = true;
@@ -206,6 +218,8 @@ export default class extends Controller {
 		this.contentTarget.dataset.postId = "";
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
+		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = `
 			<div class="reader-welcome">
 				<p class="reader-welcome-eyebrow">Welcome to Inkwell</p>
@@ -371,6 +385,29 @@ export default class extends Controller {
 			month: "short",
 			day: "numeric"
 		}).format(date);
+	}
+
+	hasPostTitle(title, summary) {
+		const normalized_title = (title || "").trim().replace(/\s+/g, " ");
+		if (!normalized_title || normalized_title.toLowerCase() == "untitled") {
+			return false;
+		}
+
+		const normalized_summary = (summary || "").trim().replace(/\s+/g, " ");
+		if (normalized_summary) {
+			if (normalized_summary == normalized_title) {
+				return false;
+			}
+
+			const shared_prefix = normalized_title.startsWith(normalized_summary) ||
+				normalized_summary.startsWith(normalized_title);
+			const prefix_length = Math.min(normalized_title.length, normalized_summary.length);
+			if (shared_prefix && prefix_length >= 40) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	sanitizeHtml(markup) {
