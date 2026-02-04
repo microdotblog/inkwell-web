@@ -27,13 +27,17 @@ export async function fetchTimelineData() {
 		const icon_map = new Map();
 		const starred_set = new Set();
 
-    const posts = entries.map((entry) => {
-      const subscription = subscriptionMap.get(entry.feed_id);
-      const publishedAt = entry.published || entry.created_at || new Date().toISOString();
-      return {
-        id: String(entry.id),
-        source: resolveSource(subscription),
-        source_url: resolveSourceUrl(subscription),
+	    const posts = entries.map((entry) => {
+	      const subscription = subscriptionMap.get(entry.feed_id);
+	      const publishedAt = entry.published || entry.created_at || new Date().toISOString();
+			const resolved_feed_id = entry.feed_id != null
+				? entry.feed_id
+				: (subscription && subscription.feed_id != null ? subscription.feed_id : "");
+	      return {
+	        id: String(entry.id),
+	        feed_id: resolved_feed_id,
+	        source: resolveSource(subscription),
+	        source_url: resolveSourceUrl(subscription),
         title: entry.title,
         summary: entry.summary || "",
         url: entry.url,

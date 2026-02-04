@@ -4,6 +4,7 @@ const hoursAgo = (hours) => new Date(now - hours * 60 * 60 * 1000).toISOString()
 export const mockPosts = [
   {
     id: "post-001",
+		feed_id: "feed-001",
     source: "Micro.blog",
     title: "The Quiet Edge of Morning",
     summary: "Notes on the first hour and the room it creates.",
@@ -16,6 +17,7 @@ export const mockPosts = [
   },
   {
     id: "post-002",
+		feed_id: "feed-002",
     source: "Desk Notes",
     title: "Designing a calmer timeline",
     summary: "We can tune the feed to breathe instead of shout.",
@@ -28,6 +30,7 @@ export const mockPosts = [
   },
   {
     id: "post-003",
+		feed_id: "feed-003",
     source: "Leaf & Ink",
     title: "Rain, type, and long afternoons",
     summary: "A short field note from the studio window.",
@@ -40,6 +43,7 @@ export const mockPosts = [
   },
   {
     id: "post-004",
+		feed_id: "feed-004",
     source: "Signal Drift",
     title: "How to keep a reading stack",
     summary: "Three tiny rituals for staying with the text.",
@@ -52,6 +56,7 @@ export const mockPosts = [
   },
   {
     id: "post-005",
+		feed_id: "feed-005",
     source: "Studio Log",
     title: "Sketching the week in margins",
     summary: "Margins are where the real thinking happens.",
@@ -64,6 +69,7 @@ export const mockPosts = [
   },
   {
     id: "post-006",
+		feed_id: "feed-002",
     source: "Paper Trail",
     title: "A softer inbox",
     summary: "Let the inbox be a shoreline, not a cliff.",
@@ -76,6 +82,7 @@ export const mockPosts = [
   },
   {
     id: "post-007",
+		feed_id: "feed-003",
     source: "Ink & Signal",
     title: "The long walk home",
     summary: "Walking untangles the knots we carry.",
@@ -88,6 +95,7 @@ export const mockPosts = [
   },
   {
     id: "post-008",
+		feed_id: "feed-004",
     source: "Atlas Notes",
     title: "Keeping a readerly mind",
     summary: "Gentle structures for daily reading.",
@@ -100,6 +108,7 @@ export const mockPosts = [
   },
   {
     id: "post-009",
+		feed_id: "feed-005",
     source: "Field Journal",
     title: "As the light changes",
     summary: "A sketch of late afternoon color.",
@@ -112,6 +121,7 @@ export const mockPosts = [
   },
   {
     id: "post-010",
+		feed_id: "feed-002",
     source: "Small Systems",
     title: "Calibrating attention",
     summary: "Build habits that respect focus.",
@@ -124,6 +134,7 @@ export const mockPosts = [
   },
   {
     id: "post-011",
+		feed_id: "feed-003",
     source: "Drift Notes",
     title: "A shelf of quiet essays",
     summary: "A list of essays for slow mornings.",
@@ -136,6 +147,7 @@ export const mockPosts = [
   },
   {
     id: "post-012",
+		feed_id: "feed-004",
     source: "Pencil Lines",
     title: "Revisiting old drafts",
     summary: "Why older work still feels alive.",

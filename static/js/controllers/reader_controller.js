@@ -5,11 +5,12 @@ import { markFeedEntriesUnread } from "../api/feeds.js";
 import { markRead, markUnread } from "../storage/reads.js";
 
 export default class extends Controller {
-  static targets = ["content", "title", "meta", "avatar"];
+	static targets = ["content", "title", "meta", "avatar"];
 
 	connect() {
 		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleAvatarError = this.handleAvatarError.bind(this);
+		this.handleAvatarClick = this.handleAvatarClick.bind(this);
 		this.handleWelcome = this.handleWelcome.bind(this);
 		this.handleClear = this.handleClear.bind(this);
 		this.handleSummary = this.handleSummary.bind(this);
@@ -22,6 +23,7 @@ export default class extends Controller {
 		window.addEventListener("reader:toggleRead", this.handleToggleRead);
 		window.addEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.addEventListener("error", this.handleAvatarError);
+		this.avatarTarget.addEventListener("click", this.handleAvatarClick);
 		this.showPlaceholder();
 	}
 
@@ -33,43 +35,48 @@ export default class extends Controller {
 		window.removeEventListener("reader:toggleRead", this.handleToggleRead);
 		window.removeEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.removeEventListener("error", this.handleAvatarError);
+		this.avatarTarget.removeEventListener("click", this.handleAvatarClick);
 	}
 
-  async handlePostOpen(event) {
-    const { post } = event.detail;
-    if (!post) {
-      return;
-    }
+	async handlePostOpen(event) {
+		const { post } = event.detail;
+		if (!post) {
+			return;
+		}
 
 		this.setSummaryMode(false);
-    this.element.classList.remove("is-empty");
+		this.element.classList.remove("is-empty");
 		this.element.hidden = false;
-    this.currentPostTitle = post.title || "Untitled";
-    this.currentPostId = post.id;
-    this.currentPostRead = Boolean(post.is_read);
-    this.setTitle(this.currentPostTitle);
-    this.setMeta(post);
-    this.contentTarget.innerHTML = "<p class=\"loading\">Loading readable view...</p>";
-    this.avatarTarget.hidden = false;
-    this.avatarTarget.src = post.avatar_url || "/images/blank_avatar.png";
-    this.avatarTarget.alt = "";
-    this.contentTarget.dataset.postTitle = this.currentPostTitle;
+		this.currentPostTitle = post.title || "Untitled";
+		this.currentPostId = post.id;
+		this.currentPostFeedId = post.feed_id == null ? "" : String(post.feed_id);
+		this.currentPostSource = (post.source || "").trim();
+		this.currentPostRead = Boolean(post.is_read);
+		this.setTitle(this.currentPostTitle);
+		this.setMeta(post);
+		this.contentTarget.innerHTML = "<p class=\"loading\">Loading readable view...</p>";
+		this.avatarTarget.hidden = false;
+		this.avatarTarget.src = post.avatar_url || "/images/blank_avatar.png";
+		this.avatarTarget.alt = "";
+		this.avatarTarget.title = this.currentPostFeedId ? "Show posts from this feed" : "";
+		this.avatarTarget.classList.toggle("is-feed-link", Boolean(this.currentPostFeedId));
+		this.contentTarget.dataset.postTitle = this.currentPostTitle;
 
-    const payload = await fetchReadableContent(post.id);
+		const payload = await fetchReadableContent(post.id);
 		const summary_fallback = post.summary || "No preview available yet.";
 		let safe_html = this.sanitizeHtml(`<p>${summary_fallback}</p>`);
 		if (payload.html) {
 			safe_html = this.sanitizeHtml(payload.html);
 		}
-    this.currentPostTitle = payload.title || post.title || "Untitled";
-    this.setTitle(this.currentPostTitle);
-    this.setMeta(post);
-    this.contentTarget.innerHTML = safe_html;
-    this.contentTarget.dataset.postId = post.id;
-    this.contentTarget.dataset.postUrl = post.url;
-    this.contentTarget.dataset.postTitle = this.currentPostTitle;
-    this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
-  }
+		this.currentPostTitle = payload.title || post.title || "Untitled";
+		this.setTitle(this.currentPostTitle);
+		this.setMeta(post);
+		this.contentTarget.innerHTML = safe_html;
+		this.contentTarget.dataset.postId = post.id;
+		this.contentTarget.dataset.postUrl = post.url;
+		this.contentTarget.dataset.postTitle = this.currentPostTitle;
+		this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
+	}
 
 	handleAvatarError(event) {
 		const image_el = event.target;
@@ -83,6 +90,20 @@ export default class extends Controller {
 		}
 
 		image_el.src = DEFAULT_AVATAR_URL;
+	}
+
+	handleAvatarClick() {
+		if (!this.currentPostFeedId) {
+			return;
+		}
+		window.dispatchEvent(
+			new CustomEvent("timeline:filterByFeed", {
+				detail: {
+					feedId: this.currentPostFeedId,
+					source: this.currentPostSource || ""
+				}
+			})
+		);
 	}
 
 	handleWelcome() {
@@ -99,11 +120,15 @@ export default class extends Controller {
 		this.element.classList.remove("is-empty");
 		this.element.hidden = false;
 		this.currentPostId = null;
+		this.currentPostFeedId = "";
+		this.currentPostSource = "";
 		this.currentPostRead = false;
 		this.currentPostTitle = "";
 		this.avatarTarget.hidden = true;
 		this.avatarTarget.src = "/images/blank_avatar.png";
 		this.avatarTarget.alt = "";
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
 		this.titleTarget.textContent = "";
 		this.titleTarget.title = "";
 		this.metaTarget.textContent = "";
@@ -116,10 +141,14 @@ export default class extends Controller {
 	clearReader() {
 		this.setSummaryMode(false);
 		this.currentPostId = null;
+		this.currentPostFeedId = "";
+		this.currentPostSource = "";
 		this.currentPostRead = false;
 		this.avatarTarget.hidden = true;
 		this.avatarTarget.src = "/images/blank_avatar.png";
 		this.avatarTarget.alt = "";
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
 		this.setTitle("");
 		this.metaTarget.textContent = "";
 		this.contentTarget.dataset.postId = "";
@@ -135,10 +164,14 @@ export default class extends Controller {
 		this.element.classList.add("is-empty");
 		this.element.hidden = false;
 		this.currentPostId = null;
+		this.currentPostFeedId = "";
+		this.currentPostSource = "";
 		this.currentPostRead = false;
 		this.avatarTarget.hidden = true;
 		this.avatarTarget.src = "/images/blank_avatar.png";
 		this.avatarTarget.alt = "";
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
 		this.setTitle("Select a post");
 		this.metaTarget.textContent = "";
 		this.contentTarget.dataset.postId = "";

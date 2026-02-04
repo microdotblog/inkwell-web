@@ -534,6 +534,25 @@ button:focus:not(:focus-visible) {
 	padding: 0.5rem 0.75rem;
 }
 
+.timeline-feed-filter {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.6rem;
+	margin-left: -10px;
+	margin-right: -10px;
+	margin-top: -10px;
+	margin-bottom: 10px;
+	padding: 0.6rem;
+	border-bottom: 1px solid var(--ink-card-border);
+	background-color: var(--ink-card-background);
+}
+
+.timeline-feed-filter-label {
+	font-size: 0.7rem;
+	color: var(--ink-muted);
+}
+
 .timeline-summary-item {
 	display: flex;
 	align-items: center;
@@ -617,6 +636,10 @@ button:focus:not(:focus-visible) {
   border-radius: 999px;
   object-fit: cover;
   border: 1px solid var(--ink-avatar-border-muted);
+}
+
+.avatar--feed-filter {
+	cursor: pointer;
 }
 
 .timeline-item.is-read .timeline-title {
@@ -1224,6 +1247,10 @@ button:focus:not(:focus-visible) {
   border-radius: 999px;
   border: 1px solid var(--ink-avatar-border-muted);
   flex: 0 0 auto;
+}
+
+.reader-avatar.is-feed-link {
+	cursor: pointer;
 }
 
 .mark-unread {
