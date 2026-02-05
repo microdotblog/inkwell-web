@@ -25,3 +25,22 @@ export async function deleteHighlight(postId, highlightId) {
   await set(key, updated);
   return updated;
 }
+
+export async function updateHighlight(post_id, local_id, updates) {
+	if (!post_id || !local_id) {
+		return null;
+	}
+
+	const key = `${KEY_PREFIX}${post_id}`;
+	const existing = (await get(key)) || [];
+	let updated_highlight = null;
+	const updated = existing.map((highlight) => {
+		if (highlight.id == local_id) {
+			updated_highlight = { ...highlight, ...updates };
+			return updated_highlight;
+		}
+		return highlight;
+	});
+	await set(key, updated);
+	return updated_highlight;
+}

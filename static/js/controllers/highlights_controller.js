@@ -1,4 +1,5 @@
 import { Controller } from "../stimulus.js";
+import { deleteMicroBlogHighlight } from "../api/highlights.js";
 import { deleteHighlight, getHighlightsForPost } from "../storage/highlights.js";
 
 export default class extends Controller {
@@ -6,11 +7,15 @@ export default class extends Controller {
 
   connect() {
     this.activePostId = null;
+		this.activePostSource = "";
+		this.activePostHasTitle = false;
     this.highlights = [];
     this.handleHighlight = this.handleHighlight.bind(this);
+		this.handleHighlightUpdate = this.handleHighlightUpdate.bind(this);
     this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleSummary = this.handleSummary.bind(this);
     window.addEventListener("highlight:create", this.handleHighlight);
+		window.addEventListener("highlight:update", this.handleHighlightUpdate);
     window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("reader:summary", this.handleSummary);
     this.render();
@@ -18,6 +23,7 @@ export default class extends Controller {
 
   disconnect() {
     window.removeEventListener("highlight:create", this.handleHighlight);
+		window.removeEventListener("highlight:update", this.handleHighlightUpdate);
     window.removeEventListener("post:open", this.handlePostOpen);
 		window.removeEventListener("reader:summary", this.handleSummary);
   }
@@ -25,6 +31,8 @@ export default class extends Controller {
   async handlePostOpen(event) {
     const { post } = event.detail;
     this.activePostId = post?.id || null;
+		this.activePostSource = post?.source || "";
+		this.activePostHasTitle = this.hasPostTitle(post?.title, post?.summary);
     this.highlights = await getHighlightsForPost(this.activePostId);
     this.showReader();
     this.render();
@@ -32,6 +40,8 @@ export default class extends Controller {
 
 	handleSummary() {
 		this.activePostId = null;
+		this.activePostSource = "";
+		this.activePostHasTitle = false;
 		this.highlights = [];
 		this.showReader();
 		this.render();
@@ -39,13 +49,28 @@ export default class extends Controller {
 
   handleHighlight(event) {
     const highlight = event.detail;
-    if (!highlight || highlight.post_id !== this.activePostId) {
+    if (!highlight || highlight.post_id != this.activePostId) {
       return;
     }
 
     this.highlights = [highlight, ...this.highlights];
     this.render();
   }
+
+	handleHighlightUpdate(event) {
+		const highlight = event.detail;
+		if (!highlight || highlight.post_id != this.activePostId) {
+			return;
+		}
+
+		const highlight_index = this.highlights.findIndex((item) => item.id == highlight.id);
+		if (highlight_index < 0) {
+			return;
+		}
+
+		this.highlights[highlight_index] = { ...this.highlights[highlight_index], ...highlight };
+		this.render();
+	}
 
   showHighlights() {
     if (!this.highlights.length) {
@@ -108,7 +133,10 @@ export default class extends Controller {
     const markdown = this.buildPostMarkdown(highlight);
     const encoded = encodeURIComponent(markdown);
     const url = `https://micro.blog/post?text=${encoded}`;
-    window.location.href = url;
+		const new_window = window.open(url, "_blank", "noopener");
+		if (!new_window) {
+			window.location.href = url;
+		}
   }
 
   async copyHighlight(event) {
@@ -127,23 +155,41 @@ export default class extends Controller {
     }
   }
 
-  async deleteHighlight(event) {
-    const highlight = this.getHighlightFromEvent(event);
-    if (!highlight) {
-      return;
-    }
+	async deleteHighlight(event) {
+		const highlight = this.getHighlightFromEvent(event);
+		if (!highlight) {
+			return;
+		}
 
-    try {
-      await deleteHighlight(highlight.post_id, highlight.id);
-    }
-    catch (error) {
-      console.warn("Failed to delete highlight", error);
-      return;
-    }
+		let remote_failed = false;
+		if (highlight.highlight_id) {
+			try {
+				await deleteMicroBlogHighlight({
+					post_id: highlight.post_id,
+					highlight_id: highlight.highlight_id
+				});
+			}
+			catch (error) {
+				remote_failed = true;
+				console.warn("Failed to delete Micro.blog highlight", error);
+			}
+		}
 
-    this.highlights = this.highlights.filter((item) => item.id !== highlight.id);
-    this.render();
-  }
+		try {
+			await deleteHighlight(highlight.post_id, highlight.id);
+		}
+		catch (error) {
+			console.warn("Failed to delete highlight locally", error);
+			return;
+		}
+
+		this.highlights = this.highlights.filter((item) => item.id != highlight.id);
+		this.render();
+
+		if (remote_failed) {
+			console.warn("Micro.blog highlight delete failed; local highlight removed");
+		}
+	}
 
   getHighlightFromEvent(event) {
     const item = event.currentTarget.closest(".highlight-item");
@@ -166,16 +212,25 @@ export default class extends Controller {
   }
 
   buildPostMarkdown(highlight) {
-    const title = (highlight.post_title || "Post").trim();
-    const url = (highlight.post_url || "").trim();
-    const link = url ? `[${title}](${url})` : title;
-    const quote = this.formatQuote(highlight.text || "");
+		const post_title = (highlight.post_title || "").trim();
+		const fallback_source = (this.activePostSource || "").trim();
+		const post_source = (highlight.post_source || fallback_source).trim();
+		const post_has_title = (highlight.post_has_title != null)
+			? highlight.post_has_title == true
+			: this.activePostHasTitle;
+		let link_title = post_title;
+		if (!post_has_title || !link_title || link_title.toLowerCase() == "untitled") {
+			link_title = post_source || "Post";
+		}
+		const post_url = (highlight.post_url || "").trim();
+		const link = post_url ? `[${link_title}](${post_url})` : link_title;
+		const quote = this.formatQuote(highlight.text || "");
 
-    if (!quote) {
-      return link;
-    }
+		if (!quote) {
+			return link;
+		}
 
-    return `${link}\n\n${quote}`;
+		return `${link}\n\n${quote}`;
   }
 
   formatQuote(text) {
@@ -189,6 +244,29 @@ export default class extends Controller {
       .map((line) => `> ${line}`)
       .join("\n");
   }
+
+	hasPostTitle(title, summary) {
+		const normalized_title = (title || "").trim().replace(/\s+/g, " ");
+		if (!normalized_title || normalized_title.toLowerCase() == "untitled") {
+			return false;
+		}
+
+		const normalized_summary = (summary || "").trim().replace(/\s+/g, " ");
+		if (normalized_summary) {
+			if (normalized_summary == normalized_title) {
+				return false;
+			}
+
+			const shared_prefix = normalized_title.startsWith(normalized_summary) ||
+				normalized_summary.startsWith(normalized_title);
+			const prefix_length = Math.min(normalized_title.length, normalized_summary.length);
+			if (shared_prefix && prefix_length >= 40) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
   async copyToClipboard(text) {
     if (navigator.clipboard && window.isSecureContext) {

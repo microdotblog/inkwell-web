@@ -11,6 +11,7 @@ import {
 	unstarFeedEntries
 } from "../api/feeds.js";
 import { loadReadIds, markAllRead, markRead } from "../storage/reads.js";
+import { parse_hash, push_state, replace_state, ROUTE_CHANGE } from "../router.js";
 
 const SEGMENT_BUCKETS = {
   today: ["day-1"],
@@ -29,8 +30,10 @@ export default class extends Controller {
 		this.activeSegment = "today";
 		this.activePostId = null;
 		this.unreadOverridePostId = null;
-		this.active_feed_id = "";
-		this.active_feed_label = "";
+		this.activeFeedId = null;
+		this.activeFeedLabel = "";
+		this.subscriptions = [];
+		this.applying_route = false;
 		this.posts = [];
 		this.isLoading = true;
 		this.isSyncing = false;
@@ -55,6 +58,8 @@ export default class extends Controller {
 		this.handleAvatarError = this.handleAvatarError.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
 		this.handleSearchKeydown = this.handleSearchKeydown.bind(this);
+		this.handleSearchInput = this.handleSearchInput.bind(this);
+		this.search_input_debounce_timer = null;
 		this.handleMarkAllRead = this.handleMarkAllRead.bind(this);
 		this.handleToggleBookmark = this.handleToggleBookmark.bind(this);
 		this.handleToggleHideRead = this.handleToggleHideRead.bind(this);
@@ -62,9 +67,11 @@ export default class extends Controller {
 		this.handleAuthVerify = this.handleAuthVerify.bind(this);
 		this.handleTimelineSync = this.handleTimelineSync.bind(this);
 		this.handleFilterByFeed = this.handleFilterByFeed.bind(this);
+		this.handleUrlChange = this.handleUrlChange.bind(this);
 		this.listTarget.addEventListener("click", this.handleClick);
 		this.listTarget.addEventListener("error", this.handleAvatarError, true);
 		this.searchInputTarget.addEventListener("keydown", this.handleSearchKeydown);
+		this.searchInputTarget.addEventListener("input", this.handleSearchInput);
 		window.addEventListener("post:unread", this.handleUnread);
 		window.addEventListener("post:read", this.handleRead);
 		window.addEventListener("keydown", this.handleKeydown);
@@ -75,6 +82,7 @@ export default class extends Controller {
 		window.addEventListener("auth:verify", this.handleAuthVerify);
 		window.addEventListener("timeline:sync", this.handleTimelineSync);
 		window.addEventListener("timeline:filterByFeed", this.handleFilterByFeed);
+		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.listTarget.classList.add("is-loading");
 		this.load();
 		this.startRefreshTimer();
@@ -84,6 +92,8 @@ export default class extends Controller {
 		this.listTarget.removeEventListener("click", this.handleClick);
 		this.listTarget.removeEventListener("error", this.handleAvatarError, true);
 		this.searchInputTarget.removeEventListener("keydown", this.handleSearchKeydown);
+		this.searchInputTarget.removeEventListener("input", this.handleSearchInput);
+		this.clearSearchInputDebounce();
 		window.removeEventListener("post:unread", this.handleUnread);
 		window.removeEventListener("post:read", this.handleRead);
 		window.removeEventListener("keydown", this.handleKeydown);
@@ -94,6 +104,7 @@ export default class extends Controller {
 		window.removeEventListener("auth:verify", this.handleAuthVerify);
 		window.removeEventListener("timeline:sync", this.handleTimelineSync);
 		window.removeEventListener("timeline:filterByFeed", this.handleFilterByFeed);
+		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.clearReadSyncTimer();
 		this.stopRefreshTimer();
 	}
@@ -102,6 +113,11 @@ export default class extends Controller {
     if (this.isSyncing) {
       return;
     }
+
+		const initial_route = parse_hash();
+		if (this.isLoading && (initial_route.postId || initial_route.feedId || initial_route.feedUrl)) {
+			window.dispatchEvent(new CustomEvent("reader:resolvingRoute"));
+		}
 
 		const load_token = this.timeline_load_token + 1;
 		this.timeline_load_token = load_token;
@@ -115,6 +131,7 @@ export default class extends Controller {
       this.readIds = new Set(read_ids);
       this.posts = timeline_data.posts || [];
 			this.subscriptionCount = timeline_data.subscription_count;
+			this.subscriptions = Array.isArray(timeline_data.subscriptions) ? timeline_data.subscriptions : [];
       this.posts.forEach((post) => {
         if (this.readIds.has(post.id)) {
           post.is_read = true;
@@ -125,8 +142,13 @@ export default class extends Controller {
     }
     catch (error) {
       console.warn("Failed to load timeline", error);
+      const state = parse_hash();
+      if (state.postId || state.feedId || state.feedUrl) {
+        replace_state({});
+      }
     }
     finally {
+      this.apply_route_from_url(parse_hash(), this.isLoading);
       this.isLoading = false;
       this.listTarget.classList.remove("is-loading");
       this.render();
@@ -372,7 +394,6 @@ export default class extends Controller {
 
 		if (event.metaKey) {
 			this.clearActivePost();
-			window.dispatchEvent(new CustomEvent("reader:clear"));
 			return;
 		}
 
@@ -384,20 +405,116 @@ export default class extends Controller {
 
 		const clicked_avatar = event.target.closest(".avatar");
 		if (clicked_avatar && item.contains(clicked_avatar)) {
-			this.setFeedFilter(post.feed_id, post.source || "");
+			this.setFeedFilter(post.feed_id, post.source || "", true);
 		}
 
 		this.openPost(post);
   }
 
-	clearActivePost() {
+	clearActivePost(skip_url_update) {
 		if (!this.activePostId) {
+			if (!skip_url_update) {
+				push_state({ feedId: this.activeFeedId || null, postId: null });
+			}
 			return;
 		}
 
 		this.activePostId = null;
 		this.unreadOverridePostId = null;
 		this.render();
+		window.dispatchEvent(new CustomEvent("reader:clear"));
+		if (!skip_url_update) {
+			push_state({ feedId: this.activeFeedId || null, postId: null });
+		}
+	}
+
+	resolve_feed_url_to_id(feed_url) {
+		if (!feed_url || !this.subscriptions.length) {
+			return null;
+		}
+		let normalized_input = "";
+		try {
+			normalized_input = new URL(feed_url).href;
+		}
+		catch (e) {
+			try {
+				normalized_input = new URL(`https://${feed_url}`).href;
+			}
+			catch (e2) {
+				return null;
+			}
+		}
+		const sub = this.subscriptions.find((s) => {
+			const raw = s.feed_url || s.site_url || "";
+			if (!raw) return false;
+			try {
+				return new URL(raw).href == normalized_input;
+			}
+			catch (e) {
+				try {
+					return new URL(`https://${raw}`).href == normalized_input;
+				}
+				catch (e2) {
+					return false;
+				}
+			}
+		});
+		return sub && sub.feed_id != null ? String(sub.feed_id) : null;
+	}
+
+	apply_route_from_url(state, should_update_reader = true) {
+		if (!state) {
+			state = parse_hash();
+		}
+		this.applying_route = true;
+		if (state.feedId != null && state.feedId != "") {
+			this.activeFeedId = state.feedId;
+			this.activeFeedLabel = this.getFeedLabel(this.activeFeedId);
+		}
+		else if (state.feedUrl != null && state.feedUrl != "") {
+			const resolved = this.resolve_feed_url_to_id(state.feedUrl);
+			this.activeFeedId = resolved;
+			this.activeFeedLabel = resolved ? this.getFeedLabel(resolved) : "";
+		}
+		else {
+			this.activeFeedId = null;
+			this.activeFeedLabel = "";
+		}
+		const has_feed = this.activeFeedId != null && this.activeFeedId != "" &&
+			(this.posts.some((p) => (p.feed_id || "") == this.activeFeedId) ||
+				this.subscriptions.some((s) => String(s.feed_id || "") == this.activeFeedId));
+		if (this.activeFeedId && !has_feed) {
+			this.activeFeedId = null;
+			this.activeFeedLabel = "";
+		}
+		if (!should_update_reader) {
+			this.applying_route = false;
+			this.render();
+			return;
+		}
+		if (state.postId != null && state.postId != "") {
+			const post = this.posts.find((p) => p.id == state.postId);
+			if (post) {
+				this.openPost(post, true);
+			}
+			else {
+				replace_state({});
+				this.activeFeedId = null;
+				this.clearActivePost(true);
+				window.dispatchEvent(new CustomEvent("reader:welcome"));
+			}
+		}
+		else {
+			this.clearActivePost(true);
+			window.dispatchEvent(new CustomEvent("reader:welcome"));
+		}
+		this.applying_route = false;
+		this.render();
+	}
+
+	handleUrlChange(event) {
+		const state = event.detail || parse_hash();
+		this.apply_route_from_url(state);
 	}
 
   handleUnread(event) {
@@ -535,18 +652,57 @@ export default class extends Controller {
 			return;
 		}
 
-		if (event.key != "Enter") {
-			return;
+		if (event.key == "Enter") {
+			event.preventDefault();
+			this.performSearch();
+			this.selectFirstSearchResult();
+			this.focusTimeline();
 		}
+	}
 
-		event.preventDefault();
-		this.performSearch();
+	handleSearchInput() {
+		this.clearSearchInputDebounce();
+		this.search_input_debounce_timer = setTimeout(() => {
+			this.search_input_debounce_timer = null;
+			this.performSearch();
+		}, 100);
+	}
+
+	clearSearchInputDebounce() {
+		if (this.search_input_debounce_timer != null) {
+			clearTimeout(this.search_input_debounce_timer);
+			this.search_input_debounce_timer = null;
+		}
 	}
 
 	performSearch() {
 		const search_query = this.searchInputTarget.value.trim();
 		this.searchQuery = search_query;
 		this.render();
+	}
+
+	focusTimeline() {
+		if (!this.listTarget) {
+			return;
+		}
+		if (!this.listTarget.hasAttribute("tabindex")) {
+			this.listTarget.setAttribute("tabindex", "-1");
+		}
+		this.listTarget.focus();
+	}
+
+	selectFirstSearchResult() {
+		const results = this.getSearchResults();
+		if (!results.length) {
+			return;
+		}
+
+		const first_post = results[0];
+		if (first_post.id == this.activePostId) {
+			return;
+		}
+
+		this.openPost(first_post);
 	}
 
 	openActivePost() {
@@ -698,20 +854,20 @@ export default class extends Controller {
     return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
   }
 
-	render() {
+		render() {
 		if (this.isLoading) {
 			return;
 		}
 
 		const posts = this.getVisiblePosts();
-		const feed_filter_markup = this.active_feed_id ? this.renderFeedFilter() : "";
+		const feed_filter_markup = this.activeFeedId ? this.renderFeedFilter() : "";
 		const is_using_ai = getMicroBlogIsUsingAI();
-		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && !this.active_feed_id && is_using_ai && posts.length > 0;
+		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && !this.activeFeedId && is_using_ai && posts.length > 0;
 		const summary_count = posts.length;
 		const summary_label = summary_count == 1 ? "post" : "posts";
 
 		if (!posts.length) {
-			if (this.active_feed_id) {
+			if (this.activeFeedId) {
 				this.listTarget.innerHTML = `${feed_filter_markup}<p class="canvas-empty timeline-empty">No posts in this feed.<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
 				return;
 			}
@@ -733,7 +889,7 @@ export default class extends Controller {
 	}
 
 	renderFeedFilter() {
-		const feed_label = this.escapeHtml(this.active_feed_label || `Feed ${this.active_feed_id}`);
+		const feed_label = this.escapeHtml(this.activeFeedLabel || `Feed ${this.activeFeedId}`);
 		return `
 			<div class="timeline-feed-filter">
 				<span class="timeline-feed-filter-label">Showing all posts from ${feed_label}</span>
@@ -744,33 +900,56 @@ export default class extends Controller {
 
 	clearFeedFilter(event) {
 		event?.preventDefault();
-		if (!this.active_feed_id) {
+		if (!this.activeFeedId) {
 			return;
 		}
-		this.active_feed_id = "";
-		this.active_feed_label = "";
+		this.activeFeedId = null;
+		this.activeFeedLabel = "";
+		if (this.activePostId) {
+			push_state({ postId: this.activePostId });
+		}
+		else {
+			push_state({});
+		}
 		this.render();
 	}
 
-	setFeedFilter(feed_id, feed_label) {
+	setFeedFilter(feed_id, feed_label, skip_url_update) {
 		if (feed_id == null || feed_id == "") {
 			return;
 		}
 
-		this.active_feed_id = String(feed_id);
-		this.active_feed_label = (feed_label || "").trim();
+		this.activeFeedId = String(feed_id);
+		this.activeFeedLabel = (feed_label || "").trim() || this.getFeedLabel(this.activeFeedId);
+		if (!skip_url_update) {
+			push_state({
+				feedId: this.activeFeedId,
+				postId: this.activePostId || null
+			});
+		}
 		if (!this.activePostId) {
 			return;
 		}
 
 		const active_post = this.posts.find((post) => post.id == this.activePostId);
-		if (active_post && String(active_post.feed_id || "") == this.active_feed_id) {
+		if (active_post && String(active_post.feed_id || "") == this.activeFeedId) {
 			return;
 		}
 
 		this.activePostId = null;
 		this.unreadOverridePostId = null;
 		window.dispatchEvent(new CustomEvent("reader:clear"));
+	}
+
+	getFeedLabel(feed_id) {
+		if (!feed_id) {
+			return "";
+		}
+		const subscription = this.subscriptions.find((entry) => String(entry.feed_id || "") == String(feed_id));
+		if (!subscription) {
+			return "";
+		}
+		return (subscription.title || subscription.site_url || subscription.feed_url || "").trim();
 	}
 
 	renderNoSubscriptions() {
@@ -833,12 +1012,7 @@ export default class extends Controller {
 		this.summary_request_token = request_token;
 		this.summary_is_loading = true;
 
-		if (this.activePostId) {
-			this.clearActivePost();
-		}
-		else {
-			this.render();
-		}
+		this.render();
 
 		try {
 			const summary_html = await summarizeFeedEntries(entry_ids);
@@ -865,7 +1039,7 @@ export default class extends Controller {
 		}
 	}
 
-  openPost(post) {
+  openPost(post, skip_url_update) {
     if (!post) {
       return;
     }
@@ -888,6 +1062,9 @@ export default class extends Controller {
 
     window.dispatchEvent(new CustomEvent("post:open", { detail: { post } }));
     this.scrollActivePostIntoView();
+		if (!skip_url_update) {
+			push_state({ feedId: this.activeFeedId || null, postId: post.id });
+		}
   }
 
   selectAdjacentPost(offset) {
@@ -952,7 +1129,7 @@ export default class extends Controller {
 			return this.getSearchResults();
 		}
 
-		if (this.active_feed_id) {
+		if (this.activeFeedId) {
 			return this.getFeedFilteredPosts();
 		}
 
@@ -974,7 +1151,7 @@ export default class extends Controller {
 	}
 
 	getFeedFilteredPosts() {
-		if (!this.active_feed_id) {
+		if (!this.activeFeedId) {
 			return this.posts;
 		}
 
@@ -982,7 +1159,7 @@ export default class extends Controller {
 			if (post.feed_id == null || post.feed_id == "") {
 				return false;
 			}
-			return String(post.feed_id) == this.active_feed_id;
+			return String(post.feed_id) == this.activeFeedId;
 		});
 	}
 
@@ -1170,7 +1347,7 @@ export default class extends Controller {
 
 		this.activePostId = null;
 		this.unreadOverridePostId = null;
-		window.dispatchEvent(new CustomEvent("reader:clear"));
+		window.dispatchEvent(new CustomEvent("reader:welcome"));
 	}
 
 	captureHideReadSnapshot() {

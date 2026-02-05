@@ -141,9 +141,10 @@ export default class extends Controller {
 		if (!window.crypto?.getRandomValues) {
 			return "";
 		}
-		const state_bytes = new Uint8Array(16);
+		const state_length = 10;
+		const state_bytes = new Uint8Array(state_length);
 		window.crypto.getRandomValues(state_bytes);
-		const state_value = Array.from(state_bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+		const state_value = Array.from(state_bytes, (byte) => (byte % 10).toString()).join("");
 		localStorage.setItem(OAUTH_STATE_KEY, state_value);
 		return state_value;
 	}

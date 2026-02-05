@@ -1,4 +1,4 @@
-import { mockPosts } from "../mock_data.js";
+import { mockPosts, mockSubscriptions } from "../mock_data.js";
 import { USE_MOCK_DATA } from "../config.js";
 import {
   cacheFeedEntries,
@@ -27,17 +27,17 @@ export async function fetchTimelineData() {
 		const icon_map = new Map();
 		const starred_set = new Set();
 
-	    const posts = entries.map((entry) => {
-	      const subscription = subscriptionMap.get(entry.feed_id);
-	      const publishedAt = entry.published || entry.created_at || new Date().toISOString();
+    const posts = entries.map((entry) => {
+      const subscription = subscriptionMap.get(entry.feed_id);
+      const publishedAt = entry.published || entry.created_at || new Date().toISOString();
 			const resolved_feed_id = entry.feed_id != null
-				? entry.feed_id
-				: (subscription && subscription.feed_id != null ? subscription.feed_id : "");
-	      return {
-	        id: String(entry.id),
-	        feed_id: resolved_feed_id,
-	        source: resolveSource(subscription),
-	        source_url: resolveSourceUrl(subscription),
+				? String(entry.feed_id)
+				: (subscription && subscription.feed_id != null ? String(subscription.feed_id) : "");
+      return {
+        id: String(entry.id),
+        feed_id: resolved_feed_id,
+        source: resolveSource(subscription),
+        source_url: resolveSourceUrl(subscription),
         title: entry.title,
         summary: entry.summary || "",
         url: entry.url,
@@ -50,12 +50,12 @@ export async function fetchTimelineData() {
       };
     });
 
-		return { posts, subscription_count };
+		return { posts, subscription_count, subscriptions };
   }
   catch (error) {
 		if (USE_MOCK_DATA) {
 			console.error("Failed to load feeds timeline", error);
-			return { posts: [...mockPosts], subscription_count: null };
+			return { posts: [...mockPosts], subscription_count: null, subscriptions: mockSubscriptions };
 		}
 		throw error;
   }
@@ -156,13 +156,16 @@ function getSubscriptionHost(subscription) {
 }
 
 function getAgeBucket(isoDate) {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) {
-    return "day-7";
-  }
+	const date = new Date(isoDate);
+	if (Number.isNaN(date.getTime())) {
+		return "day-7";
+	}
 
-  const diffMs = Date.now() - date.getTime();
-  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  const bucket = Math.min(Math.max(diffDays, 0), 6) + 1;
-  return `day-${bucket}`;
+	const now = new Date();
+	const today_midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	const entry_midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	const diffMs = today_midnight.getTime() - entry_midnight.getTime();
+	const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+	const bucket = Math.min(Math.max(diffDays, 0), 6) + 1;
+	return `day-${bucket}`;
 }

@@ -10,8 +10,10 @@ import SubscriptionsController from "./controllers/subscriptions_controller.js?2
 import ReaderMenuController from "./controllers/reader_menu_controller.js?20260121.1";
 import ThemesController from "./controllers/themes_controller.js?20260121.1";
 import { initThemes } from "./theme_manager.js?20260121.1";
+import { init_listener } from "./router.js?20260121.1";
 
 initThemes();
+init_listener();
 
 const application = Application.start();
 application.register("auth", AuthController);
