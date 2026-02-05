@@ -405,7 +405,7 @@ export default class extends Controller {
 
 		const clicked_avatar = event.target.closest(".avatar");
 		if (clicked_avatar && item.contains(clicked_avatar)) {
-			this.setFeedFilter(post.feed_id, post.source || "", true);
+			this.setFeedFilter(post.feed_id, post.source || "");
 		}
 
 		this.openPost(post);
@@ -919,26 +919,27 @@ export default class extends Controller {
 			return;
 		}
 
-		this.activeFeedId = String(feed_id);
+		const next_feed_id = String(feed_id);
+		const active_post = this.activePostId
+			? this.posts.find((post) => post.id == this.activePostId)
+			: null;
+		const active_post_matches_feed = active_post && String(active_post.feed_id || "") == next_feed_id;
+
+		this.activeFeedId = next_feed_id;
 		this.activeFeedLabel = (feed_label || "").trim() || this.getFeedLabel(this.activeFeedId);
+
+		if (!active_post_matches_feed && this.activePostId) {
+			this.activePostId = null;
+			this.unreadOverridePostId = null;
+			window.dispatchEvent(new CustomEvent("reader:clear"));
+		}
+
 		if (!skip_url_update) {
 			push_state({
 				feedId: this.activeFeedId,
-				postId: this.activePostId || null
+				postId: active_post_matches_feed ? this.activePostId : null
 			});
 		}
-		if (!this.activePostId) {
-			return;
-		}
-
-		const active_post = this.posts.find((post) => post.id == this.activePostId);
-		if (active_post && String(active_post.feed_id || "") == this.activeFeedId) {
-			return;
-		}
-
-		this.activePostId = null;
-		this.unreadOverridePostId = null;
-		window.dispatchEvent(new CustomEvent("reader:clear"));
 	}
 
 	getFeedLabel(feed_id) {
