@@ -1349,7 +1349,7 @@ export default class extends Controller {
 
 		this.activePostId = null;
 		this.unreadOverridePostId = null;
-		window.dispatchEvent(new CustomEvent("reader:welcome"));
+		window.dispatchEvent(new CustomEvent("reader:clear"));
 	}
 
 	captureHideReadSnapshot() {
