@@ -658,6 +658,10 @@ button:focus:not(:focus-visible) {
 	cursor: pointer;
 }
 
+.timeline-item.is-active .avatar:hover {
+	border-color: var(--ink-avatar-border);
+}
+
 .timeline-item.is-read .timeline-title {
   color: var(--ink-muted);
 }

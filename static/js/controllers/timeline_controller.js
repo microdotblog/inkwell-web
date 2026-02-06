@@ -404,7 +404,8 @@ export default class extends Controller {
 		}
 
 		const clicked_avatar = event.target.closest(".avatar");
-		if (clicked_avatar && item.contains(clicked_avatar)) {
+		const is_active_row = item.classList.contains("is-active");
+		if (clicked_avatar && item.contains(clicked_avatar) && is_active_row) {
 			this.setFeedFilter(post.feed_id, post.source || "", true);
 		}
 
@@ -1240,7 +1241,7 @@ export default class extends Controller {
 		const feed_id = post.feed_id == null ? "" : String(post.feed_id);
 		const safe_feed_id = this.escapeHtml(feed_id);
 		const avatar_class = feed_id ? "avatar avatar--feed-filter" : "avatar";
-		const avatar_title = feed_id ? " title=\"Show posts from this feed\"" : "";
+		const avatar_title = feed_id && is_active ? " title=\"Show posts from this feed\"" : "";
 		return `
 			<button type="button" class="${classes}" data-post-id="${post.id}" data-feed-id="${safe_feed_id}" data-age="${post.age_bucket}" style="--row-color: ${color}; --row-border: ${borderColor}; --row-selected-color: ${selected_background}; --row-selected-text: ${selected_text}; --row-selected-border: ${selected_border};">
 				<img class="${avatar_class}" src="${post.avatar_url}" alt="${safe_source}"${avatar_title}>

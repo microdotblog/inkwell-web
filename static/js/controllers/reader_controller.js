@@ -11,7 +11,6 @@ export default class extends Controller {
 	connect() {
 		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleAvatarError = this.handleAvatarError.bind(this);
-		this.handleAvatarClick = this.handleAvatarClick.bind(this);
 		this.handleWelcome = this.handleWelcome.bind(this);
 		this.handleClear = this.handleClear.bind(this);
 		this.handleResolvingRoute = this.handleResolvingRoute.bind(this);
@@ -27,7 +26,6 @@ export default class extends Controller {
 		window.addEventListener("reader:toggleRead", this.handleToggleRead);
 		window.addEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.addEventListener("error", this.handleAvatarError);
-		this.avatarTarget.addEventListener("click", this.handleAvatarClick);
 		this.contentTarget.addEventListener("error", this.handleSummaryAvatarError, true);
 		const route = parse_hash();
 		if (route.postId || route.feedId || route.feedUrl) {
@@ -47,7 +45,6 @@ export default class extends Controller {
 		window.removeEventListener("reader:toggleRead", this.handleToggleRead);
 		window.removeEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.removeEventListener("error", this.handleAvatarError);
-		this.avatarTarget.removeEventListener("click", this.handleAvatarClick);
 		this.contentTarget.removeEventListener("error", this.handleSummaryAvatarError, true);
 	}
 
@@ -77,8 +74,8 @@ export default class extends Controller {
 		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
 		this.currentPostFeedId = post.feed_id == null ? "" : String(post.feed_id);
 		this.currentPostSource = (post.source || "").trim();
-		this.avatarTarget.title = this.currentPostFeedId ? "Show posts from this feed" : "";
-		this.avatarTarget.classList.toggle("is-feed-link", Boolean(this.currentPostFeedId));
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
 
 		const payload = await fetchReadableContent(post.id);
 		const summary_fallback = post.summary || "No preview available yet.";
@@ -110,20 +107,6 @@ export default class extends Controller {
 		}
 
 		image_el.src = DEFAULT_AVATAR_URL;
-	}
-
-	handleAvatarClick() {
-		if (!this.currentPostFeedId) {
-			return;
-		}
-		window.dispatchEvent(
-			new CustomEvent("timeline:filterByFeed", {
-				detail: {
-					feedId: this.currentPostFeedId,
-					source: this.currentPostSource || ""
-				}
-				})
-			);
 	}
 
 	handleSummaryAvatarError(event) {
