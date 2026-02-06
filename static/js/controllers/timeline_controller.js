@@ -26,33 +26,34 @@ const FEED_REFRESH_INTERVAL_MS = FEED_REFRESH_INTERVAL_MINUTES * 60 * 1000;
 export default class extends Controller {
   static targets = ["list", "segments", "search", "searchToggle", "searchInput"];
 
-  connect() {
-    this.activeSegment = "today";
-    this.activePostId = null;
+	connect() {
+		this.activeSegment = "today";
+		this.activePostId = null;
 		this.unreadOverridePostId = null;
 		this.activeFeedId = null;
+		this.activeFeedLabel = "";
 		this.subscriptions = [];
 		this.applying_route = false;
-    this.posts = [];
-    this.isLoading = true;
+		this.posts = [];
+		this.isLoading = true;
 		this.isSyncing = false;
 		this.timeline_load_token = 0;
 		this.subscriptionCount = null;
 		this.pending_sync = false;
 		this.summary_is_loading = false;
 		this.summary_request_token = 0;
-    this.searchActive = false;
+		this.searchActive = false;
 		this.searchQuery = "";
-    this.readIds = new Set();
-    this.pendingReadIds = new Set();
+		this.readIds = new Set();
+		this.pendingReadIds = new Set();
 		this.bookmark_toggling = new Set();
 		this.readSyncTimer = null;
 		this.refreshTimer = null;
 		this.hideRead = this.loadHideReadSetting();
 		this.hideReadSnapshotIds = new Set();
 		this.hideReadSnapshotActive = false;
-    this.handleClick = this.handleClick.bind(this);
-    this.handleUnread = this.handleUnread.bind(this);
+		this.handleClick = this.handleClick.bind(this);
+		this.handleUnread = this.handleUnread.bind(this);
 		this.handleRead = this.handleRead.bind(this);
 		this.handleAvatarError = this.handleAvatarError.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
@@ -65,12 +66,13 @@ export default class extends Controller {
 		this.handleAuthReady = this.handleAuthReady.bind(this);
 		this.handleAuthVerify = this.handleAuthVerify.bind(this);
 		this.handleTimelineSync = this.handleTimelineSync.bind(this);
+		this.handleFilterByFeed = this.handleFilterByFeed.bind(this);
 		this.handleUrlChange = this.handleUrlChange.bind(this);
-    this.listTarget.addEventListener("click", this.handleClick);
+		this.listTarget.addEventListener("click", this.handleClick);
 		this.listTarget.addEventListener("error", this.handleAvatarError, true);
 		this.searchInputTarget.addEventListener("keydown", this.handleSearchKeydown);
 		this.searchInputTarget.addEventListener("input", this.handleSearchInput);
-    window.addEventListener("post:unread", this.handleUnread);
+		window.addEventListener("post:unread", this.handleUnread);
 		window.addEventListener("post:read", this.handleRead);
 		window.addEventListener("keydown", this.handleKeydown);
 		window.addEventListener("timeline:markAllRead", this.handleMarkAllRead);
@@ -79,19 +81,20 @@ export default class extends Controller {
 		window.addEventListener("auth:ready", this.handleAuthReady);
 		window.addEventListener("auth:verify", this.handleAuthVerify);
 		window.addEventListener("timeline:sync", this.handleTimelineSync);
+		window.addEventListener("timeline:filterByFeed", this.handleFilterByFeed);
 		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
-    this.listTarget.classList.add("is-loading");
-    this.load();
+		this.listTarget.classList.add("is-loading");
+		this.load();
 		this.startRefreshTimer();
-  }
+	}
 
-  disconnect() {
-    this.listTarget.removeEventListener("click", this.handleClick);
+	disconnect() {
+		this.listTarget.removeEventListener("click", this.handleClick);
 		this.listTarget.removeEventListener("error", this.handleAvatarError, true);
 		this.searchInputTarget.removeEventListener("keydown", this.handleSearchKeydown);
 		this.searchInputTarget.removeEventListener("input", this.handleSearchInput);
 		this.clearSearchInputDebounce();
-    window.removeEventListener("post:unread", this.handleUnread);
+		window.removeEventListener("post:unread", this.handleUnread);
 		window.removeEventListener("post:read", this.handleRead);
 		window.removeEventListener("keydown", this.handleKeydown);
 		window.removeEventListener("timeline:markAllRead", this.handleMarkAllRead);
@@ -100,10 +103,11 @@ export default class extends Controller {
 		window.removeEventListener("auth:ready", this.handleAuthReady);
 		window.removeEventListener("auth:verify", this.handleAuthVerify);
 		window.removeEventListener("timeline:sync", this.handleTimelineSync);
+		window.removeEventListener("timeline:filterByFeed", this.handleFilterByFeed);
 		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
-    this.clearReadSyncTimer();
+		this.clearReadSyncTimer();
 		this.stopRefreshTimer();
-  }
+	}
 
   async load() {
     if (this.isSyncing) {
@@ -166,6 +170,17 @@ export default class extends Controller {
 
 	handleTimelineSync(event) {
 		this.syncTimeline();
+	}
+
+	handleFilterByFeed(event) {
+		const feed_id = event.detail?.feedId;
+		if (feed_id == null || feed_id == "") {
+			return;
+		}
+
+		const feed_source = event.detail?.source || "";
+		this.setFeedFilter(feed_id, feed_source);
+		this.render();
 	}
 
 	startRefreshTimer() {
@@ -384,6 +399,15 @@ export default class extends Controller {
 
 		const postId = item.dataset.postId;
 		const post = this.posts.find((entry) => entry.id === postId);
+		if (!post) {
+			return;
+		}
+
+		const clicked_avatar = event.target.closest(".avatar");
+		if (clicked_avatar && item.contains(clicked_avatar)) {
+			this.setFeedFilter(post.feed_id, post.source || "", true);
+		}
+
 		this.openPost(post);
   }
 
@@ -445,19 +469,23 @@ export default class extends Controller {
 		this.applying_route = true;
 		if (state.feedId != null && state.feedId != "") {
 			this.activeFeedId = state.feedId;
+			this.activeFeedLabel = this.getFeedLabel(this.activeFeedId);
 		}
 		else if (state.feedUrl != null && state.feedUrl != "") {
 			const resolved = this.resolve_feed_url_to_id(state.feedUrl);
 			this.activeFeedId = resolved;
+			this.activeFeedLabel = resolved ? this.getFeedLabel(resolved) : "";
 		}
 		else {
 			this.activeFeedId = null;
+			this.activeFeedLabel = "";
 		}
 		const has_feed = this.activeFeedId != null && this.activeFeedId != "" &&
 			(this.posts.some((p) => (p.feed_id || "") == this.activeFeedId) ||
 				this.subscriptions.some((s) => String(s.feed_id || "") == this.activeFeedId));
 		if (this.activeFeedId && !has_feed) {
 			this.activeFeedId = null;
+			this.activeFeedLabel = "";
 		}
 		if (!should_update_reader) {
 			this.applying_route = false;
@@ -826,32 +854,103 @@ export default class extends Controller {
     return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
   }
 
-	render() {
+		render() {
 		if (this.isLoading) {
 			return;
 		}
 
 		const posts = this.getVisiblePosts();
+		const feed_filter_markup = this.activeFeedId ? this.renderFeedFilter() : "";
 		const is_using_ai = getMicroBlogIsUsingAI();
-		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && is_using_ai && posts.length > 0;
+		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && !this.activeFeedId && is_using_ai && posts.length > 0;
 		const summary_count = posts.length;
 		const summary_label = summary_count == 1 ? "post" : "posts";
 
 		if (!posts.length) {
+			if (this.activeFeedId) {
+				this.listTarget.innerHTML = `${feed_filter_markup}<p class="canvas-empty timeline-empty">No posts in this feed.<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
+				return;
+			}
 			if (this.subscriptionCount == 0) {
 				this.listTarget.innerHTML = this.renderNoSubscriptions();
 				return;
 			}
 			if (should_render_summary) {
-				this.listTarget.innerHTML = `${this.renderSummaryItem(false, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
+				this.listTarget.innerHTML = `${feed_filter_markup}${this.renderSummaryItem(false, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
 				return;
 			}
-			this.listTarget.innerHTML = "<p class=\"canvas-empty\"><!-- No posts. --></p>";
+			this.listTarget.innerHTML = `${feed_filter_markup}<p class="canvas-empty"><!-- No posts. --></p>`;
 			return;
 		}
 
 		const items = posts.map((post) => this.renderPost(post)).join("");
-		this.listTarget.innerHTML = should_render_summary ? `${this.renderSummaryItem(true, summary_count, summary_label)}${items}` : items;
+		const list_markup = should_render_summary ? `${this.renderSummaryItem(true, summary_count, summary_label)}${items}` : items;
+		this.listTarget.innerHTML = `${feed_filter_markup}${list_markup}`;
+	}
+
+	renderFeedFilter() {
+		const feed_label = this.escapeHtml(this.activeFeedLabel || `Feed ${this.activeFeedId}`);
+		return `
+			<div class="timeline-feed-filter">
+				<span class="timeline-feed-filter-label">Showing all posts from ${feed_label}</span>
+				<button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear</button>
+			</div>
+		`;
+	}
+
+	clearFeedFilter(event) {
+		event?.preventDefault();
+		if (!this.activeFeedId) {
+			return;
+		}
+		this.activeFeedId = null;
+		this.activeFeedLabel = "";
+		if (this.activePostId) {
+			push_state({ postId: this.activePostId });
+		}
+		else {
+			push_state({});
+		}
+		this.render();
+	}
+
+	setFeedFilter(feed_id, feed_label, skip_url_update) {
+		if (feed_id == null || feed_id == "") {
+			return;
+		}
+
+		const next_feed_id = String(feed_id);
+		const active_post = this.activePostId
+			? this.posts.find((post) => post.id == this.activePostId)
+			: null;
+		const active_post_matches_feed = active_post && String(active_post.feed_id || "") == next_feed_id;
+
+		this.activeFeedId = next_feed_id;
+		this.activeFeedLabel = (feed_label || "").trim() || this.getFeedLabel(this.activeFeedId);
+
+		if (!active_post_matches_feed && this.activePostId) {
+			this.activePostId = null;
+			this.unreadOverridePostId = null;
+			window.dispatchEvent(new CustomEvent("reader:clear"));
+		}
+
+		if (!skip_url_update) {
+			push_state({
+				feedId: this.activeFeedId,
+				postId: active_post_matches_feed ? this.activePostId : null
+			});
+		}
+	}
+
+	getFeedLabel(feed_id) {
+		if (!feed_id) {
+			return "";
+		}
+		const subscription = this.subscriptions.find((entry) => String(entry.feed_id || "") == String(feed_id));
+		if (!subscription) {
+			return "";
+		}
+		return (subscription.title || subscription.site_url || subscription.feed_url || "").trim();
 	}
 
 	renderNoSubscriptions() {
@@ -1024,27 +1123,27 @@ export default class extends Controller {
 		}
 
 		return visible_posts;
-  }
+	}
 
 	getBasePosts() {
 		if (this.searchActive) {
 			return this.getSearchResults();
 		}
 
-		const segment_buckets = SEGMENT_BUCKETS[this.activeSegment] || [];
-		let base = this.posts.filter((post) => segment_buckets.includes(post.age_bucket));
-		if (this.activeFeedId != null && this.activeFeedId != "") {
-			base = base.filter((post) => (post.feed_id || "") == this.activeFeedId);
+		if (this.activeFeedId) {
+			return this.getFeedFilteredPosts();
 		}
-		return base;
+
+		const segment_buckets = SEGMENT_BUCKETS[this.activeSegment] || [];
+		return this.posts.filter((post) => segment_buckets.includes(post.age_bucket));
 	}
 
 	getSearchResults() {
 		const search_query = this.searchQuery.trim().toLowerCase();
-		let matching_posts = this.posts;
+		let matching_posts = this.getFeedFilteredPosts();
 
 		if (search_query) {
-			matching_posts = this.posts.filter((post) => this.postMatchesSearch(post, search_query));
+			matching_posts = matching_posts.filter((post) => this.postMatchesSearch(post, search_query));
 		}
 
 		return [...matching_posts].sort(
@@ -1052,6 +1151,18 @@ export default class extends Controller {
 		);
 	}
 
+	getFeedFilteredPosts() {
+		if (!this.activeFeedId) {
+			return this.posts;
+		}
+
+		return this.posts.filter((post) => {
+			if (post.feed_id == null || post.feed_id == "") {
+				return false;
+			}
+			return String(post.feed_id) == this.activeFeedId;
+		});
+	}
 
 	postMatchesSearch(post, search_query) {
 		const search_fields = [
@@ -1070,22 +1181,22 @@ export default class extends Controller {
 		});
 	}
 
-  renderPost(post) {
-    const title = post.title ? post.title.trim() : "";
-    const safe_title = this.escapeHtml(title);
-    const hasTitle = Boolean(safe_title);
-    const summary_text = post.summary ? post.summary.trim() : "";
-    const safe_summary = this.escapeHtml(summary_text);
-    const summary_snippet = safe_summary ? this.truncateSummary(safe_summary) : "";
-    const summaryMarkup = safe_summary
-      ? `<div class="timeline-summary">${summary_snippet}</div>`
-      : "";
-    const safe_source = this.escapeHtml(post.source || "");
-    const show_time_only = this.isToday(post.published_at);
-    const formattedDate = show_time_only
-      ? this.formatTime(post.published_at)
-      : this.formatDate(post.published_at);
-    const status = post.is_archived ? "<span class=\"status-chip\">Archived</span>" : "";
+	renderPost(post) {
+		const title = post.title ? post.title.trim() : "";
+		const safe_title = this.escapeHtml(title);
+		const hasTitle = Boolean(safe_title);
+		const summary_text = post.summary ? post.summary.trim() : "";
+		const safe_summary = this.escapeHtml(summary_text);
+		const summary_snippet = safe_summary ? this.truncateSummary(safe_summary) : "";
+		const summaryMarkup = safe_summary
+			? `<div class="timeline-summary">${summary_snippet}</div>`
+			: "";
+		const safe_source = this.escapeHtml(post.source || "");
+		const show_time_only = this.isToday(post.published_at);
+		const formattedDate = show_time_only
+			? this.formatTime(post.published_at)
+			: this.formatDate(post.published_at);
+		const status = post.is_archived ? "<span class=\"status-chip\">Archived</span>" : "";
 		const bookmark_status = post.is_bookmarked
 			? "<span class=\"timeline-bookmark\"><span class=\"timeline-bookmark-icon\" aria-hidden=\"true\">&#9733;</span>Bookmarked</span>"
 			: "";
@@ -1103,42 +1214,46 @@ export default class extends Controller {
 			post.is_archived ? "is-archived" : "",
 			is_active ? "is-active" : ""
 		]
-      .filter(Boolean)
-      .join(" ");
+			.filter(Boolean)
+			.join(" ");
 
-    const color = timelineCellColors[post.age_bucket] || "var(--ink-row-default)";
-    const borderColor = timelineBorderColors[post.age_bucket] || "var(--ink-row-border)";
+		const color = timelineCellColors[post.age_bucket] || "var(--ink-row-default)";
+		const borderColor = timelineBorderColors[post.age_bucket] || "var(--ink-row-border)";
 		const selected_background = timelineSelectedColors.background;
 		const selected_text = timelineSelectedColors.text;
 		const selected_border = timelineSelectedColors.border;
-    const titleMarkup = hasTitle
-      ? `<div class="timeline-title">${safe_title}</div>`
-      : `<div class="timeline-title timeline-title--source">${safe_source}</div>`;
-    const metaClass = hasTitle ? "timeline-meta" : "timeline-meta timeline-meta--compact";
-    const metaContent = hasTitle
-      ? `
-        <span>${safe_source}</span>
-        ${status}
-        ${date_markup}
-      `
-      : `
-        ${status}
-        ${date_markup}
-      `;
+		const titleMarkup = hasTitle
+			? `<div class="timeline-title">${safe_title}</div>`
+			: `<div class="timeline-title timeline-title--source">${safe_source}</div>`;
+		const metaClass = hasTitle ? "timeline-meta" : "timeline-meta timeline-meta--compact";
+		const metaContent = hasTitle
+			? `
+				<span>${safe_source}</span>
+				${status}
+				${date_markup}
+			`
+			: `
+				${status}
+				${date_markup}
+			`;
 
-    return `
-      <button type="button" class="${classes}" data-post-id="${post.id}" data-age="${post.age_bucket}" style="--row-color: ${color}; --row-border: ${borderColor}; --row-selected-color: ${selected_background}; --row-selected-text: ${selected_text}; --row-selected-border: ${selected_border};">
-        <img class="avatar" src="${post.avatar_url}" alt="${safe_source}">
-        <div>
-          ${titleMarkup}
-          ${summaryMarkup}
-          <div class="${metaClass}">
-            ${metaContent}
-          </div>
-        </div>
-      </button>
-    `;
-  }
+		const feed_id = post.feed_id == null ? "" : String(post.feed_id);
+		const safe_feed_id = this.escapeHtml(feed_id);
+		const avatar_class = feed_id ? "avatar avatar--feed-filter" : "avatar";
+		const avatar_title = feed_id ? " title=\"Show posts from this feed\"" : "";
+		return `
+			<button type="button" class="${classes}" data-post-id="${post.id}" data-feed-id="${safe_feed_id}" data-age="${post.age_bucket}" style="--row-color: ${color}; --row-border: ${borderColor}; --row-selected-color: ${selected_background}; --row-selected-text: ${selected_text}; --row-selected-border: ${selected_border};">
+				<img class="${avatar_class}" src="${post.avatar_url}" alt="${safe_source}"${avatar_title}>
+				<div>
+					${titleMarkup}
+					${summaryMarkup}
+					<div class="${metaClass}">
+						${metaContent}
+					</div>
+				</div>
+			</button>
+		`;
+	}
 
   formatDate(isoDate) {
     const date = new Date(isoDate);

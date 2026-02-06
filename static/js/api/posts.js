@@ -30,9 +30,12 @@ export async function fetchTimelineData() {
     const posts = entries.map((entry) => {
       const subscription = subscriptionMap.get(entry.feed_id);
       const publishedAt = entry.published || entry.created_at || new Date().toISOString();
+			const resolved_feed_id = entry.feed_id != null
+				? String(entry.feed_id)
+				: (subscription && subscription.feed_id != null ? String(subscription.feed_id) : "");
       return {
         id: String(entry.id),
-        feed_id: entry.feed_id != null ? String(entry.feed_id) : "",
+        feed_id: resolved_feed_id,
         source: resolveSource(subscription),
         source_url: resolveSourceUrl(subscription),
         title: entry.title,

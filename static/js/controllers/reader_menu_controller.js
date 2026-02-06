@@ -1,12 +1,14 @@
 import { Controller } from "../stimulus.js";
 
 export default class extends Controller {
-	static targets = ["button", "popover", "newPost", "copyLink", "toggleRead", "bookmark", "toggleReadLabel", "bookmarkLabel"];
+	static targets = ["button", "popover", "newPost", "copyLink", "filterFeed", "toggleRead", "bookmark", "toggleReadLabel", "bookmarkLabel"];
 
 	connect() {
 		this.current_post_id = "";
 		this.current_post_url = "";
 		this.current_post_title = "";
+		this.current_feed_id = "";
+		this.current_feed_source = "";
 		this.current_post_source = "";
 		this.current_post_has_title = false;
 		this.is_read = false;
@@ -93,6 +95,8 @@ export default class extends Controller {
 		this.current_post_id = post.id;
 		this.current_post_url = (post.url || "").trim();
 		this.current_post_title = (post.title || "").trim();
+		this.current_feed_id = post.feed_id == null ? "" : String(post.feed_id);
+		this.current_feed_source = (post.source || "").trim();
 		this.current_post_source = (post.source || "").trim();
 		this.current_post_has_title = this.hasPostTitle(this.current_post_title, post.summary);
 		this.is_read = Boolean(post.is_read);
@@ -140,6 +144,8 @@ export default class extends Controller {
 		this.current_post_id = "";
 		this.current_post_url = "";
 		this.current_post_title = "";
+		this.current_feed_id = "";
+		this.current_feed_source = "";
 		this.current_post_source = "";
 		this.current_post_has_title = false;
 		this.is_read = false;
@@ -154,10 +160,12 @@ export default class extends Controller {
 	updateMenuState() {
 		const has_post = Boolean(this.current_post_id);
 		const has_link = Boolean(this.current_post_url);
+		const has_feed = Boolean(this.current_feed_id);
 		const read_label = this.is_read ? "Mark as Unread" : "Mark as Read";
 		const bookmark_label = this.is_bookmarked ? "Unbookmark" : "Bookmark";
 		this.newPostTarget.disabled = !has_link;
 		this.copyLinkTarget.disabled = !has_link;
+		this.filterFeedTarget.disabled = !has_feed;
 		if (this.hasToggleReadLabelTarget) {
 			this.toggleReadLabelTarget.textContent = read_label;
 		}
@@ -172,6 +180,22 @@ export default class extends Controller {
 		}
 		this.toggleReadTarget.disabled = !has_post;
 		this.bookmarkTarget.disabled = !has_post;
+	}
+
+	filterFeed(event) {
+		event.preventDefault();
+		if (!this.current_feed_id) {
+			return;
+		}
+		window.dispatchEvent(
+			new CustomEvent("timeline:filterByFeed", {
+				detail: {
+					feedId: this.current_feed_id,
+					source: this.current_feed_source
+				}
+			})
+		);
+		this.close();
 	}
 
 	toggleRead(event) {

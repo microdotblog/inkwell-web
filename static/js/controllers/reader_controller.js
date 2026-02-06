@@ -6,11 +6,12 @@ import { markRead, markUnread } from "../storage/reads.js";
 import { parse_hash } from "../router.js";
 
 export default class extends Controller {
-  static targets = ["content", "title", "meta", "avatar"];
+	static targets = ["content", "title", "meta", "avatar"];
 
 	connect() {
 		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleAvatarError = this.handleAvatarError.bind(this);
+		this.handleAvatarClick = this.handleAvatarClick.bind(this);
 		this.handleWelcome = this.handleWelcome.bind(this);
 		this.handleClear = this.handleClear.bind(this);
 		this.handleResolvingRoute = this.handleResolvingRoute.bind(this);
@@ -26,6 +27,7 @@ export default class extends Controller {
 		window.addEventListener("reader:toggleRead", this.handleToggleRead);
 		window.addEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.addEventListener("error", this.handleAvatarError);
+		this.avatarTarget.addEventListener("click", this.handleAvatarClick);
 		this.contentTarget.addEventListener("error", this.handleSummaryAvatarError, true);
 		const route = parse_hash();
 		if (route.postId || route.feedId || route.feedUrl) {
@@ -45,18 +47,19 @@ export default class extends Controller {
 		window.removeEventListener("reader:toggleRead", this.handleToggleRead);
 		window.removeEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.removeEventListener("error", this.handleAvatarError);
+		this.avatarTarget.removeEventListener("click", this.handleAvatarClick);
 		this.contentTarget.removeEventListener("error", this.handleSummaryAvatarError, true);
 	}
 
-  async handlePostOpen(event) {
-    const { post } = event.detail;
-    if (!post) {
-      return;
-    }
+	async handlePostOpen(event) {
+		const { post } = event.detail;
+		if (!post) {
+			return;
+		}
 
 		this.setSummaryMode(false);
 		this.element.classList.remove("is-resolving");
-    this.element.classList.remove("is-empty");
+	    this.element.classList.remove("is-empty");
 		this.element.hidden = false;
     this.currentPostTitle = post.title || "Untitled";
     this.currentPostId = post.id;
@@ -72,24 +75,28 @@ export default class extends Controller {
 		this.contentTarget.dataset.postTitle = post_title;
 		this.contentTarget.dataset.postSource = post.source || "";
 		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
+		this.currentPostFeedId = post.feed_id == null ? "" : String(post.feed_id);
+		this.currentPostSource = (post.source || "").trim();
+		this.avatarTarget.title = this.currentPostFeedId ? "Show posts from this feed" : "";
+		this.avatarTarget.classList.toggle("is-feed-link", Boolean(this.currentPostFeedId));
 
-    const payload = await fetchReadableContent(post.id);
+		const payload = await fetchReadableContent(post.id);
 		const summary_fallback = post.summary || "No preview available yet.";
 		let safe_html = this.sanitizeHtml(`<p>${summary_fallback}</p>`);
 		if (payload.html) {
 			safe_html = this.sanitizeHtml(payload.html);
 		}
-    this.currentPostTitle = payload.title || post.title || "Untitled";
-    this.setTitle(this.currentPostTitle);
-    this.setMeta(post);
+	    this.currentPostTitle = payload.title || post.title || "Untitled";
+	    this.setTitle(this.currentPostTitle);
+	    this.setMeta(post);
     this.contentTarget.innerHTML = safe_html;
     this.contentTarget.dataset.postId = post.id;
     this.contentTarget.dataset.postUrl = post.url;
 		this.contentTarget.dataset.postTitle = post_title;
-		this.contentTarget.dataset.postSource = post.source || "";
-		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
-    this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
-  }
+			this.contentTarget.dataset.postSource = post.source || "";
+			this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
+	    this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
+	  }
 
 	handleAvatarError(event) {
 		const image_el = event.target;
@@ -103,6 +110,20 @@ export default class extends Controller {
 		}
 
 		image_el.src = DEFAULT_AVATAR_URL;
+	}
+
+	handleAvatarClick() {
+		if (!this.currentPostFeedId) {
+			return;
+		}
+		window.dispatchEvent(
+			new CustomEvent("timeline:filterByFeed", {
+				detail: {
+					feedId: this.currentPostFeedId,
+					source: this.currentPostSource || ""
+				}
+				})
+			);
 	}
 
 	handleSummaryAvatarError(event) {
@@ -167,11 +188,15 @@ export default class extends Controller {
 		this.element.classList.remove("is-empty");
 		this.element.hidden = false;
 		this.currentPostId = null;
+		this.currentPostFeedId = "";
+		this.currentPostSource = "";
 		this.currentPostRead = false;
 		this.currentPostTitle = "";
 		this.avatarTarget.hidden = true;
 		this.avatarTarget.src = "/images/blank_avatar.png";
 		this.avatarTarget.alt = "";
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
 		this.titleTarget.textContent = "";
 		this.titleTarget.title = "";
 		this.metaTarget.textContent = "";
@@ -187,10 +212,14 @@ export default class extends Controller {
 		this.setSummaryMode(false);
 		this.element.classList.remove("is-resolving");
 		this.currentPostId = null;
+		this.currentPostFeedId = "";
+		this.currentPostSource = "";
 		this.currentPostRead = false;
 		this.avatarTarget.hidden = true;
 		this.avatarTarget.src = "/images/blank_avatar.png";
 		this.avatarTarget.alt = "";
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
 		this.setTitle("");
 		this.metaTarget.textContent = "";
 		this.contentTarget.dataset.postId = "";
@@ -209,10 +238,14 @@ export default class extends Controller {
 		this.element.classList.add("is-empty");
 		this.element.hidden = false;
 		this.currentPostId = null;
+		this.currentPostFeedId = "";
+		this.currentPostSource = "";
 		this.currentPostRead = false;
 		this.avatarTarget.hidden = true;
 		this.avatarTarget.src = "/images/blank_avatar.png";
 		this.avatarTarget.alt = "";
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
 		this.setTitle("Select a post");
 		this.metaTarget.textContent = "";
 		this.contentTarget.dataset.postId = "";
