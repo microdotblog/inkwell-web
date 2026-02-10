@@ -1261,6 +1261,12 @@ button:focus:not(:focus-visible) {
 	margin-bottom: 2rem;
 }
 
+.reading-recap blockquote {
+	background: #e1e3f0;
+	border-left-color: #9b99cb;
+	border-inline-start-color: #9b99cb;
+}
+
 .reader-tabs.is-single {
   border: 1px solid transparent;
 }
