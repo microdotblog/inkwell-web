@@ -451,6 +451,23 @@ export default class extends Controller {
 					node.removeAttribute(attribute.name);
 				}
 			});
+
+			const tag_name = node.tagName ? node.tagName.toLowerCase() : "";
+			if (tag_name == "a") {
+				const href = (node.getAttribute("href") || "").trim();
+				if (href) {
+					node.setAttribute("target", "_blank");
+					const rel_tokens = (node.getAttribute("rel") || "")
+						.split(/\s+/)
+						.map((token) => token.trim().toLowerCase())
+						.filter(Boolean);
+					const rel_set = new Set(rel_tokens);
+					rel_set.add("noopener");
+					rel_set.add("noreferrer");
+					node.setAttribute("rel", [...rel_set].join(" "));
+				}
+			}
+
 			node = walker.nextNode();
 		}
 
