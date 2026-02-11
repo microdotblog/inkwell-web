@@ -564,7 +564,7 @@ button:focus:not(:focus-visible) {
 	margin-bottom: 10px;
 	padding: 0.6rem;
 	border-bottom: 1px solid var(--ink-card-border);
-	background-color: var(--ink-card-background);
+	background-color: var(--ink-day-4-cell);
 }
 
 .timeline-feed-filter-label {
