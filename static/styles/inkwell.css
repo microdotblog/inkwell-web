@@ -110,6 +110,10 @@ blockquote p:last-child {
 	margin-bottom: 0;
 }
 
+blockquote footer {
+	text-align: right;
+}
+
 button[type="submit"] {
 	font-size: 0.9rem;
 	padding-left: 7px;
