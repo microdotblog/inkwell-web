@@ -587,8 +587,8 @@ button:focus:not(:focus-visible) {
 }
 
 .timeline-summary-spinner {
-	width: 16px;
-	height: 16px;
+	width: 20px;
+	height: 20px;
 	margin-left: auto;
 	animation: spinner-rotate 0.9s linear infinite;
 }
