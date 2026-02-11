@@ -207,7 +207,10 @@ export async function updateFeedSubscription(subscription_id, title) {
 	});
 }
 
-export async function fetchFeedEntries() {
+export async function fetchFeedEntries(options = {}) {
+	const on_progress = typeof options?.on_progress == "function"
+		? options.on_progress
+		: null;
 	const per_page = 50;
 	const entries = [];
 	let page = 1;
@@ -252,7 +255,11 @@ export async function fetchFeedEntries() {
 			}
 		}
 
-		entries.push(...page_entries.slice(0, stop_index));
+		const page_slice = page_entries.slice(0, stop_index);
+		entries.push(...page_slice);
+		if (on_progress && page_slice.length > 0) {
+			await on_progress({ entries: [...entries] });
+		}
 		if (!has_more) {
 			break;
 		}
@@ -296,6 +303,9 @@ export async function fetchFeedEntries() {
 			}
 			return right_time - left_time;
 		});
+		if (on_progress) {
+			await on_progress({ entries: [...entries] });
+		}
 	}
 
 	return entries;

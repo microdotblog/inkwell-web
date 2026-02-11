@@ -114,6 +114,8 @@ export default class extends Controller {
       return;
     }
 
+		const was_initial_load = this.isLoading;
+		let has_rendered_first_batch = false;
 		const initial_route = parse_hash();
 		if (this.isLoading && (initial_route.postId || initial_route.feedId || initial_route.feedUrl)) {
 			window.dispatchEvent(new CustomEvent("reader:resolvingRoute"));
@@ -124,20 +126,31 @@ export default class extends Controller {
 
     this.setSyncing(true);
     try {
-      const [timeline_data, read_ids] = await Promise.all([
-				fetchTimelineData(),
-				loadReadIds()
-			]);
+			const read_ids = await loadReadIds();
       this.readIds = new Set(read_ids);
-      this.posts = timeline_data.posts || [];
-			this.subscriptionCount = timeline_data.subscription_count;
-			this.subscriptions = Array.isArray(timeline_data.subscriptions) ? timeline_data.subscriptions : [];
-      this.posts.forEach((post) => {
-        if (this.readIds.has(post.id)) {
-          post.is_read = true;
-        }
-      });
-
+			const timeline_options = was_initial_load
+				? {
+					on_progress: (progress_data) => {
+						if (this.timeline_load_token != load_token) {
+							return;
+						}
+						this.applyTimelineData(progress_data);
+						if (!has_rendered_first_batch && this.posts.length > 0) {
+							has_rendered_first_batch = true;
+							this.isLoading = false;
+							this.listTarget.classList.remove("is-loading");
+						}
+						if (has_rendered_first_batch) {
+							this.render();
+						}
+					}
+				}
+				: {};
+			const timeline_data = await fetchTimelineData(timeline_options);
+			if (this.timeline_load_token != load_token) {
+				return;
+			}
+			this.applyTimelineData(timeline_data);
 			this.scheduleTimelineExtras(load_token);
     }
     catch (error) {
@@ -148,7 +161,7 @@ export default class extends Controller {
       }
     }
     finally {
-      this.apply_route_from_url(parse_hash(), this.isLoading);
+      this.apply_route_from_url(parse_hash(), was_initial_load);
       this.isLoading = false;
       this.listTarget.classList.remove("is-loading");
       this.render();
@@ -159,6 +172,17 @@ export default class extends Controller {
 			}
     }
   }
+
+	applyTimelineData(timeline_data) {
+		this.posts = timeline_data?.posts || [];
+		this.subscriptionCount = timeline_data?.subscription_count;
+		this.subscriptions = Array.isArray(timeline_data?.subscriptions) ? timeline_data.subscriptions : [];
+		this.posts.forEach((post) => {
+			if (this.readIds.has(post.id)) {
+				post.is_read = true;
+			}
+		});
+	}
 
   syncTimeline() {
 		if (this.isSyncing) {
