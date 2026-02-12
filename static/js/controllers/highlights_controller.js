@@ -230,7 +230,7 @@ export default class extends Controller {
 			return link;
 		}
 
-		return `${link}\n\n${quote}`;
+		return `${link}:\n\n${quote}`;
   }
 
   formatQuote(text) {
