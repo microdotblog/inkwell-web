@@ -339,7 +339,7 @@ button:focus:not(:focus-visible) {
 	background: transparent;
 	color: var(--ink-text);
 	padding: 0.45rem 0.85rem;
-	font-size: 0.8rem;
+	font-size: 0.75rem;
 	cursor: pointer;
 	text-decoration: none;
 	margin-bottom: 0;
