@@ -1525,7 +1525,7 @@ input[type="search"]::-webkit-search-decoration {
   font-style: italic;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 800px) {
 	.layout {
 		grid-template-columns: 1fr;
 		grid-template-rows: 40% 60%;
