@@ -1446,6 +1446,10 @@ input[type="search"]::-webkit-search-decoration {
   /* padding-block: var(--pico-block-spacing-vertical, 1.25rem); */
 }
 
+.highlights-pane .highlights-list {
+	margin-top: 0.7rem;
+}
+
 .highlight-item {
   padding: 0.25rem 0;
 }
