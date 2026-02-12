@@ -879,7 +879,7 @@ export default class extends Controller {
     return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
   }
 
-		render() {
+	render() {
 		if (this.isLoading) {
 			return;
 		}
@@ -887,8 +887,9 @@ export default class extends Controller {
 		const posts = this.getVisiblePosts();
 		const feed_filter_markup = this.activeFeedId ? this.renderFeedFilter() : "";
 		const is_using_ai = getMicroBlogIsUsingAI();
-		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && !this.activeFeedId && is_using_ai && posts.length > 0;
-		const summary_count = posts.length;
+		const summary_posts = this.getSummaryPosts();
+		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && !this.activeFeedId && is_using_ai;
+		const summary_count = summary_posts.length;
 		const summary_label = summary_count == 1 ? "post" : "posts";
 
 		if (!posts.length) {
@@ -901,7 +902,7 @@ export default class extends Controller {
 				return;
 			}
 			if (should_render_summary) {
-				this.listTarget.innerHTML = `${feed_filter_markup}${this.renderSummaryItem(false, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
+				this.listTarget.innerHTML = `${feed_filter_markup}${this.renderSummaryItem(summary_count > 0, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
 				return;
 			}
 			this.listTarget.innerHTML = `${feed_filter_markup}<p class="canvas-empty"><!-- No posts. --></p>`;
@@ -1028,7 +1029,7 @@ export default class extends Controller {
 			return;
 		}
 
-		const summary_posts = this.getVisiblePosts();
+		const summary_posts = this.getSummaryPosts();
 		if (!summary_posts.length) {
 			return;
 		}
@@ -1148,6 +1149,14 @@ export default class extends Controller {
 		}
 
 		return visible_posts;
+	}
+
+	getSummaryPosts() {
+		if (this.searchActive || this.activeFeedId) {
+			return [];
+		}
+
+		return this.getBasePosts();
 	}
 
 	getBasePosts() {
