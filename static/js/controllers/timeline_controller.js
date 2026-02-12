@@ -66,6 +66,7 @@ export default class extends Controller {
 		this.handleAuthReady = this.handleAuthReady.bind(this);
 		this.handleAuthVerify = this.handleAuthVerify.bind(this);
 		this.handleTimelineSync = this.handleTimelineSync.bind(this);
+		this.handleTimelineBack = this.handleTimelineBack.bind(this);
 		this.handleFilterByFeed = this.handleFilterByFeed.bind(this);
 		this.handleUrlChange = this.handleUrlChange.bind(this);
 		this.listTarget.addEventListener("click", this.handleClick);
@@ -81,6 +82,7 @@ export default class extends Controller {
 		window.addEventListener("auth:ready", this.handleAuthReady);
 		window.addEventListener("auth:verify", this.handleAuthVerify);
 		window.addEventListener("timeline:sync", this.handleTimelineSync);
+		window.addEventListener("timeline:back", this.handleTimelineBack);
 		window.addEventListener("timeline:filterByFeed", this.handleFilterByFeed);
 		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.listTarget.classList.add("is-loading");
@@ -103,6 +105,7 @@ export default class extends Controller {
 		window.removeEventListener("auth:ready", this.handleAuthReady);
 		window.removeEventListener("auth:verify", this.handleAuthVerify);
 		window.removeEventListener("timeline:sync", this.handleTimelineSync);
+		window.removeEventListener("timeline:back", this.handleTimelineBack);
 		window.removeEventListener("timeline:filterByFeed", this.handleFilterByFeed);
 		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.clearReadSyncTimer();
@@ -194,6 +197,13 @@ export default class extends Controller {
 
 	handleTimelineSync(event) {
 		this.syncTimeline();
+	}
+
+	handleTimelineBack() {
+		if (!this.activePostId) {
+			return;
+		}
+		this.clearActivePost();
 	}
 
 	handleFilterByFeed(event) {

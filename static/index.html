@@ -120,6 +120,15 @@
           </aside>
 
           <section class="right-pane" data-controller="reader highlight highlights subscriptions themes">
+			<button
+				type="button"
+				class="mobile-back-button"
+				data-action="session#showTimeline"
+				aria-label="Back to timeline"
+			>
+				<span aria-hidden="true">&#8592;</span>
+				<span>Back</span>
+			</button>
             <div class="right-content">              
 				<div class="reader-view" data-subscriptions-target="readerView" data-themes-target="readerView" data-highlights-target="readerView">
 					<header class="reader-header">
