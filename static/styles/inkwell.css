@@ -1225,6 +1225,17 @@ button:focus:not(:focus-visible) {
   margin-bottom: 15px;
 }
 
+.reader-primary {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.reader-primary .reader-tabs {
+	min-width: 0;
+}
+
 .reader-actions {
   display: inline-flex;
   align-items: center;
@@ -1554,7 +1565,6 @@ input[type="search"]::-webkit-search-decoration {
 
 	.right-pane {
 		transform: translateX(100%);
-		padding-top: 3.5rem;
 	}
 
 	.layout.is-detail-open .left-pane {
@@ -1571,21 +1581,29 @@ input[type="search"]::-webkit-search-decoration {
 	}
 
 	.mobile-back-button {
-		position: absolute;
-		top: 0.75rem;
-		left: 0.75rem;
-		z-index: 30;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.25rem;
-		border: 1px solid var(--ink-control-border);
+		justify-content: center;
+		border: none;
 		background: var(--ink-control-background);
 		color: var(--ink-muted);
-		font-size: 0.7rem;
-		padding: 0.3rem 0.5rem;
+		width: 32px;
+		height: 32px;
+		padding: 0;
 		border-radius: 999px;
 		cursor: pointer;
 		margin-bottom: 0;
+		flex: 0 0 auto;
+	}
+
+	.mobile-back-icon {
+		width: 14px;
+		height: 14px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.layout:not(.is-detail-open) .mobile-back-button {
