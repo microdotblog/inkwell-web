@@ -215,6 +215,7 @@ export default class extends Controller {
 		const feed_source = event.detail?.source || "";
 		this.setFeedFilter(feed_id, feed_source);
 		this.render();
+		this.listTarget.scrollTop = 0;
 	}
 
 	startRefreshTimer() {
