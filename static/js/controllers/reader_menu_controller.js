@@ -232,10 +232,7 @@ export default class extends Controller {
 		const markdown = quote ? `${link}:\n\n${quote}` : link;
 		const encoded = encodeURIComponent(markdown);
 		const url = `https://micro.blog/post?text=${encoded}`;
-		const new_window = window.open(url, "_blank", "noopener");
-		if (!new_window) {
-			window.location.href = url;
-		}
+		window.open(url, "_blank", "noopener,noreferrer");
 		this.close();
 	}
 
