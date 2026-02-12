@@ -71,6 +71,7 @@ export default class extends Controller {
 		const post_has_title = this.hasPostTitle(post_title, post.summary);
 		this.contentTarget.dataset.postTitle = post_title;
 		this.contentTarget.dataset.postSource = post.source || "";
+		this.contentTarget.dataset.postPublishedAt = post.published_at || "";
 		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
 		this.currentPostFeedId = post.feed_id == null ? "" : String(post.feed_id);
 		this.currentPostSource = (post.source || "").trim();
@@ -91,6 +92,7 @@ export default class extends Controller {
     this.contentTarget.dataset.postUrl = post.url;
 		this.contentTarget.dataset.postTitle = post_title;
 			this.contentTarget.dataset.postSource = post.source || "";
+			this.contentTarget.dataset.postPublishedAt = post.published_at || "";
 			this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
 	    this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
 	  }
@@ -160,6 +162,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
 		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = "";
 	}
@@ -187,6 +190,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
 		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = this.sanitizeHtml(summary_html);
 	}
@@ -209,6 +213,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
 		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = "";
 		this.element.classList.remove("is-empty");
@@ -235,6 +240,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postUrl = "";
 		this.contentTarget.dataset.postTitle = "";
 		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = `
 			<div class="reader-welcome">

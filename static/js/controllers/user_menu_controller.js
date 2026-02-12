@@ -77,6 +77,10 @@ export default class extends Controller {
 		window.dispatchEvent(new CustomEvent("themes:open"));
 	}
 
+	openHighlights() {
+		window.dispatchEvent(new CustomEvent("highlights:open"));
+	}
+
 	handleDocumentClick(event) {
 		if (this.element.contains(event.target)) {
 			return;

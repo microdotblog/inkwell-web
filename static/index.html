@@ -48,6 +48,9 @@
 					<button type="button" class="user-menu-item" data-action="user-menu#openSubscriptions user-menu#close" data-user-menu-mode="manage">
 						Manage Feeds
 					</button>
+					<button type="button" class="user-menu-item" data-action="user-menu#openHighlights user-menu#close">
+						Highlights
+					</button>
 					<button type="button" class="user-menu-item" data-action="user-menu#openThemes user-menu#close">
 						Themes
 					</button>
@@ -118,7 +121,7 @@
 
           <section class="right-pane" data-controller="reader highlight highlights subscriptions themes">
             <div class="right-content">              
-				<div class="reader-view" data-subscriptions-target="readerView" data-themes-target="readerView">
+				<div class="reader-view" data-subscriptions-target="readerView" data-themes-target="readerView" data-highlights-target="readerView">
 					<header class="reader-header">
 						<div class="segments reader-tabs" data-highlights-target="tabs">
 							<button
@@ -259,6 +262,12 @@
 						<div class="subscriptions-list" data-subscriptions-target="failedList"></div>
 					</div>
 					<div class="subscriptions-list" data-subscriptions-target="list"></div>
+				</section>
+				<section class="all-highlights-pane" data-highlights-target="pane" hidden>
+					<header class="all-highlights-header">
+						<h2>Highlights</h2>
+					</header>
+					<div class="highlights-list" data-highlights-target="globalList"></div>
 				</section>
 				<section class="themes-pane" data-themes-target="pane" hidden>
 					<header class="themes-header">

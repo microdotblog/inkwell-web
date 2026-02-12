@@ -95,6 +95,7 @@ export default class extends Controller {
 			post_url: this.contentTarget.dataset.postUrl || "",
 			post_title: this.contentTarget.dataset.postTitle || "",
 			post_source: this.contentTarget.dataset.postSource || "",
+			post_published_at: this.contentTarget.dataset.postPublishedAt || "",
 			post_has_title: this.contentTarget.dataset.postHasTitle == "true",
 			text,
 			html: text,

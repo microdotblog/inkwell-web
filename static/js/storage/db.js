@@ -49,3 +49,26 @@ export async function set(key, value) {
     request.onerror = () => reject(request.error);
   });
 }
+
+export async function entries() {
+	const db = await openDatabase();
+	return new Promise((resolve, reject) => {
+		const transaction = db.transaction(STORE_NAME, "readonly");
+		const store = transaction.objectStore(STORE_NAME);
+		const request = store.openCursor();
+		const key_values = [];
+
+		request.onsuccess = () => {
+			const cursor = request.result;
+			if (!cursor) {
+				resolve(key_values);
+				return;
+			}
+
+			key_values.push([cursor.key, cursor.value]);
+			cursor.continue();
+		};
+
+		request.onerror = () => reject(request.error);
+	});
+}
