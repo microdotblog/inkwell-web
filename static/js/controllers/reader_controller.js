@@ -5,6 +5,8 @@ import { markFeedEntriesUnread } from "../api/feeds.js";
 import { markRead, markUnread } from "../storage/reads.js";
 import { parse_hash } from "../router.js";
 
+const preview_spinner_markup = "<p class=\"loading\"><img class=\"subscriptions-spinner subscriptions-spinner--inline\" src=\"/images/progress_spinner.svg\" alt=\"Loading preview\" style=\"width: 20px; height: 20px;\"></p>";
+
 export default class extends Controller {
 	static targets = ["content", "title", "meta", "avatar"];
 
@@ -79,8 +81,8 @@ export default class extends Controller {
 		this.avatarTarget.classList.remove("is-feed-link");
 
 		const payload = await fetchReadableContent(post.id);
-		const summary_fallback = post.summary || "No preview available yet.";
-		let safe_html = this.sanitizeHtml(`<p>${summary_fallback}</p>`);
+		const summary_fallback = post.summary ? `<p>${post.summary}</p>` : preview_spinner_markup;
+		let safe_html = this.sanitizeHtml(summary_fallback);
 		if (payload.html) {
 			safe_html = this.sanitizeHtml(payload.html);
 		}
