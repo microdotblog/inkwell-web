@@ -5,6 +5,7 @@ import {
 	createFeedSubscription,
 	deleteFeedSubscription,
 	fetchFeedSubscriptions,
+	isSignedIn,
 	updateFeedSubscription
 } from "../api/feeds.js";
 
@@ -135,6 +136,12 @@ export default class extends Controller {
 
 	async loadSubscriptions() {
 		if (this.is_loading) {
+			return;
+		}
+		if (!isSignedIn()) {
+			this.subscriptions = [];
+			this.clearStatus();
+			this.render();
 			return;
 		}
 		this.is_loading = true;

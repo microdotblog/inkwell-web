@@ -5,7 +5,8 @@ import {
 	fetchBookmarkedPosts,
 	fetchFeedEntries,
 	fetchFeedSubscriptions,
-	fetchFeedUnreadEntryIds
+	fetchFeedUnreadEntryIds,
+	isSignedIn
 } from "./feeds.js";
 
 export const DEFAULT_AVATAR_URL = "/images/blank_avatar.png";
@@ -21,6 +22,13 @@ export async function fetchTimelineData(options = {}) {
 		: null;
 
 	try {
+		if (!isSignedIn()) {
+			if (USE_MOCK_DATA) {
+				return { posts: [...mockPosts], subscription_count: null, subscriptions: mockSubscriptions };
+			}
+			return { posts: [], subscription_count: null, subscriptions: [] };
+		}
+
 		if (timeline_mode == TIMELINE_MODE_BOOKMARKS) {
 			return fetchBookmarksTimelineData();
 		}

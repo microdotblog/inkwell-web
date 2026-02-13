@@ -53,6 +53,10 @@ export function getMicroBlogToken() {
   return "";
 }
 
+export function isSignedIn() {
+	return Boolean(getMicroBlogToken());
+}
+
 export function setMicroBlogToken(token) {
   const trimmed = (token || "").trim();
   if (!trimmed) {
