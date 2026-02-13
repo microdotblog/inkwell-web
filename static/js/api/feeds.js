@@ -323,6 +323,10 @@ export async function fetchFeedIcons() {
   return fetchFeedsJson("/feeds/icons.json");
 }
 
+export async function fetchBookmarkedPosts() {
+	return fetchFeedsJson("/posts/bookmarks");
+}
+
 export async function markFeedEntriesRead(entryIds) {
   const ids = Array.isArray(entryIds) ? entryIds.filter(Boolean).map(String) : [];
   if (ids.length === 0) {

@@ -63,6 +63,7 @@ export default class extends Controller {
 
 	openSubscriptions(event) {
 		const menu_mode = event.currentTarget?.dataset.userMenuMode || "manage";
+		window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
 		window.dispatchEvent(
 			new CustomEvent("subscriptions:open", { detail: { mode: menu_mode } })
 		);
@@ -79,6 +80,13 @@ export default class extends Controller {
 
 	openHighlights() {
 		window.dispatchEvent(new CustomEvent("highlights:open"));
+	}
+
+	openBookmarks() {
+		window.dispatchEvent(new CustomEvent("subscriptions:close"));
+		window.dispatchEvent(new CustomEvent("themes:close"));
+		window.dispatchEvent(new CustomEvent("reader:welcome"));
+		window.dispatchEvent(new CustomEvent("timeline:openBookmarks"));
 	}
 
 	handleDocumentClick(event) {

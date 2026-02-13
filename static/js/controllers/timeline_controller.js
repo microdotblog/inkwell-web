@@ -22,6 +22,8 @@ const HIDE_READ_KEY = "inkwell_hide_read";
 const SUMMARY_TRUNCATE_LENGTH = 35;
 const FEED_REFRESH_INTERVAL_MINUTES = 5;
 const FEED_REFRESH_INTERVAL_MS = FEED_REFRESH_INTERVAL_MINUTES * 60 * 1000;
+const TIMELINE_MODE_FEEDS = "feeds";
+const TIMELINE_MODE_BOOKMARKS = "bookmarks";
 
 export default class extends Controller {
   static targets = ["list", "segments", "search", "searchToggle", "searchInput"];
@@ -40,6 +42,7 @@ export default class extends Controller {
 		this.timeline_load_token = 0;
 		this.subscriptionCount = null;
 		this.pending_sync = false;
+		this.timeline_mode = TIMELINE_MODE_FEEDS;
 		this.summary_is_loading = false;
 		this.summary_request_token = 0;
 		this.searchActive = false;
@@ -68,6 +71,8 @@ export default class extends Controller {
 		this.handleTimelineSync = this.handleTimelineSync.bind(this);
 		this.handleTimelineBack = this.handleTimelineBack.bind(this);
 		this.handleFilterByFeed = this.handleFilterByFeed.bind(this);
+		this.handleTimelineOpenBookmarks = this.handleTimelineOpenBookmarks.bind(this);
+		this.handleTimelineOpenFeeds = this.handleTimelineOpenFeeds.bind(this);
 		this.handleUrlChange = this.handleUrlChange.bind(this);
 		this.listTarget.addEventListener("click", this.handleClick);
 		this.listTarget.addEventListener("error", this.handleAvatarError, true);
@@ -84,6 +89,8 @@ export default class extends Controller {
 		window.addEventListener("timeline:sync", this.handleTimelineSync);
 		window.addEventListener("timeline:back", this.handleTimelineBack);
 		window.addEventListener("timeline:filterByFeed", this.handleFilterByFeed);
+		window.addEventListener("timeline:openBookmarks", this.handleTimelineOpenBookmarks);
+		window.addEventListener("timeline:openFeeds", this.handleTimelineOpenFeeds);
 		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.listTarget.classList.add("is-loading");
 		this.load();
@@ -107,6 +114,8 @@ export default class extends Controller {
 		window.removeEventListener("timeline:sync", this.handleTimelineSync);
 		window.removeEventListener("timeline:back", this.handleTimelineBack);
 		window.removeEventListener("timeline:filterByFeed", this.handleFilterByFeed);
+		window.removeEventListener("timeline:openBookmarks", this.handleTimelineOpenBookmarks);
+		window.removeEventListener("timeline:openFeeds", this.handleTimelineOpenFeeds);
 		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.clearReadSyncTimer();
 		this.stopRefreshTimer();
@@ -133,6 +142,7 @@ export default class extends Controller {
       this.readIds = new Set(read_ids);
 			const timeline_options = was_initial_load
 				? {
+					mode: this.timeline_mode,
 					on_progress: (progress_data) => {
 						if (this.timeline_load_token != load_token) {
 							return;
@@ -148,7 +158,7 @@ export default class extends Controller {
 						}
 					}
 				}
-				: {};
+				: { mode: this.timeline_mode };
 			const timeline_data = await fetchTimelineData(timeline_options);
 			if (this.timeline_load_token != load_token) {
 				return;
@@ -199,6 +209,27 @@ export default class extends Controller {
 		this.syncTimeline();
 	}
 
+	handleTimelineOpenBookmarks() {
+		this.switchTimelineMode(TIMELINE_MODE_BOOKMARKS);
+	}
+
+	handleTimelineOpenFeeds() {
+		this.switchTimelineMode(TIMELINE_MODE_FEEDS);
+	}
+
+	switchTimelineMode(next_mode) {
+		const mode = next_mode == TIMELINE_MODE_BOOKMARKS
+			? TIMELINE_MODE_BOOKMARKS
+			: TIMELINE_MODE_FEEDS;
+		if (this.timeline_mode == mode) {
+			return;
+		}
+		this.timeline_mode = mode;
+		this.activeFeedId = null;
+		this.activeFeedLabel = "";
+		this.syncTimeline();
+	}
+
 	handleTimelineBack() {
 		if (!this.activePostId) {
 			return;
@@ -235,6 +266,9 @@ export default class extends Controller {
 
 	scheduleTimelineExtras(load_token) {
 		if (!this.posts.length) {
+			return;
+		}
+		if (this.timeline_mode != TIMELINE_MODE_FEEDS) {
 			return;
 		}
 
@@ -573,7 +607,7 @@ export default class extends Controller {
     this.render();
   }
 
-  handleRead(event) {
+	handleRead(event) {
     const postId = event.detail?.postId;
     if (!postId) {
       return;
@@ -589,8 +623,10 @@ export default class extends Controller {
 		if (postId == this.unreadOverridePostId) {
 			this.unreadOverridePostId = null;
 		}
-    this.queueRead(postId);
-    this.scheduleReadSync();
+		if (this.timeline_mode == TIMELINE_MODE_FEEDS) {
+			this.queueRead(postId);
+			this.scheduleReadSync();
+		}
     this.render();
   }
 
@@ -826,7 +862,7 @@ export default class extends Controller {
 	}
 
 	async handleMarkAllRead() {
-		if (!this.posts.length) {
+		if (this.timeline_mode != TIMELINE_MODE_FEEDS || !this.posts.length) {
 			return;
 		}
 
@@ -899,7 +935,8 @@ export default class extends Controller {
 		const feed_filter_markup = this.activeFeedId ? this.renderFeedFilter() : "";
 		const is_using_ai = getMicroBlogIsUsingAI();
 		const summary_posts = this.getSummaryPosts();
-		const should_render_summary = this.activeSegment == "fading" && !this.searchActive && !this.activeFeedId && is_using_ai;
+		const should_render_summary = this.timeline_mode == TIMELINE_MODE_FEEDS &&
+			this.activeSegment == "fading" && !this.searchActive && !this.activeFeedId && is_using_ai;
 		const summary_count = summary_posts.length;
 		const summary_label = summary_count == 1 ? "post" : "posts";
 
@@ -908,7 +945,7 @@ export default class extends Controller {
 				this.listTarget.innerHTML = `${feed_filter_markup}<p class="canvas-empty timeline-empty">No posts in this feed.<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
 				return;
 			}
-			if (this.subscriptionCount == 0) {
+			if (this.timeline_mode == TIMELINE_MODE_FEEDS && this.subscriptionCount == 0) {
 				this.listTarget.innerHTML = this.renderNoSubscriptions();
 				return;
 			}
@@ -1094,8 +1131,10 @@ export default class extends Controller {
     this.activePostId = post.id;
     this.render();
     if (selectionChanged) {
-      this.queueRead(post.id);
-      this.scheduleReadSync();
+			if (this.timeline_mode == TIMELINE_MODE_FEEDS) {
+				this.queueRead(post.id);
+				this.scheduleReadSync();
+			}
     }
 
     window.dispatchEvent(new CustomEvent("post:open", { detail: { post } }));
@@ -1177,6 +1216,9 @@ export default class extends Controller {
 
 		if (this.activeFeedId) {
 			return this.getFeedFilteredPosts();
+		}
+		if (this.timeline_mode == TIMELINE_MODE_BOOKMARKS) {
+			return this.posts;
 		}
 
 		const segment_buckets = SEGMENT_BUCKETS[this.activeSegment] || [];
