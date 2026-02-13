@@ -28,6 +28,7 @@ export default class extends Controller {
 		window.addEventListener("post:bookmark", this.handlePostBookmark);
 		window.addEventListener("reader:clear", this.handleReaderClear);
 		window.addEventListener("reader:welcome", this.handleReaderWelcome);
+		window.addEventListener("reader:blank", this.handleReaderWelcome);
 		window.addEventListener("reader:summary", this.handleReaderSummary);
 		this.updateMenuState();
 	}
@@ -40,6 +41,7 @@ export default class extends Controller {
 		window.removeEventListener("post:bookmark", this.handlePostBookmark);
 		window.removeEventListener("reader:clear", this.handleReaderClear);
 		window.removeEventListener("reader:welcome", this.handleReaderWelcome);
+		window.removeEventListener("reader:blank", this.handleReaderWelcome);
 		window.removeEventListener("reader:summary", this.handleReaderSummary);
 	}
 

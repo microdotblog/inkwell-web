@@ -14,6 +14,7 @@ export default class extends Controller {
 		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleAvatarError = this.handleAvatarError.bind(this);
 		this.handleWelcome = this.handleWelcome.bind(this);
+		this.handleBlank = this.handleBlank.bind(this);
 		this.handleClear = this.handleClear.bind(this);
 		this.handleResolvingRoute = this.handleResolvingRoute.bind(this);
 		this.handleSummary = this.handleSummary.bind(this);
@@ -22,6 +23,7 @@ export default class extends Controller {
 		this.handleToggleRead = this.handleToggleRead.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("reader:welcome", this.handleWelcome);
+		window.addEventListener("reader:blank", this.handleBlank);
 		window.addEventListener("reader:clear", this.handleClear);
 		window.addEventListener("reader:resolvingRoute", this.handleResolvingRoute);
 		window.addEventListener("reader:summary", this.handleSummary);
@@ -41,6 +43,7 @@ export default class extends Controller {
 	disconnect() {
 		window.removeEventListener("post:open", this.handlePostOpen);
 		window.removeEventListener("reader:welcome", this.handleWelcome);
+		window.removeEventListener("reader:blank", this.handleBlank);
 		window.removeEventListener("reader:clear", this.handleClear);
 		window.removeEventListener("reader:resolvingRoute", this.handleResolvingRoute);
 		window.removeEventListener("reader:summary", this.handleSummary);
@@ -138,6 +141,10 @@ export default class extends Controller {
 
 	handleWelcome() {
 		this.showPlaceholder();
+	}
+
+	handleBlank() {
+		this.showBlank();
 	}
 
 	handleClear() {
@@ -263,6 +270,32 @@ export default class extends Controller {
 			</div>
 		`;
 		this.preloadWelcomeBackground();
+	}
+
+	showBlank() {
+		this.setSummaryMode(false);
+		this.element.classList.remove("is-resolving");
+		this.element.classList.remove("is-empty");
+		this.element.hidden = false;
+		this.currentPostId = null;
+		this.currentPostFeedId = "";
+		this.currentPostSource = "";
+		this.currentPostRead = false;
+		this.avatarTarget.hidden = true;
+		this.avatarTarget.src = "/images/blank_avatar.png";
+		this.avatarTarget.alt = "";
+		this.avatarTarget.title = "";
+		this.avatarTarget.classList.remove("is-feed-link");
+		this.titleTarget.textContent = "";
+		this.titleTarget.title = "";
+		this.metaTarget.textContent = "";
+		this.contentTarget.dataset.postId = "";
+		this.contentTarget.dataset.postUrl = "";
+		this.contentTarget.dataset.postTitle = "";
+		this.contentTarget.dataset.postSource = "";
+		this.contentTarget.dataset.postPublishedAt = "";
+		this.contentTarget.dataset.postHasTitle = "";
+		this.contentTarget.innerHTML = "";
 	}
 
 	setSummaryMode(is_summary) {

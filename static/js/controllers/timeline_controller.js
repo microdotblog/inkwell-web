@@ -421,11 +421,18 @@ export default class extends Controller {
 
   updateSegments() {
     const buttons = this.segmentsTarget.querySelectorAll("button[data-segment]");
+		const disable_segments = this.shouldDisableSegments();
     buttons.forEach((button) => {
       const isActive = button.dataset.segment === this.activeSegment;
       button.setAttribute("aria-pressed", isActive ? "true" : "false");
+			button.disabled = disable_segments;
+			button.setAttribute("aria-disabled", disable_segments ? "true" : "false");
     });
   }
+
+	shouldDisableSegments() {
+		return this.timeline_mode == TIMELINE_MODE_BOOKMARKS || Boolean(this.activeFeedId);
+	}
 
   updateSearchToggle() {
     this.searchToggleTarget.classList.toggle("is-active", this.searchActive);
@@ -571,15 +578,22 @@ export default class extends Controller {
 				replace_state({});
 				this.activeFeedId = null;
 				this.clearActivePost(true);
-				window.dispatchEvent(new CustomEvent("reader:welcome"));
+				this.dispatchReaderEmptyState();
 			}
 		}
 		else {
 			this.clearActivePost(true);
-			window.dispatchEvent(new CustomEvent("reader:welcome"));
+			this.dispatchReaderEmptyState();
 		}
 		this.applying_route = false;
 		this.render();
+	}
+
+	dispatchReaderEmptyState() {
+		const reader_event = this.timeline_mode == TIMELINE_MODE_BOOKMARKS
+			? "reader:blank"
+			: "reader:welcome";
+		window.dispatchEvent(new CustomEvent(reader_event));
 	}
 
 	handleUrlChange(event) {
@@ -930,9 +944,10 @@ export default class extends Controller {
 		if (this.isLoading) {
 			return;
 		}
+		this.updateSegments();
 
 		const posts = this.getVisiblePosts();
-		const feed_filter_markup = this.activeFeedId ? this.renderFeedFilter() : "";
+		const mode_filter_markup = this.getModeFilterMarkup();
 		const is_using_ai = getMicroBlogIsUsingAI();
 		const summary_posts = this.getSummaryPosts();
 		const should_render_summary = this.timeline_mode == TIMELINE_MODE_FEEDS &&
@@ -942,7 +957,7 @@ export default class extends Controller {
 
 		if (!posts.length) {
 			if (this.activeFeedId) {
-				this.listTarget.innerHTML = `${feed_filter_markup}<p class="canvas-empty timeline-empty">No posts in this feed.<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
+				this.listTarget.innerHTML = `${mode_filter_markup}<p class="canvas-empty timeline-empty">No posts in this feed.<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
 				return;
 			}
 			if (this.timeline_mode == TIMELINE_MODE_FEEDS && this.subscriptionCount == 0) {
@@ -950,16 +965,26 @@ export default class extends Controller {
 				return;
 			}
 			if (should_render_summary) {
-				this.listTarget.innerHTML = `${feed_filter_markup}${this.renderSummaryItem(summary_count > 0, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
+				this.listTarget.innerHTML = `${mode_filter_markup}${this.renderSummaryItem(summary_count > 0, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
 				return;
 			}
-			this.listTarget.innerHTML = `${feed_filter_markup}<p class="canvas-empty"><!-- No posts. --></p>`;
+			this.listTarget.innerHTML = `${mode_filter_markup}<p class="canvas-empty"><!-- No posts. --></p>`;
 			return;
 		}
 
 		const items = posts.map((post) => this.renderPost(post)).join("");
 		const list_markup = should_render_summary ? `${this.renderSummaryItem(true, summary_count, summary_label)}${items}` : items;
-		this.listTarget.innerHTML = `${feed_filter_markup}${list_markup}`;
+		this.listTarget.innerHTML = `${mode_filter_markup}${list_markup}`;
+	}
+
+	getModeFilterMarkup() {
+		if (this.activeFeedId) {
+			return this.renderFeedFilter();
+		}
+		if (this.timeline_mode == TIMELINE_MODE_BOOKMARKS) {
+			return this.renderBookmarksFilter();
+		}
+		return "";
 	}
 
 	renderFeedFilter() {
@@ -970,6 +995,20 @@ export default class extends Controller {
 				<button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear</button>
 			</div>
 		`;
+	}
+
+	renderBookmarksFilter() {
+		return `
+			<div class="timeline-feed-filter">
+				<span class="timeline-feed-filter-label">Showing recent bookmarks</span>
+				<button type="button" class="btn-sm" data-action="timeline#clearBookmarksMode">Clear</button>
+			</div>
+		`;
+	}
+
+	clearBookmarksMode(event) {
+		event?.preventDefault();
+		this.switchTimelineMode(TIMELINE_MODE_FEEDS);
 	}
 
 	clearFeedFilter(event) {

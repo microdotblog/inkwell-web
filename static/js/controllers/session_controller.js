@@ -16,6 +16,7 @@ export default class extends Controller {
 		window.addEventListener("themes:open", this.handleDetailOpen);
 		window.addEventListener("reader:clear", this.handleDetailClose);
 		window.addEventListener("reader:welcome", this.handleDetailClose);
+		window.addEventListener("reader:blank", this.handleDetailClose);
 		const route = parse_hash();
 		this.setDetailOpen(Boolean(route.postId));
 	}
@@ -29,6 +30,7 @@ export default class extends Controller {
 		window.removeEventListener("themes:open", this.handleDetailOpen);
 		window.removeEventListener("reader:clear", this.handleDetailClose);
 		window.removeEventListener("reader:welcome", this.handleDetailClose);
+		window.removeEventListener("reader:blank", this.handleDetailClose);
 	}
 
 	handlePostOpen(event) {

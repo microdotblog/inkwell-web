@@ -38,6 +38,7 @@ export default class extends Controller {
 		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("reader:summary", this.handleSummary);
 		window.addEventListener("reader:welcome", this.handleWelcome);
+		window.addEventListener("reader:blank", this.handleWelcome);
 		window.addEventListener("highlights:open", this.handleOpenAll);
 		window.addEventListener("subscriptions:open", this.handleSubscriptionsOpen);
 		window.addEventListener("themes:open", this.handleThemesOpen);
@@ -51,6 +52,7 @@ export default class extends Controller {
 		window.removeEventListener("post:open", this.handlePostOpen);
 		window.removeEventListener("reader:summary", this.handleSummary);
 		window.removeEventListener("reader:welcome", this.handleWelcome);
+		window.removeEventListener("reader:blank", this.handleWelcome);
 		window.removeEventListener("highlights:open", this.handleOpenAll);
 		window.removeEventListener("subscriptions:open", this.handleSubscriptionsOpen);
 		window.removeEventListener("themes:open", this.handleThemesOpen);
