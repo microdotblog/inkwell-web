@@ -1341,7 +1341,6 @@ button:focus:not(:focus-visible) {
 
 .reading-recap-quote-bookmark-button:hover {
 	color: var(--ink-text);
-	text-decoration: underline;
 }
 
 .reading-recap-quote-bookmark-button:disabled {
