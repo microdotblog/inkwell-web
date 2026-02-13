@@ -168,6 +168,7 @@ export default class extends Controller {
 		this.newPostTarget.disabled = !has_link;
 		this.copyLinkTarget.disabled = !has_link;
 		this.filterFeedTarget.disabled = !has_feed;
+		this.toggleReadTarget.hidden = !has_feed;
 		if (this.hasToggleReadLabelTarget) {
 			this.toggleReadLabelTarget.textContent = read_label;
 		}
@@ -180,7 +181,7 @@ export default class extends Controller {
 		else {
 			this.bookmarkTarget.textContent = bookmark_label;
 		}
-		this.toggleReadTarget.disabled = !has_post;
+		this.toggleReadTarget.disabled = !has_post || !has_feed;
 		this.bookmarkTarget.disabled = !has_post;
 	}
 
@@ -202,7 +203,7 @@ export default class extends Controller {
 
 	toggleRead(event) {
 		event.preventDefault();
-		if (!this.current_post_id) {
+		if (!this.current_post_id || !this.current_feed_id) {
 			return;
 		}
 		window.dispatchEvent(new CustomEvent("reader:toggleRead"));

@@ -191,6 +191,10 @@ export default class extends Controller {
 		this.subscriptionCount = timeline_data?.subscription_count;
 		this.subscriptions = Array.isArray(timeline_data?.subscriptions) ? timeline_data.subscriptions : [];
 		this.posts.forEach((post) => {
+			if (this.timeline_mode != TIMELINE_MODE_FEEDS) {
+				post.is_read = false;
+				return;
+			}
 			if (this.readIds.has(post.id)) {
 				post.is_read = true;
 			}
@@ -622,6 +626,10 @@ export default class extends Controller {
   }
 
 	handleRead(event) {
+		if (this.timeline_mode != TIMELINE_MODE_FEEDS) {
+			return;
+		}
+
     const postId = event.detail?.postId;
     if (!postId) {
       return;
@@ -1158,7 +1166,7 @@ export default class extends Controller {
       return;
     }
 
-    if (!post.is_read) {
+		if (this.timeline_mode == TIMELINE_MODE_FEEDS && !post.is_read) {
       post.is_read = true;
       this.readIds.add(post.id);
       this.persistRead(post.id);

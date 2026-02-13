@@ -321,7 +321,7 @@ export default class extends Controller {
 	}
 
   async toggleRead() {
-    if (!this.currentPostId) {
+		if (!this.currentPostId || !this.currentPostFeedId) {
       return;
     }
 
