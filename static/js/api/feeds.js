@@ -468,7 +468,7 @@ export async function summarizeFeedEntries(entryIds) {
 		headers.set("Authorization", `Bearer ${token}`);
 	}
 
-	const max_attempts = 10;
+	const max_attempts = 25;
 	const retry_delay_ms = 5000;
 
 	for (let attempt = 1; attempt <= max_attempts; attempt++) {
@@ -483,7 +483,7 @@ export async function summarizeFeedEntries(entryIds) {
 				await new Promise((resolve) => setTimeout(resolve, retry_delay_ms));
 				continue;
 			}
-			console.warn("Feeds summarize timed out after 10 attempts");
+			console.warn("Feeds summarize timed out after 25 attempts");
 			return "";
 		}
 
