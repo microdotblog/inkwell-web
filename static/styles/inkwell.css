@@ -1251,6 +1251,12 @@ button:focus:not(:focus-visible) {
   font-size: 0.75rem;
 }
 
+.reader-meta-source,
+.reader-meta-separator,
+.reader-meta-date {
+	display: inline;
+}
+
 .reader-meta a {
   color: var(--ink-muted);
   text-decoration: none;
@@ -1639,6 +1645,11 @@ input[type="search"]::-webkit-search-decoration {
 	.search-field input[type="search"] {
 		font-size: 0.65rem;
 		padding: 0.1rem 0.35rem 0.1rem 0.1rem;
+	}
+
+	.reader-meta-source,
+	.reader-meta-separator {
+		display: none;
 	}
 }
 

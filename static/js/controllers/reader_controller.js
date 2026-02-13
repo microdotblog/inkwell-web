@@ -349,10 +349,10 @@ export default class extends Controller {
     this.titleTarget.title = trimmed || "Untitled";
   }
 
-  setMeta(post) {
-    if (!this.metaTarget || !post) {
-      return;
-    }
+	setMeta(post) {
+		if (!this.metaTarget || !post) {
+			return;
+		}
 
     const source = post.source || "";
     const sourceUrl = post.source_url || "";
@@ -361,25 +361,32 @@ export default class extends Controller {
 
 		const fragment = document.createDocumentFragment();
 		if (source) {
+			const source_fragment = document.createElement("span");
+			source_fragment.className = "reader-meta-source";
 			if (sourceUrl) {
 				const link = document.createElement("a");
 				link.href = sourceUrl;
 				link.textContent = source;
 				link.target = "_blank";
 				link.rel = "noopener noreferrer";
-				fragment.append(link);
+				source_fragment.append(link);
 			}
 			else {
-				fragment.append(document.createTextNode(source));
+				source_fragment.textContent = source;
 			}
+			fragment.append(source_fragment);
 		}
 
 		if (formattedDate) {
 			if (source) {
-				fragment.append(document.createTextNode(" - "));
+				const separator_fragment = document.createElement("span");
+				separator_fragment.className = "reader-meta-separator";
+				separator_fragment.textContent = " - ";
+				fragment.append(separator_fragment);
 			}
 			if (post.url) {
 				const link = document.createElement("a");
+				link.className = "reader-meta-date";
 				link.href = post.url;
 				link.textContent = formattedDate;
 				link.target = "_blank";
@@ -387,7 +394,10 @@ export default class extends Controller {
 				fragment.append(link);
 			}
 			else {
-				fragment.append(document.createTextNode(formattedDate));
+				const date_fragment = document.createElement("span");
+				date_fragment.className = "reader-meta-date";
+				date_fragment.textContent = formattedDate;
+				fragment.append(date_fragment);
 			}
 		}
 
