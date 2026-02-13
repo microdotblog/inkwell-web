@@ -5,6 +5,40 @@ const MICRO_BLOG_AVATAR_KEY = "inkwell_microblog_avatar";
 const MICRO_BLOG_AI_KEY = "inkwell_is_using_ai";
 
 const entryCache = new Map();
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function getOldestTimelineMidnight() {
+	const now = new Date();
+	const today_midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	return today_midnight.getTime() - (6 * DAY_MS);
+}
+
+function getLocalMidnightTime(raw_date) {
+	if (!raw_date) {
+		return null;
+	}
+
+	const entry_date = new Date(raw_date);
+	if (Number.isNaN(entry_date.getTime())) {
+		return null;
+	}
+
+	const entry_midnight = new Date(
+		entry_date.getFullYear(),
+		entry_date.getMonth(),
+		entry_date.getDate()
+	);
+	return entry_midnight.getTime();
+}
+
+function isOlderThanTimelineWindow(raw_date, oldest_timeline_midnight) {
+	const entry_midnight = getLocalMidnightTime(raw_date);
+	if (entry_midnight == null) {
+		return false;
+	}
+
+	return entry_midnight < oldest_timeline_midnight;
+}
 
 export function getFeedsBaseUrl() {
   return MICRO_BLOG_BASE_URL;
@@ -217,8 +251,7 @@ export async function fetchFeedEntries(options = {}) {
 	let has_more = true;
 	const cached_limit = 25;
 	let cached_count = 0;
-	const seven_days_ms = 7 * 24 * 60 * 60 * 1000;
-	const cutoff_time = Date.now() - seven_days_ms;
+	const oldest_timeline_midnight = getOldestTimelineMidnight();
 
 	while (has_more) {
 		const params = new URLSearchParams({
@@ -238,8 +271,7 @@ export async function fetchFeedEntries(options = {}) {
 			if (!raw_date) {
 				continue;
 			}
-			const entry_time = new Date(raw_date).getTime();
-			if (!Number.isNaN(entry_time) && entry_time < cutoff_time) {
+			if (isOlderThanTimelineWindow(raw_date, oldest_timeline_midnight)) {
 				stop_index = i;
 				has_more = false;
 				break;
@@ -276,6 +308,10 @@ export async function fetchFeedEntries(options = {}) {
 	for (const cached_entry of entryCache.values()) {
 		const cached_id = cached_entry?.id;
 		if (cached_id == null) {
+			continue;
+		}
+		const cached_raw_date = cached_entry?.published || cached_entry?.created_at;
+		if (isOlderThanTimelineWindow(cached_raw_date, oldest_timeline_midnight)) {
 			continue;
 		}
 		const cached_key = String(cached_id);
