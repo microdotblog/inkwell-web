@@ -2,6 +2,7 @@ import { Controller } from "../stimulus.js";
 import { fetchReadableContent } from "../api/content.js";
 import { DEFAULT_AVATAR_URL } from "../api/posts.js";
 import { markFeedEntriesUnread } from "../api/feeds.js";
+import { createPostBookmark } from "../api/micropub.js";
 import { markRead, markUnread } from "../storage/reads.js";
 import { parse_hash } from "../router.js";
 
@@ -19,6 +20,7 @@ export default class extends Controller {
 		this.handleResolvingRoute = this.handleResolvingRoute.bind(this);
 		this.handleSummary = this.handleSummary.bind(this);
 		this.handleSummaryAvatarError = this.handleSummaryAvatarError.bind(this);
+		this.handleRecapBookmarkClick = this.handleRecapBookmarkClick.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
 		this.handleToggleRead = this.handleToggleRead.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
@@ -31,6 +33,7 @@ export default class extends Controller {
 		window.addEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.addEventListener("error", this.handleAvatarError);
 		this.contentTarget.addEventListener("error", this.handleSummaryAvatarError, true);
+		this.contentTarget.addEventListener("click", this.handleRecapBookmarkClick);
 		const route = parse_hash();
 		if (route.postId || route.feedId || route.feedUrl) {
 			this.showResolving();
@@ -51,6 +54,7 @@ export default class extends Controller {
 		window.removeEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.removeEventListener("error", this.handleAvatarError);
 		this.contentTarget.removeEventListener("error", this.handleSummaryAvatarError, true);
+		this.contentTarget.removeEventListener("click", this.handleRecapBookmarkClick);
 	}
 
 	async handlePostOpen(event) {
@@ -139,6 +143,57 @@ export default class extends Controller {
 		image_el.src = DEFAULT_AVATAR_URL;
 	}
 
+	async handleRecapBookmarkClick(event) {
+		const bookmark_button = event.target?.closest(".reading-recap-quote-bookmark-button");
+		if (!bookmark_button) {
+			return;
+		}
+
+		event.preventDefault();
+		if (bookmark_button.classList.contains("is-bookmarked")) {
+			return;
+		}
+		if (bookmark_button.disabled) {
+			return;
+		}
+
+		const quote_row = bookmark_button.closest(".reading-recap-quote");
+		if (!quote_row) {
+			return;
+		}
+
+		const quote_link = quote_row.querySelector(".reading-recap-quote-main a[href]");
+		const raw_url = (quote_link?.href || "").trim();
+		let parsed_url = "";
+		if (!raw_url) {
+			return;
+		}
+
+		try {
+			parsed_url = new URL(raw_url).toString();
+		}
+		catch (error) {
+			try {
+				parsed_url = new URL(`https://${raw_url}`).toString();
+			}
+			catch (second_error) {
+				return;
+			}
+		}
+
+		bookmark_button.disabled = true;
+		try {
+			await createPostBookmark(parsed_url);
+			this.setRecapBookmarkButtonState(bookmark_button, true);
+		}
+		catch (error) {
+			console.warn("Failed to create bookmark", error);
+		}
+		finally {
+			bookmark_button.disabled = false;
+		}
+	}
+
 	handleWelcome() {
 		this.showPlaceholder();
 	}
@@ -178,6 +233,7 @@ export default class extends Controller {
 
 	handleSummary(event) {
 		const summary_html = event.detail?.html || "";
+		const decorated_summary_html = this.decorateRecapQuoteMarkup(summary_html);
 		this.setSummaryMode(true);
 		this.element.classList.remove("is-resolving");
 		this.element.classList.remove("is-empty");
@@ -201,7 +257,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postSource = "";
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
-		this.contentTarget.innerHTML = this.sanitizeHtml(summary_html);
+		this.contentTarget.innerHTML = this.sanitizeHtml(decorated_summary_html);
 	}
 
 	clearReader() {
@@ -523,6 +579,32 @@ export default class extends Controller {
 		}
 
 		return doc.body.innerHTML;
+	}
+
+	decorateRecapQuoteMarkup(markup) {
+		if (!markup) {
+			return "";
+		}
+
+		const quote_intro_regex = /<p>(💬 Quoting from <a href[\s\S]*?)<\/p>/g;
+		return markup.replace(quote_intro_regex, (_match, quote_html) => {
+			return `<p class="reading-recap-quote"><span class="reading-recap-quote-main">${quote_html}</span><span class="reading-recap-quote-bookmark"><button type="button" class="reading-recap-quote-bookmark-button">☆ Bookmark</button></span></p>`;
+		});
+	}
+
+	setRecapBookmarkButtonState(bookmark_button, is_bookmarked) {
+		if (!bookmark_button) {
+			return;
+		}
+
+		if (is_bookmarked) {
+			bookmark_button.classList.add("is-bookmarked");
+			bookmark_button.textContent = "★ Bookmarked";
+		}
+		else {
+			bookmark_button.classList.remove("is-bookmarked");
+			bookmark_button.textContent = "☆ Bookmark";
+		}
 	}
 
 }

@@ -1312,6 +1312,50 @@ button:focus:not(:focus-visible) {
 	border-inline-start-color: #9b99cb;
 }
 
+.reading-recap-quote {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.reading-recap-quote-main {
+	flex: 1 1 auto;
+}
+
+.reading-recap-quote-bookmark {
+	display: none;
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+
+.reading-recap-quote-bookmark-button {
+	font-size: 0.75rem;
+	color: var(--ink-muted);
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.reading-recap-quote-bookmark-button:hover {
+	color: var(--ink-text);
+	text-decoration: underline;
+}
+
+.reading-recap-quote-bookmark-button:disabled {
+	opacity: 0.7;
+	cursor: default;
+}
+
+.reading-recap-quote:hover .reading-recap-quote-bookmark,
+.reading-recap-quote:focus-within .reading-recap-quote-bookmark,
+.reading-recap-quote-main:hover + .reading-recap-quote-bookmark,
+.reading-recap-quote-main:focus-visible + .reading-recap-quote-bookmark {
+	display: inline;
+}
+
 .reader-tabs.is-single {
   border: 1px solid transparent;
 }
