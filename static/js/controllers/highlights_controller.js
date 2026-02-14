@@ -15,7 +15,8 @@ export default class extends Controller {
 		"tabs",
 		"readerView",
 		"pane",
-		"globalList"
+		"globalList",
+		"content"
 	];
 
 	connect() {
@@ -30,6 +31,7 @@ export default class extends Controller {
 		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleSummary = this.handleSummary.bind(this);
 		this.handleWelcome = this.handleWelcome.bind(this);
+		this.handleReaderReady = this.handleReaderReady.bind(this);
 		this.handleOpenAll = this.handleOpenAll.bind(this);
 		this.handleSubscriptionsOpen = this.handleSubscriptionsOpen.bind(this);
 		this.handleThemesOpen = this.handleThemesOpen.bind(this);
@@ -39,6 +41,7 @@ export default class extends Controller {
 		window.addEventListener("reader:summary", this.handleSummary);
 		window.addEventListener("reader:welcome", this.handleWelcome);
 		window.addEventListener("reader:blank", this.handleWelcome);
+		window.addEventListener("reader:ready", this.handleReaderReady);
 		window.addEventListener("highlights:open", this.handleOpenAll);
 		window.addEventListener("subscriptions:open", this.handleSubscriptionsOpen);
 		window.addEventListener("themes:open", this.handleThemesOpen);
@@ -53,6 +56,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:summary", this.handleSummary);
 		window.removeEventListener("reader:welcome", this.handleWelcome);
 		window.removeEventListener("reader:blank", this.handleWelcome);
+		window.removeEventListener("reader:ready", this.handleReaderReady);
 		window.removeEventListener("highlights:open", this.handleOpenAll);
 		window.removeEventListener("subscriptions:open", this.handleSubscriptionsOpen);
 		window.removeEventListener("themes:open", this.handleThemesOpen);
@@ -67,6 +71,7 @@ export default class extends Controller {
 		this.highlights = await getHighlightsForPost(this.activePostId);
 		this.showReader();
 		this.render();
+		this.restoreReaderHighlights();
 	}
 
 	handleSummary() {
@@ -77,11 +82,25 @@ export default class extends Controller {
 		this.highlights = [];
 		this.showReader();
 		this.render();
+		this.restoreReaderHighlights();
 	}
 
 	handleWelcome() {
 		this.hidePane();
 		this.showReader();
+		this.restoreReaderHighlights();
+	}
+
+	handleReaderReady(event) {
+		const post_id = String(event.detail?.postId || "");
+		if (!post_id) {
+			return;
+		}
+		if (String(this.activePostId || "") != post_id) {
+			return;
+		}
+
+		this.restoreReaderHighlights();
 	}
 
 	async handleOpenAll() {
@@ -114,6 +133,7 @@ export default class extends Controller {
 
 		this.highlights = this.prependHighlight(this.highlights, highlight);
 		this.render();
+		this.restoreReaderHighlights();
 		if (this.isVisible) {
 			this.renderGlobal();
 		}
@@ -129,6 +149,7 @@ export default class extends Controller {
 		if (highlight.post_id == this.activePostId) {
 			this.highlights = this.updateHighlightCollection(this.highlights, highlight);
 			this.render();
+			this.restoreReaderHighlights();
 		}
 		if (this.isVisible) {
 			this.renderGlobal();
@@ -300,12 +321,193 @@ export default class extends Controller {
 		this.highlights = this.highlights.filter((item) => !this.isSameHighlight(item, highlight));
 		this.globalHighlights = this.globalHighlights.filter((item) => !this.isSameHighlight(item, highlight));
 		this.render();
+		if (String(highlight.post_id || "") == String(this.activePostId || "")) {
+			this.restoreReaderHighlights();
+		}
 		if (this.isVisible) {
 			this.renderGlobal();
 		}
 
 		if (remote_failed) {
 			console.warn("Micro.blog highlight delete failed; local highlight removed");
+		}
+	}
+
+	restoreReaderHighlights() {
+		const content_el = this.getReaderContentElement();
+		if (!content_el) {
+			return;
+		}
+
+		this.clearReaderHighlightMarkup(content_el);
+
+		const current_post_id = String(content_el.dataset.postId || "");
+		if (!current_post_id) {
+			return;
+		}
+		if (current_post_id != String(this.activePostId || "")) {
+			return;
+		}
+
+		const ranges = this.buildMergedOffsetRanges(this.highlights);
+		if (!ranges.length) {
+			return;
+		}
+
+		const segments = this.buildReaderHighlightSegments(content_el, ranges);
+		if (!segments.length) {
+			return;
+		}
+
+		segments.sort((a, b) => b.absolute_start - a.absolute_start);
+		segments.forEach((segment) => {
+			if (!segment.node || !segment.node.parentNode) {
+				return;
+			}
+
+			const text_length = segment.node.textContent.length;
+			const start_offset = Math.max(0, Math.min(segment.start_offset, text_length));
+			const end_offset = Math.max(0, Math.min(segment.end_offset, text_length));
+			if (end_offset <= start_offset) {
+				return;
+			}
+
+			const range = document.createRange();
+			range.setStart(segment.node, start_offset);
+			range.setEnd(segment.node, end_offset);
+			this.wrapReaderHighlightRange(range);
+		});
+	}
+
+	getReaderContentElement() {
+		if (this.hasContentTarget) {
+			return this.contentTarget;
+		}
+		return this.element.querySelector("[data-reader-target=\"content\"]");
+	}
+
+	clearReaderHighlightMarkup(content_el) {
+		if (!content_el) {
+			return;
+		}
+
+		const highlight_nodes = [...content_el.querySelectorAll("span.reader-highlight-text")];
+		highlight_nodes.forEach((highlight_node) => {
+			const parent_node = highlight_node.parentNode;
+			if (!parent_node) {
+				return;
+			}
+
+			while (highlight_node.firstChild) {
+				parent_node.insertBefore(highlight_node.firstChild, highlight_node);
+			}
+			parent_node.removeChild(highlight_node);
+		});
+		content_el.normalize();
+	}
+
+	buildMergedOffsetRanges(highlights) {
+		const ranges = highlights
+			.map((highlight) => this.parseOffsetRange(highlight))
+			.filter(Boolean)
+			.sort((a, b) => a.start_offset - b.start_offset);
+		if (!ranges.length) {
+			return [];
+		}
+
+		const merged = [ranges[0]];
+		for (let i = 1; i < ranges.length; i++) {
+			const range = ranges[i];
+			const last_range = merged[merged.length - 1];
+			if (range.start_offset > last_range.end_offset) {
+				merged.push(range);
+				continue;
+			}
+			if (range.end_offset > last_range.end_offset) {
+				last_range.end_offset = range.end_offset;
+			}
+		}
+
+		return merged;
+	}
+
+	parseOffsetRange(highlight) {
+		if (!highlight) {
+			return null;
+		}
+
+		const raw_start = highlight.start_offset ?? highlight.selection_start ?? highlight.start;
+		const raw_end = highlight.end_offset ?? highlight.selection_end ?? highlight.end;
+		const start_offset = Number(raw_start);
+		const end_offset = Number(raw_end);
+		if (!Number.isFinite(start_offset) || !Number.isFinite(end_offset)) {
+			return null;
+		}
+
+		const normalized_start = Math.max(0, Math.floor(start_offset));
+		const normalized_end = Math.max(0, Math.floor(end_offset));
+		if (normalized_end <= normalized_start) {
+			return null;
+		}
+
+		return {
+			start_offset: normalized_start,
+			end_offset: normalized_end
+		};
+	}
+
+	buildReaderHighlightSegments(content_el, ranges) {
+		const segments = [];
+		const walker = document.createTreeWalker(content_el, NodeFilter.SHOW_TEXT, null);
+		let node = walker.nextNode();
+		let absolute_offset = 0;
+
+		while (node) {
+			const text = node.textContent || "";
+			const text_length = text.length;
+			const node_start = absolute_offset;
+			const node_end = absolute_offset + text_length;
+			if (text_length > 0) {
+				ranges.forEach((range) => {
+					if (range.end_offset <= node_start) {
+						return;
+					}
+					if (range.start_offset >= node_end) {
+						return;
+					}
+
+					const overlap_start = Math.max(range.start_offset, node_start);
+					const overlap_end = Math.min(range.end_offset, node_end);
+					if (overlap_end <= overlap_start) {
+						return;
+					}
+
+					segments.push({
+						node,
+						start_offset: overlap_start - node_start,
+						end_offset: overlap_end - node_start,
+						absolute_start: overlap_start
+					});
+				});
+			}
+
+			absolute_offset = node_end;
+			node = walker.nextNode();
+		}
+
+		return segments;
+	}
+
+	wrapReaderHighlightRange(range) {
+		const span = document.createElement("span");
+		span.className = "reader-highlight-text";
+		try {
+			range.surroundContents(span);
+		}
+		catch (error) {
+			const fragment = range.extractContents();
+			span.appendChild(fragment);
+			range.insertNode(span);
 		}
 	}
 

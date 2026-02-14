@@ -1508,6 +1508,12 @@ input[type="search"]::-webkit-search-decoration {
   text-decoration: underline;
 }
 
+.reader-content .reader-highlight-text {
+	background: var(--ink-highlight-background);
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
+}
+
 .reader-content .lead {
   /* font-size: 1.2rem;
   color: var(--ink-reader-text); */
