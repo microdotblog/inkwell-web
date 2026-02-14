@@ -1340,6 +1340,8 @@ button:focus:not(:focus-visible) {
 	margin: 0;
 	width: 0.95rem;
 	height: 0.95rem;
+	border-width: 0.0625rem;
+	border-radius: 0.18rem;
 	flex: 0 0 auto;
 }
 
