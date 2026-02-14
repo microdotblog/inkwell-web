@@ -500,6 +500,15 @@ export async function summarizeFeedEntries(entryIds) {
 	return "";
 }
 
+export async function updateRecapEmailSettings(settings = {}) {
+	const enabled = Boolean(settings.enabled);
+	const day = (settings.day || "").trim().toLowerCase();
+
+	// TODO: Replace this placeholder with a real endpoint call when available.
+	await new Promise((resolve) => setTimeout(resolve, 350));
+	return { enabled, day };
+}
+
 async function fetchFeedsJson(path, options = {}) {
   const url = new URL(path, `${getFeedsBaseUrl()}/`);
   const headers = new Headers(options.headers || {});

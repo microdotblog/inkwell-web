@@ -1,12 +1,30 @@
 import { Controller } from "../stimulus.js";
 import { fetchReadableContent } from "../api/content.js";
 import { DEFAULT_AVATAR_URL } from "../api/posts.js";
-import { markFeedEntriesUnread } from "../api/feeds.js";
+import { markFeedEntriesUnread, updateRecapEmailSettings } from "../api/feeds.js";
 import { createPostBookmark } from "../api/micropub.js";
 import { markRead, markUnread } from "../storage/reads.js";
 import { parse_hash } from "../router.js";
 
 const preview_spinner_markup = "<p class=\"loading\"><img class=\"subscriptions-spinner subscriptions-spinner--inline\" src=\"/images/progress_spinner.svg\" alt=\"Loading preview\" style=\"width: 20px; height: 20px;\"></p>";
+const recap_email_settings_markup = `
+	<div class="reading-recap-email-settings">
+		<label class="reading-recap-email-toggle">
+			<input type="checkbox" class="reading-recap-email-enabled">
+			<span>Send <b>Reading Recap</b> in weekly email on:</span>
+		</label>
+		<select class="reading-recap-email-day" aria-label="Send recap day" disabled>
+			<option value="monday">Monday</option>
+			<option value="tuesday">Tuesday</option>
+			<option value="wednesday">Wednesday</option>
+			<option value="thursday">Thursday</option>
+			<option value="friday" selected>Friday</option>
+			<option value="saturday">Saturday</option>
+			<option value="sunday">Sunday</option>
+		</select>
+		<img class="reading-recap-email-spinner subscriptions-spinner subscriptions-spinner--inline" src="/images/progress_spinner.svg" alt="" aria-hidden="true" width="20" height="20" hidden>
+	</div>
+`;
 
 export default class extends Controller {
 	static targets = ["content", "title", "meta", "avatar"];
@@ -21,6 +39,7 @@ export default class extends Controller {
 		this.handleSummary = this.handleSummary.bind(this);
 		this.handleSummaryAvatarError = this.handleSummaryAvatarError.bind(this);
 		this.handleRecapBookmarkClick = this.handleRecapBookmarkClick.bind(this);
+		this.handleRecapEmailSettingsChange = this.handleRecapEmailSettingsChange.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
 		this.handleToggleRead = this.handleToggleRead.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
@@ -34,6 +53,7 @@ export default class extends Controller {
 		this.avatarTarget.addEventListener("error", this.handleAvatarError);
 		this.contentTarget.addEventListener("error", this.handleSummaryAvatarError, true);
 		this.contentTarget.addEventListener("click", this.handleRecapBookmarkClick);
+		this.contentTarget.addEventListener("change", this.handleRecapEmailSettingsChange);
 		const route = parse_hash();
 		if (route.postId || route.feedId || route.feedUrl) {
 			this.showResolving();
@@ -55,6 +75,7 @@ export default class extends Controller {
 		this.avatarTarget.removeEventListener("error", this.handleAvatarError);
 		this.contentTarget.removeEventListener("error", this.handleSummaryAvatarError, true);
 		this.contentTarget.removeEventListener("click", this.handleRecapBookmarkClick);
+		this.contentTarget.removeEventListener("change", this.handleRecapEmailSettingsChange);
 	}
 
 	async handlePostOpen(event) {
@@ -194,6 +215,37 @@ export default class extends Controller {
 		}
 	}
 
+	async handleRecapEmailSettingsChange(event) {
+		const settings_form = event.target?.closest(".reading-recap-email-settings");
+		if (!settings_form || !this.contentTarget.contains(settings_form)) {
+			return;
+		}
+
+		const enabled_checkbox = settings_form.querySelector(".reading-recap-email-enabled");
+		const day_select = settings_form.querySelector(".reading-recap-email-day");
+		const spinner = settings_form.querySelector(".reading-recap-email-spinner");
+		if (!enabled_checkbox || !day_select || !spinner) {
+			return;
+		}
+
+		const should_send = enabled_checkbox.checked;
+		day_select.disabled = !should_send;
+
+		spinner.hidden = false;
+		try {
+			await updateRecapEmailSettings({
+				enabled: should_send,
+				day: day_select.value
+			});
+		}
+		catch (error) {
+			console.warn("Failed to update recap email settings", error);
+		}
+		finally {
+			spinner.hidden = true;
+		}
+	}
+
 	handleWelcome() {
 		this.showPlaceholder();
 	}
@@ -233,7 +285,7 @@ export default class extends Controller {
 
 	handleSummary(event) {
 		const summary_html = event.detail?.html || "";
-		const decorated_summary_html = this.decorateRecapQuoteMarkup(summary_html);
+		const decorated_summary_html = this.decorateRecapMarkup(summary_html);
 		this.setSummaryMode(true);
 		this.element.classList.remove("is-resolving");
 		this.element.classList.remove("is-empty");
@@ -581,15 +633,34 @@ export default class extends Controller {
 		return doc.body.innerHTML;
 	}
 
-	decorateRecapQuoteMarkup(markup) {
+	decorateRecapMarkup(markup) {
 		if (!markup) {
-			return "";
+			return recap_email_settings_markup;
 		}
 
 		const quote_intro_regex = /<p>(💬 Quoting from <a href[\s\S]*?)<\/p>/g;
-		return markup.replace(quote_intro_regex, (_match, quote_html) => {
+		const decorated_markup = markup.replace(quote_intro_regex, (_match, quote_html) => {
 			return `<p class="reading-recap-quote"><span class="reading-recap-quote-main">${quote_html}</span><span class="reading-recap-quote-bookmark"><button type="button" class="reading-recap-quote-bookmark-button">☆ Bookmark</button></span></p>`;
 		});
+
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(decorated_markup, "text/html");
+		const wrapper = doc.createElement("div");
+		wrapper.innerHTML = recap_email_settings_markup;
+		const settings_el = wrapper.firstElementChild;
+		if (!settings_el) {
+			return decorated_markup;
+		}
+
+		const recap_container = doc.querySelector(".reading-recap");
+		if (recap_container) {
+			recap_container.insertBefore(settings_el, recap_container.firstChild);
+		}
+		else {
+			doc.body.insertBefore(settings_el, doc.body.firstChild);
+		}
+
+		return doc.body.innerHTML;
 	}
 
 	setRecapBookmarkButtonState(bookmark_button, is_bookmarked) {
