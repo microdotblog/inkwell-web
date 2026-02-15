@@ -1,12 +1,13 @@
 import { Controller } from "../stimulus.js";
 import { fetchReadableContent } from "../api/content.js";
 import { DEFAULT_AVATAR_URL } from "../api/posts.js";
-import { markFeedEntriesUnread, updateRecapEmailSettings } from "../api/feeds.js";
+import { fetchRecapEmailSettings, markFeedEntriesUnread, updateRecapEmailSettings } from "../api/feeds.js";
 import { createPostBookmark } from "../api/micropub.js";
 import { markRead, markUnread } from "../storage/reads.js";
 import { parse_hash } from "../router.js";
 
 const preview_spinner_markup = "<p class=\"loading\"><img class=\"subscriptions-spinner subscriptions-spinner--inline\" src=\"/images/progress_spinner.svg\" alt=\"Loading preview\" style=\"width: 20px; height: 20px;\"></p>";
+const recap_email_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const recap_email_settings_markup = `
 	<div class="reading-recap-email-settings">
 		<label class="reading-recap-email-toggle">
@@ -14,13 +15,13 @@ const recap_email_settings_markup = `
 			<span>Send <b>Reading Recap</b> in weekly email on:</span>
 		</label>
 		<select class="reading-recap-email-day" aria-label="Send recap day" disabled>
-			<option value="monday">Monday</option>
-			<option value="tuesday">Tuesday</option>
-			<option value="wednesday">Wednesday</option>
-			<option value="thursday">Thursday</option>
-			<option value="friday" selected>Friday</option>
-			<option value="saturday">Saturday</option>
-			<option value="sunday">Sunday</option>
+			<option value="Monday">Monday</option>
+			<option value="Tuesday">Tuesday</option>
+			<option value="Wednesday">Wednesday</option>
+			<option value="Thursday">Thursday</option>
+			<option value="Friday" selected>Friday</option>
+			<option value="Saturday">Saturday</option>
+			<option value="Sunday">Sunday</option>
 		</select>
 		<img class="reading-recap-email-spinner subscriptions-spinner subscriptions-spinner--inline" src="/images/progress_spinner.svg" alt="" aria-hidden="true" width="20" height="20" hidden>
 	</div>
@@ -228,20 +229,67 @@ export default class extends Controller {
 			return;
 		}
 
-		const should_send = enabled_checkbox.checked;
-		day_select.disabled = !should_send;
+		const dayofweek = enabled_checkbox.checked
+			? this.normalizeRecapEmailDay(day_select.value)
+			: "";
+		day_select.disabled = !enabled_checkbox.checked;
 
 		spinner.hidden = false;
+		enabled_checkbox.disabled = true;
+		day_select.disabled = true;
 		try {
 			await updateRecapEmailSettings({
-				enabled: should_send,
-				day: day_select.value
+				dayofweek
 			});
 		}
 		catch (error) {
 			console.warn("Failed to update recap email settings", error);
 		}
 		finally {
+			enabled_checkbox.disabled = false;
+			day_select.disabled = !enabled_checkbox.checked;
+			spinner.hidden = true;
+		}
+	}
+
+	async loadRecapEmailSettings() {
+		const settings_form = this.contentTarget.querySelector(".reading-recap-email-settings");
+		if (!settings_form || !this.contentTarget.contains(settings_form)) {
+			return;
+		}
+
+		const enabled_checkbox = settings_form.querySelector(".reading-recap-email-enabled");
+		const day_select = settings_form.querySelector(".reading-recap-email-day");
+		const spinner = settings_form.querySelector(".reading-recap-email-spinner");
+		if (!enabled_checkbox || !day_select || !spinner) {
+			return;
+		}
+
+		spinner.hidden = false;
+		enabled_checkbox.disabled = true;
+		day_select.disabled = true;
+		try {
+			const settings = await fetchRecapEmailSettings();
+			if (!this.contentTarget.contains(settings_form)) {
+				return;
+			}
+
+			const dayofweek = this.normalizeRecapEmailDay(settings?.dayofweek || "");
+			enabled_checkbox.checked = Boolean(dayofweek);
+			if (dayofweek) {
+				day_select.value = dayofweek;
+			}
+		}
+		catch (error) {
+			console.warn("Failed to fetch recap email settings", error);
+		}
+		finally {
+			if (!this.contentTarget.contains(settings_form)) {
+				return;
+			}
+
+			enabled_checkbox.disabled = false;
+			day_select.disabled = !enabled_checkbox.checked;
 			spinner.hidden = true;
 		}
 	}
@@ -310,6 +358,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = this.sanitizeHtml(decorated_summary_html);
+		this.loadRecapEmailSettings();
 	}
 
 	clearReader() {
@@ -661,6 +710,16 @@ export default class extends Controller {
 		}
 
 		return doc.body.innerHTML;
+	}
+
+	normalizeRecapEmailDay(raw_day) {
+		const normalized_day = (raw_day || "").trim().toLowerCase();
+		if (!normalized_day) {
+			return "";
+		}
+
+		const matching_day = recap_email_days.find((day) => day.toLowerCase() == normalized_day);
+		return matching_day || "";
 	}
 
 	setRecapBookmarkButtonState(bookmark_button, is_bookmarked) {

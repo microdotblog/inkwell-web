@@ -500,13 +500,71 @@ export async function summarizeFeedEntries(entryIds) {
 	return "";
 }
 
-export async function updateRecapEmailSettings(settings = {}) {
-	const enabled = Boolean(settings.enabled);
-	const day = (settings.day || "").trim().toLowerCase();
+export async function fetchRecapEmailSettings() {
+	const url = new URL("/feeds/recap/email", `${getFeedsBaseUrl()}/`);
+	const headers = new Headers({
+		"Accept": "application/json"
+	});
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
 
-	// TODO: Replace this placeholder with a real endpoint call when available.
-	await new Promise((resolve) => setTimeout(resolve, 350));
-	return { enabled, day };
+	const response = await fetch(url, {
+		method: "GET",
+		headers
+	});
+	if (!response.ok) {
+		const response_text = await response.text();
+		const request_error = new Error(`Feeds recap email settings failed: ${response.status}`);
+		request_error.response_text = response_text;
+		throw request_error;
+	}
+
+	try {
+		const payload = await response.json();
+		return {
+			dayofweek: (payload?.dayofweek || "").trim()
+		};
+	}
+	catch (error) {
+		return { dayofweek: "" };
+	}
+}
+
+export async function updateRecapEmailSettings(settings = {}) {
+	const dayofweek = (settings.dayofweek || "").trim();
+	const url = new URL("/feeds/recap/email", `${getFeedsBaseUrl()}/`);
+	const body = new URLSearchParams();
+	body.set("dayofweek", dayofweek);
+
+	const headers = new Headers({
+		"Content-Type": "application/x-www-form-urlencoded",
+		"Accept": "application/json"
+	});
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+
+	const response = await fetch(url, {
+		method: "POST",
+		headers,
+		body: body.toString()
+	});
+	if (!response.ok) {
+		const response_text = await response.text();
+		const request_error = new Error(`Feeds recap email settings update failed: ${response.status}`);
+		request_error.response_text = response_text;
+		throw request_error;
+	}
+
+	try {
+		return await response.json();
+	}
+	catch (error) {
+		return { dayofweek };
+	}
 }
 
 async function fetchFeedsJson(path, options = {}) {
