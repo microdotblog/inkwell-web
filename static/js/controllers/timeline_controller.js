@@ -55,6 +55,7 @@ export default class extends Controller {
 		this.hideRead = this.loadHideReadSetting();
 		this.hideReadSnapshotIds = new Set();
 		this.hideReadSnapshotActive = false;
+		this.feed_timeline_cache = null;
 		this.handleClick = this.handleClick.bind(this);
 		this.handleUnread = this.handleUnread.bind(this);
 		this.handleRead = this.handleRead.bind(this);
@@ -228,10 +229,53 @@ export default class extends Controller {
 		if (this.timeline_mode == mode) {
 			return;
 		}
+		const previous_mode = this.timeline_mode;
+		this.timeline_load_token += 1;
+		if (previous_mode == TIMELINE_MODE_FEEDS && mode == TIMELINE_MODE_BOOKMARKS) {
+			this.cacheFeedsTimeline();
+		}
 		this.timeline_mode = mode;
 		this.activeFeedId = null;
 		this.activeFeedLabel = "";
+		if (previous_mode == TIMELINE_MODE_BOOKMARKS && mode == TIMELINE_MODE_FEEDS && this.restoreCachedFeedsTimeline()) {
+			const state = parse_hash();
+			this.activePostId = null;
+			this.unreadOverridePostId = null;
+			this.apply_route_from_url(state, false);
+			replace_state({ feedId: this.activeFeedId || null, postId: null });
+			window.dispatchEvent(new CustomEvent("reader:blank"));
+			return;
+		}
 		this.syncTimeline();
+	}
+
+	cacheFeedsTimeline() {
+		this.feed_timeline_cache = {
+			posts: this.cloneRecords(this.posts),
+			subscription_count: this.subscriptionCount,
+			subscriptions: this.cloneRecords(this.subscriptions)
+		};
+	}
+
+	restoreCachedFeedsTimeline() {
+		if (!this.feed_timeline_cache) {
+			return false;
+		}
+		const cache = this.feed_timeline_cache;
+		this.posts = this.cloneRecords(cache.posts);
+		this.subscriptionCount = cache.subscription_count;
+		this.subscriptions = this.cloneRecords(cache.subscriptions);
+		this.isLoading = false;
+		this.listTarget.classList.remove("is-loading");
+		this.render();
+		return true;
+	}
+
+	cloneRecords(records) {
+		if (!Array.isArray(records)) {
+			return [];
+		}
+		return records.map((record) => ({ ...record }));
 	}
 
 	handleTimelineBack() {
