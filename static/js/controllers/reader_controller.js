@@ -8,6 +8,7 @@ import { parse_hash } from "../router.js";
 
 const preview_spinner_markup = "<p class=\"loading\"><img class=\"subscriptions-spinner subscriptions-spinner--inline\" src=\"/images/progress_spinner.svg\" alt=\"Loading preview\" style=\"width: 20px; height: 20px;\"></p>";
 const recap_email_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const recap_email_enabled_storage_key = "inkwell_recap_email_enabled";
 const recap_email_settings_markup = `
 	<div class="reading-recap-email-settings">
 		<label class="reading-recap-email-toggle">
@@ -233,6 +234,7 @@ export default class extends Controller {
 			? this.normalizeRecapEmailDay(day_select.value)
 			: "";
 		day_select.disabled = !enabled_checkbox.checked;
+		this.setStoredRecapEmailEnabled(enabled_checkbox.checked);
 
 		spinner.hidden = false;
 		enabled_checkbox.disabled = true;
@@ -268,6 +270,10 @@ export default class extends Controller {
 		spinner.hidden = false;
 		enabled_checkbox.disabled = true;
 		day_select.disabled = true;
+		const stored_enabled = this.getStoredRecapEmailEnabled();
+		if (stored_enabled != null) {
+			enabled_checkbox.checked = stored_enabled;
+		}
 		try {
 			const settings = await fetchRecapEmailSettings();
 			if (!this.contentTarget.contains(settings_form)) {
@@ -276,6 +282,7 @@ export default class extends Controller {
 
 			const dayofweek = this.normalizeRecapEmailDay(settings?.dayofweek || "");
 			enabled_checkbox.checked = Boolean(dayofweek);
+			this.setStoredRecapEmailEnabled(enabled_checkbox.checked);
 			if (dayofweek) {
 				day_select.value = dayofweek;
 			}
@@ -720,6 +727,31 @@ export default class extends Controller {
 
 		const matching_day = recap_email_days.find((day) => day.toLowerCase() == normalized_day);
 		return matching_day || "";
+	}
+
+	getStoredRecapEmailEnabled() {
+		const stored_enabled = localStorage.getItem(recap_email_enabled_storage_key);
+		if (stored_enabled == "true") {
+			return true;
+		}
+		if (stored_enabled == "false") {
+			return false;
+		}
+
+		return null;
+	}
+
+	setStoredRecapEmailEnabled(is_enabled) {
+		if (is_enabled == true) {
+			localStorage.setItem(recap_email_enabled_storage_key, "true");
+			return;
+		}
+		if (is_enabled == false) {
+			localStorage.setItem(recap_email_enabled_storage_key, "false");
+			return;
+		}
+
+		localStorage.removeItem(recap_email_enabled_storage_key);
 	}
 
 	setRecapBookmarkButtonState(bookmark_button, is_bookmarked) {
