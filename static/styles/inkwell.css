@@ -1415,6 +1415,10 @@ button:focus:not(:focus-visible) {
   border: 1px solid transparent;
 }
 
+.segments.reader-tabs.is-single button {
+	cursor: default;
+}
+
 .reader-avatar {
   width: 22px;
   height: 22px;
