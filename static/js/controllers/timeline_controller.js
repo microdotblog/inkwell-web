@@ -422,17 +422,17 @@ export default class extends Controller {
 		}
 	}
 
-  showToday() {
-    this.activateSegment("today");
-  }
+	showToday(event) {
+		this.activateSegment("today", event);
+	}
 
-  showRecent() {
-    this.activateSegment("recent");
-  }
+	showRecent(event) {
+		this.activateSegment("recent", event);
+	}
 
-  showFading() {
-    this.activateSegment("fading");
-  }
+	showFading(event) {
+		this.activateSegment("fading", event);
+	}
 
   toggleSearch() {
     if (this.searchActive) {
@@ -462,11 +462,41 @@ export default class extends Controller {
     this.render();
   }
 
-  activateSegment(segment) {
-    this.activeSegment = segment;
-    this.updateSegments();
-    this.render();
-  }
+	activateSegment(segment, event) {
+		if (this.activeSegment == segment) {
+			if (event?.type == "click") {
+				this.scrollTimelineToTop();
+			}
+			return;
+		}
+
+		this.activeSegment = segment;
+		this.scrollTimelineToTop(true);
+		this.updateSegments();
+		this.render();
+	}
+
+	scrollTimelineToTop(immediate) {
+		if (!this.listTarget) {
+			return;
+		}
+
+		if (immediate) {
+			this.listTarget.scrollTop = 0;
+			return;
+		}
+
+		const prefers_reduced_motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		if (typeof this.listTarget.scrollTo == "function") {
+			this.listTarget.scrollTo({
+				top: 0,
+				behavior: prefers_reduced_motion ? "auto" : "smooth"
+			});
+			return;
+		}
+
+		this.listTarget.scrollTop = 0;
+	}
 
   updateSegments() {
     const buttons = this.segmentsTarget.querySelectorAll("button[data-segment]");
