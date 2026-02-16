@@ -2,7 +2,7 @@ import { Application } from "./stimulus.js?20260213.1";
 import AuthController from "./controllers/auth_controller.js?20260213.1";
 import UserMenuController from "./controllers/user_menu_controller.js?20260216.1";
 import SessionController from "./controllers/session_controller.js?20260216.1";
-import TimelineController from "./controllers/timeline_controller.js?20260213.1";
+import TimelineController from "./controllers/timeline_controller.js?20260216.2";
 import ReaderController from "./controllers/reader_controller.js?20260213.1";
 import HighlightController from "./controllers/highlight_controller.js?20260213.1";
 import HighlightsController from "./controllers/highlights_controller.js?20260216.1";

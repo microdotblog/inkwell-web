@@ -1,6 +1,6 @@
 import { Controller } from "../stimulus.js";
 import { timelineBorderColors, timelineCellColors, timelineSelectedColors } from "../colors.js";
-import { DEFAULT_AVATAR_URL, fetchTimelineData } from "../api/posts.js";
+import { DEFAULT_AVATAR_URL, fetchTimelineData, fetchTimelineDataForFeed } from "../api/posts.js";
 import {
 	fetchFeedIcons,
 	fetchFeedStarredEntryIds,
@@ -57,6 +57,11 @@ export default class extends Controller {
 		this.hideReadSnapshotIds = new Set();
 		this.hideReadSnapshotActive = false;
 		this.feed_timeline_cache = null;
+		this.feed_filtered_posts = null;
+		this.feed_filtered_posts_feed_id = "";
+		this.feed_filter_loading = false;
+		this.feed_filter_pending_feed_id = "";
+		this.feed_filter_load_token = 0;
 		this.handleClick = this.handleClick.bind(this);
 		this.handleUnread = this.handleUnread.bind(this);
 		this.handleRead = this.handleRead.bind(this);
@@ -238,6 +243,7 @@ export default class extends Controller {
 		this.timeline_mode = mode;
 		this.activeFeedId = null;
 		this.activeFeedLabel = "";
+		this.resetFeedFilteredPosts();
 		if (previous_mode == TIMELINE_MODE_BOOKMARKS && mode == TIMELINE_MODE_FEEDS && this.restoreCachedFeedsTimeline()) {
 			const state = parse_hash();
 			this.activePostId = null;
@@ -553,7 +559,7 @@ export default class extends Controller {
 		}
 
 		const postId = item.dataset.postId;
-		const post = this.posts.find((entry) => entry.id === postId);
+		const post = this.findPostById(postId);
 		if (!post) {
 			return;
 		}
@@ -642,6 +648,13 @@ export default class extends Controller {
 		if (this.activeFeedId && !has_feed) {
 			this.activeFeedId = null;
 			this.activeFeedLabel = "";
+			this.resetFeedFilteredPosts();
+		}
+		else if (this.activeFeedId && this.timeline_mode == TIMELINE_MODE_FEEDS) {
+			this.requestFeedFilteredPosts(this.activeFeedId);
+		}
+		else if (!this.activeFeedId) {
+			this.resetFeedFilteredPosts();
 		}
 		if (!should_update_reader) {
 			this.applying_route = false;
@@ -649,7 +662,7 @@ export default class extends Controller {
 			return;
 		}
 		if (state.postId != null && state.postId != "") {
-			const post = this.posts.find((p) => p.id == state.postId);
+			const post = this.findPostById(state.postId);
 			if (post) {
 				this.openPost(post, true);
 			}
@@ -686,12 +699,13 @@ export default class extends Controller {
       return;
     }
 
-    const post = this.posts.find((entry) => entry.id === postId);
-    if (!post) {
-      return;
-    }
-
-    post.is_read = false;
+		const matching_posts = this.findPostsById(postId);
+		if (matching_posts.length == 0) {
+			return;
+		}
+		matching_posts.forEach((post) => {
+			post.is_read = false;
+		});
     this.readIds.delete(postId);
 		this.hideReadSnapshotIds.delete(postId);
 		if (postId == this.activePostId) {
@@ -710,12 +724,13 @@ export default class extends Controller {
       return;
     }
 
-    const post = this.posts.find((entry) => entry.id === postId);
-    if (!post) {
-      return;
-    }
-
-    post.is_read = true;
+		const matching_posts = this.findPostsById(postId);
+		if (matching_posts.length == 0) {
+			return;
+		}
+		matching_posts.forEach((post) => {
+			post.is_read = true;
+		});
     this.readIds.add(postId);
 		if (postId == this.unreadOverridePostId) {
 			this.unreadOverridePostId = null;
@@ -754,7 +769,7 @@ export default class extends Controller {
 			return;
 		}
 
-		const post = this.posts.find((entry) => entry.id == post_id);
+		const post = this.findPostById(post_id);
 		if (post && post.avatar_url != DEFAULT_AVATAR_URL) {
 			post.avatar_url = DEFAULT_AVATAR_URL;
 		}
@@ -879,7 +894,7 @@ export default class extends Controller {
 			return;
 		}
 
-		const active_post = this.posts.find((entry) => entry.id === this.activePostId);
+		const active_post = this.getActivePost();
 		if (!active_post) {
 			return;
 		}
@@ -900,10 +915,11 @@ export default class extends Controller {
 			return;
 		}
 
-		const post = this.posts.find((entry) => entry.id === this.activePostId);
-		if (!post) {
+		const matching_posts = this.findPostsById(this.activePostId);
+		if (matching_posts.length == 0) {
 			return;
 		}
+		const post = matching_posts[0];
 
 		if (this.bookmark_toggling.has(post.id)) {
 			return;
@@ -911,7 +927,9 @@ export default class extends Controller {
 
 		const should_bookmark = !post.is_bookmarked;
 		this.bookmark_toggling.add(post.id);
-		post.is_bookmarked = should_bookmark;
+		matching_posts.forEach((matching_post) => {
+			matching_post.is_bookmarked = should_bookmark;
+		});
 		this.render();
 		this.dispatchBookmarkChange(post);
 
@@ -930,7 +948,9 @@ export default class extends Controller {
 		}
 		catch (error) {
 			console.warn("Failed to toggle bookmark", error);
-			post.is_bookmarked = !should_bookmark;
+			matching_posts.forEach((matching_post) => {
+				matching_post.is_bookmarked = !should_bookmark;
+			});
 			this.render();
 			this.dispatchBookmarkChange(post);
 		}
@@ -964,13 +984,12 @@ export default class extends Controller {
 	}
 
 	async handleMarkAllRead() {
-		if (this.timeline_mode != TIMELINE_MODE_FEEDS || !this.posts.length) {
-			return;
-		}
-
 		const posts_to_mark = this.activeFeedId
 			? this.getFeedFilteredPosts()
 			: this.posts;
+		if (this.timeline_mode != TIMELINE_MODE_FEEDS || posts_to_mark.length == 0) {
+			return;
+		}
 		const ids = posts_to_mark
 			.map((post) => post?.id)
 			.filter(Boolean)
@@ -985,7 +1004,7 @@ export default class extends Controller {
 			const merged_read_ids = await markAllRead(ids);
 			ids.forEach((id) => this.pendingReadIds.delete(id));
 			this.readIds = new Set(merged_read_ids);
-			this.posts.forEach((post) => {
+			this.forEachKnownPost((post) => {
 				if (ids_set.has(String(post.id))) {
 					post.is_read = true;
 				}
@@ -1058,7 +1077,10 @@ export default class extends Controller {
 
 		if (!posts.length) {
 			if (this.activeFeedId) {
-				this.listTarget.innerHTML = `${mode_filter_markup}<p class="canvas-empty timeline-empty">No posts in this feed.<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
+				const empty_message = this.feed_filter_loading
+					? "Loading posts for this feed..."
+					: "No posts in this feed.";
+				this.listTarget.innerHTML = `${mode_filter_markup}<p class="canvas-empty timeline-empty">${empty_message}<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
 				return;
 			}
 			if (this.timeline_mode == TIMELINE_MODE_FEEDS && this.subscriptionCount == 0) {
@@ -1119,6 +1141,7 @@ export default class extends Controller {
 		}
 		this.activeFeedId = null;
 		this.activeFeedLabel = "";
+		this.resetFeedFilteredPosts();
 		if (this.activePostId) {
 			push_state({ postId: this.activePostId });
 		}
@@ -1135,12 +1158,19 @@ export default class extends Controller {
 
 		const next_feed_id = String(feed_id);
 		const active_post = this.activePostId
-			? this.posts.find((post) => post.id == this.activePostId)
+			? this.getActivePost()
 			: null;
 		const active_post_matches_feed = active_post && String(active_post.feed_id || "") == next_feed_id;
+		const should_reload_posts = this.activeFeedId != next_feed_id;
 
 		this.activeFeedId = next_feed_id;
 		this.activeFeedLabel = (feed_label || "").trim() || this.getFeedLabel(this.activeFeedId);
+		if (should_reload_posts) {
+			this.resetFeedFilteredPosts();
+		}
+		if (this.timeline_mode == TIMELINE_MODE_FEEDS) {
+			this.requestFeedFilteredPosts(this.activeFeedId);
+		}
 
 		if (!active_post_matches_feed && this.activePostId) {
 			this.activePostId = null;
@@ -1260,10 +1290,13 @@ export default class extends Controller {
     }
 
 		if (this.timeline_mode == TIMELINE_MODE_FEEDS && !post.is_read) {
-      post.is_read = true;
-      this.readIds.add(post.id);
-      this.persistRead(post.id);
-    }
+			const matching_posts = this.findPostsById(post.id);
+			matching_posts.forEach((matching_post) => {
+				matching_post.is_read = true;
+			});
+			this.readIds.add(post.id);
+			this.persistRead(post.id);
+		}
     const selectionChanged = post.id !== this.activePostId;
 		if (selectionChanged) {
 			this.unreadOverridePostId = null;
@@ -1381,6 +1414,10 @@ export default class extends Controller {
 	getFeedFilteredPosts() {
 		if (!this.activeFeedId) {
 			return this.posts;
+		}
+
+		if (this.feed_filtered_posts_feed_id == this.activeFeedId && Array.isArray(this.feed_filtered_posts)) {
+			return this.feed_filtered_posts;
 		}
 
 		return this.posts.filter((post) => {
@@ -1568,7 +1605,7 @@ export default class extends Controller {
 			return;
 		}
 
-		const active_post = this.posts.find((post) => post.id == this.activePostId);
+		const active_post = this.getActivePost();
 		if (!active_post || !active_post.is_read) {
 			return;
 		}
@@ -1583,10 +1620,154 @@ export default class extends Controller {
 			return;
 		}
 
-		const visible_posts = this.posts;
+		const visible_posts = this.getBasePosts();
 		this.hideReadSnapshotIds = new Set(
 			visible_posts.filter((post) => post.is_read).map((post) => post.id)
 		);
+	}
+
+	getActivePost() {
+		if (!this.activePostId) {
+			return null;
+		}
+
+		return this.findPostById(this.activePostId);
+	}
+
+	findPostById(post_id) {
+		const post_id_text = post_id == null ? "" : String(post_id);
+		if (!post_id_text) {
+			return null;
+		}
+
+		const matching_posts = this.findPostsById(post_id_text);
+		return matching_posts.length > 0 ? matching_posts[0] : null;
+	}
+
+	findPostsById(post_id) {
+		const post_id_text = post_id == null ? "" : String(post_id);
+		if (!post_id_text) {
+			return [];
+		}
+
+		const matching_posts = [];
+		this.forEachKnownPost((post) => {
+			if (String(post.id) != post_id_text) {
+				return;
+			}
+			matching_posts.push(post);
+		});
+
+		return matching_posts;
+	}
+
+	forEachKnownPost(callback) {
+		if (typeof callback != "function") {
+			return;
+		}
+
+		this.getKnownPostCollections().forEach((collection) => {
+			if (!Array.isArray(collection) || collection.length == 0) {
+				return;
+			}
+
+			collection.forEach((post) => {
+				if (!post) {
+					return;
+				}
+				callback(post);
+			});
+		});
+	}
+
+	getKnownPostCollections() {
+		if (this.activeFeedId) {
+			return [this.feed_filtered_posts, this.posts];
+		}
+		return [this.posts, this.feed_filtered_posts];
+	}
+
+	resetFeedFilteredPosts() {
+		this.feed_filter_load_token += 1;
+		this.feed_filter_loading = false;
+		this.feed_filter_pending_feed_id = "";
+		this.feed_filtered_posts = null;
+		this.feed_filtered_posts_feed_id = "";
+	}
+
+	requestFeedFilteredPosts(feed_id) {
+		const next_feed_id = feed_id == null ? "" : String(feed_id).trim();
+		if (!next_feed_id || this.timeline_mode != TIMELINE_MODE_FEEDS) {
+			return;
+		}
+
+		const has_loaded_posts = this.feed_filtered_posts_feed_id == next_feed_id &&
+			Array.isArray(this.feed_filtered_posts);
+		if (has_loaded_posts) {
+			return;
+		}
+		if (this.feed_filter_loading && this.feed_filter_pending_feed_id == next_feed_id) {
+			return;
+		}
+
+		this.loadFeedFilteredPosts(next_feed_id);
+	}
+
+	async loadFeedFilteredPosts(feed_id) {
+		const next_feed_id = feed_id == null ? "" : String(feed_id).trim();
+		if (!next_feed_id) {
+			return;
+		}
+
+		const load_token = this.feed_filter_load_token + 1;
+		this.feed_filter_load_token = load_token;
+		this.feed_filter_loading = true;
+		this.feed_filter_pending_feed_id = next_feed_id;
+
+		try {
+			const feed_timeline_data = await fetchTimelineDataForFeed(next_feed_id, {
+				subscriptions: this.subscriptions
+			});
+			if (this.feed_filter_load_token != load_token) {
+				return;
+			}
+			if (this.activeFeedId != next_feed_id) {
+				return;
+			}
+
+			if (Array.isArray(feed_timeline_data?.subscriptions) && feed_timeline_data.subscriptions.length > 0) {
+				this.subscriptions = feed_timeline_data.subscriptions;
+				if (!this.activeFeedLabel) {
+					this.activeFeedLabel = this.getFeedLabel(this.activeFeedId);
+				}
+			}
+
+			const posts = Array.isArray(feed_timeline_data?.posts) ? feed_timeline_data.posts : [];
+			posts.forEach((post) => {
+				if (this.readIds.has(post.id)) {
+					post.is_read = true;
+				}
+			});
+
+			this.feed_filtered_posts = posts;
+			this.feed_filtered_posts_feed_id = next_feed_id;
+		}
+		catch (error) {
+			if (this.feed_filter_load_token != load_token) {
+				return;
+			}
+			console.warn("Failed to load filtered feed entries", error);
+			this.feed_filtered_posts = null;
+			this.feed_filtered_posts_feed_id = "";
+		}
+		finally {
+			if (this.feed_filter_load_token != load_token) {
+				return;
+			}
+			this.feed_filter_loading = false;
+			this.feed_filter_pending_feed_id = "";
+			this.render();
+		}
 	}
 
   async persistRead(postId) {

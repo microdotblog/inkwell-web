@@ -351,6 +351,46 @@ export async function fetchFeedEntries(options = {}) {
 	return entries;
 }
 
+export async function fetchFeedEntriesForFeed(feed_id, options = {}) {
+	const trimmed_feed_id = feed_id == null ? "" : String(feed_id).trim();
+	if (!trimmed_feed_id) {
+		return [];
+	}
+
+	const on_progress = typeof options?.on_progress == "function"
+		? options.on_progress
+		: null;
+	const per_page = 100;
+	const encoded_feed_id = encodeURIComponent(trimmed_feed_id);
+	const entries = [];
+	let page = 1;
+
+	while (true) {
+		const params = new URLSearchParams({
+			per_page: String(per_page),
+			page: String(page)
+		});
+		const page_entries = await fetchFeedsJson(`/feeds/feeds/${encoded_feed_id}/entries.json?${params.toString()}`);
+
+		if (!Array.isArray(page_entries) || page_entries.length == 0) {
+			break;
+		}
+
+		entries.push(...page_entries);
+		if (on_progress) {
+			await on_progress({ entries: [...entries] });
+		}
+
+		if (page_entries.length < per_page) {
+			break;
+		}
+
+		page += 1;
+	}
+
+	return entries;
+}
+
 export async function fetchFeedUnreadEntryIds() {
   return fetchFeedsJson("/feeds/unread_entries.json");
 }

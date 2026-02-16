@@ -4,7 +4,9 @@ import {
 	cacheFeedEntries,
 	fetchBookmarkedPosts,
 	fetchFeedEntries,
+	fetchFeedEntriesForFeed,
 	fetchFeedSubscriptions,
+	fetchFeedStarredEntryIds,
 	fetchFeedUnreadEntryIds,
 	isSignedIn
 } from "./feeds.js";
@@ -65,6 +67,55 @@ export async function fetchTimelineData(options = {}) {
 		if (USE_MOCK_DATA) {
 			console.error("Failed to load feeds timeline", error);
 			return { posts: [...mockPosts], subscription_count: null, subscriptions: mockSubscriptions };
+		}
+		throw error;
+	}
+}
+
+export async function fetchTimelineDataForFeed(feed_id, options = {}) {
+	const trimmed_feed_id = feed_id == null ? "" : String(feed_id).trim();
+	if (!trimmed_feed_id) {
+		return { posts: [], subscriptions: [] };
+	}
+
+	try {
+		if (!isSignedIn()) {
+			if (USE_MOCK_DATA) {
+				return { posts: [...mockPosts], subscriptions: mockSubscriptions };
+			}
+			return { posts: [], subscriptions: [] };
+		}
+
+		const provided_subscriptions = Array.isArray(options?.subscriptions)
+			? options.subscriptions
+			: null;
+		const subscriptions_promise = provided_subscriptions
+			? Promise.resolve(provided_subscriptions)
+			: fetchFeedSubscriptions();
+
+		const [subscriptions, unread_entry_ids, starred_entry_ids, entries] = await Promise.all([
+			subscriptions_promise,
+			fetchFeedUnreadEntryIds(),
+			fetchFeedStarredEntryIds(),
+			fetchFeedEntriesForFeed(trimmed_feed_id)
+		]);
+
+		const subscriptions_list = Array.isArray(subscriptions) ? subscriptions : [];
+		const subscription_map = new Map(
+			subscriptions_list.map((subscription) => [subscription.feed_id, subscription])
+		);
+		const unread_set = new Set((unread_entry_ids || []).map((id) => String(id)));
+		const starred_set = new Set((starred_entry_ids || []).map((id) => String(id)));
+		const icon_map = new Map();
+
+		cacheFeedEntries(entries);
+		const posts = mapEntriesToPosts(entries, subscription_map, unread_set, icon_map, starred_set);
+		return { posts, subscriptions: subscriptions_list };
+	}
+	catch (error) {
+		if (USE_MOCK_DATA) {
+			console.error("Failed to load feed timeline", error);
+			return { posts: [...mockPosts], subscriptions: mockSubscriptions };
 		}
 		throw error;
 	}
