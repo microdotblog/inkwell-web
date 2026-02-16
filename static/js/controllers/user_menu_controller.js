@@ -74,17 +74,12 @@ export default class extends Controller {
 		window.dispatchEvent(new CustomEvent("subscriptions:close"));
 	}
 
-	openThemes() {
-		window.dispatchEvent(new CustomEvent("themes:open"));
-	}
-
 	openHighlights() {
 		window.dispatchEvent(new CustomEvent("highlights:open"));
 	}
 
 	openBookmarks() {
 		window.dispatchEvent(new CustomEvent("subscriptions:close"));
-		window.dispatchEvent(new CustomEvent("themes:close"));
 		window.dispatchEvent(new CustomEvent("reader:blank"));
 		window.dispatchEvent(new CustomEvent("timeline:openBookmarks"));
 	}

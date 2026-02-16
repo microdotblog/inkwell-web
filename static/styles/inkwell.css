@@ -51,12 +51,27 @@
 	--ink-timeline-selected-background: #355C7D;
 	--ink-timeline-selected-text: #FFFFFF;
 	--ink-timeline-selected-border: #355C7D;
-	--ink-day-1: #CDD6EA;
-	--ink-day-2: #E3E8F2;
-	--ink-day-4: #F1F4F8;
+	--ink-day-1-cell: #CDD6EA;
+	--ink-day-2-cell: #E3E8F2;
+	--ink-day-3-cell: #E3E8F2;
+	--ink-day-4-cell: #F1F4F8;
+	--ink-day-5-cell: #F1F4F8;
+	--ink-day-6-cell: #F1F4F8;
+	--ink-day-7-cell: #F1F4F8;
 	--ink-day-1-border: #BEC7DC;
 	--ink-day-2-border: #D5DBE7;
+	--ink-day-3-border: #D5DBE7;
 	--ink-day-4-border: #E3E7EE;
+	--ink-day-5-border: #E3E7EE;
+	--ink-day-6-border: #E3E7EE;
+	--ink-day-7-border: #E3E7EE;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		color-scheme: dark;
+	}
 }
 
 body {
@@ -1037,117 +1052,6 @@ button:focus:not(:focus-visible) {
 	display: flex;
 	flex-direction: column;
 	gap: 0.9rem;
-}
-
-.themes-pane {
-	display: flex;
-	flex-direction: column;
-	gap: 1.5rem;
-	margin-top: 0.5rem;
-}
-
-.themes-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 1rem;
-	flex-wrap: wrap;
-}
-
-.themes-header h2 {
-	margin: 0;
-	font-size: 1rem;
-}
-
-.themes-actions {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	flex-wrap: wrap;
-}
-
-.themes-import {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-}
-
-.themes-import-label {
-	font-size: 0.75rem;
-	font-weight: 600;
-	color: var(--ink-text);
-}
-
-.themes-import textarea {
-	min-height: 140px;
-	font-size: 0.8rem;
-	padding: 0.65rem 0.75rem;
-	resize: vertical;
-	margin-bottom: 0;
-}
-
-.themes-import-actions {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	flex-wrap: wrap;
-}
-
-.themes-import-status {
-	margin: 0;
-	font-size: 0.75rem;
-	color: var(--ink-muted);
-}
-
-.themes-list {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-}
-
-.themes-empty {
-	margin: 0;
-	font-size: 0.9rem;
-	color: var(--ink-muted);
-	font-style: italic;
-}
-
-.theme-item {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 1rem;
-	padding: 0.65rem 0.75rem;
-	background: var(--ink-card-background);
-	border: 1px solid var(--ink-card-border);
-	border-radius: 12px;
-}
-
-.theme-info {
-	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
-}
-
-.theme-title {
-	margin: 0;
-	font-size: 0.85rem;
-	font-weight: 600;
-	color: var(--ink-text);
-}
-
-.theme-actions {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-}
-
-.theme-active {
-	font-size: 0.7rem;
-	font-weight: 600;
-	color: var(--ink-text);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
 }
 
 .subscription-item {
