@@ -5,6 +5,7 @@ import {
 	fetchFeedIcons,
 	fetchFeedStarredEntryIds,
 	getMicroBlogIsUsingAI,
+	deleteBookmarkedPost,
 	markFeedEntriesRead,
 	summarizeFeedEntries,
 	starFeedEntries,
@@ -885,7 +886,12 @@ export default class extends Controller {
 		this.dispatchBookmarkChange(post);
 
 		try {
-			if (should_bookmark) {
+			const bookmark_id = (post.bookmark_id || post.id || "").toString().trim();
+			const is_bookmarks_mode = this.timeline_mode == TIMELINE_MODE_BOOKMARKS;
+			if (is_bookmarks_mode && !should_bookmark && bookmark_id) {
+				await deleteBookmarkedPost(bookmark_id);
+			}
+			else if (should_bookmark) {
 				await starFeedEntries([post.id]);
 			}
 			else {

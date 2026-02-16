@@ -367,6 +367,46 @@ export async function fetchBookmarkedPosts() {
 	return fetchFeedsJson("/posts/bookmarks");
 }
 
+export async function deleteBookmarkedPost(bookmark_id) {
+	const trimmed_id = (bookmark_id || "").toString().trim();
+	if (!trimmed_id) {
+		return null;
+	}
+
+	const encoded_id = encodeURIComponent(trimmed_id);
+	const url = new URL(`/posts/bookmarks/${encoded_id}`, `${getFeedsBaseUrl()}/`);
+	const headers = new Headers({
+		"Accept": "application/json"
+	});
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+
+	const response = await fetch(url, {
+		method: "DELETE",
+		headers
+	});
+
+	if (!response.ok) {
+		const response_text = await response.text();
+		const request_error = new Error(`Feeds request failed: ${response.status}`);
+		request_error.response_text = response_text;
+		throw request_error;
+	}
+
+	if (response.status == 204) {
+		return null;
+	}
+
+	try {
+		return await response.json();
+	}
+	catch (error) {
+		return null;
+	}
+}
+
 export async function markFeedEntriesRead(entryIds) {
   const ids = Array.isArray(entryIds) ? entryIds.filter(Boolean).map(String) : [];
   if (ids.length === 0) {

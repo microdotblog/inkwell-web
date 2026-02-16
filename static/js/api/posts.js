@@ -95,10 +95,11 @@ function mapBookmarkItemToPost(item, index) {
 	const source = author?.name || "Bookmarked";
 	const published_at = item?.date_published || item?.date_modified || new Date().toISOString();
 	const url = (item?.url || "").trim();
-	const raw_id = item?.id != null ? String(item.id) : "";
+	const bookmark_id = item?.id != null ? String(item.id) : "";
 	const generated_id = `bookmark-${index + 1}-${published_at}`;
 	return {
-		id: raw_id || url || generated_id,
+		id: bookmark_id || url || generated_id,
+		bookmark_id,
 		feed_id: "",
 		source,
 		source_url: resolveBookmarkSourceUrl(author),
@@ -155,6 +156,7 @@ function mapEntriesToPosts(entries, subscription_map, unread_set, icon_map, star
 			: (subscription && subscription.feed_id != null ? String(subscription.feed_id) : "");
 		return {
 			id: String(entry.id),
+			bookmark_id: "",
 			feed_id: resolved_feed_id,
 			source: resolveSource(subscription),
 			source_url: resolveSourceUrl(subscription),
