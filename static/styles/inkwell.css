@@ -1575,6 +1575,10 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 @media (max-width: 800px) {
+	html {
+		font-size: 110%;
+	}
+
 	.layout {
 		grid-template-columns: 1fr;
 		grid-template-rows: 1fr;
