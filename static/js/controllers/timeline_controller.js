@@ -932,14 +932,27 @@ export default class extends Controller {
 			return;
 		}
 
-		const ids = this.posts.map((post) => post.id);
+		const posts_to_mark = this.activeFeedId
+			? this.getFeedFilteredPosts()
+			: this.posts;
+		const ids = posts_to_mark
+			.map((post) => post?.id)
+			.filter(Boolean)
+			.map((id) => String(id));
+		if (ids.length == 0) {
+			return;
+		}
+
+		const ids_set = new Set(ids);
 		try {
 			await markFeedEntriesRead(ids);
-			await markAllRead(ids);
-			this.pendingReadIds.clear();
-			this.readIds = new Set(ids);
+			const merged_read_ids = await markAllRead(ids);
+			ids.forEach((id) => this.pendingReadIds.delete(id));
+			this.readIds = new Set(merged_read_ids);
 			this.posts.forEach((post) => {
-				post.is_read = true;
+				if (ids_set.has(String(post.id))) {
+					post.is_read = true;
+				}
 			});
 			this.render();
 		}

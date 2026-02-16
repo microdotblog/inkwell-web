@@ -45,7 +45,8 @@ export async function markUnread(postId) {
 
 export async function markAllRead(postIds) {
   const ids = Array.isArray(postIds) ? postIds.filter(Boolean).map(String) : [];
-  const uniqueIds = Array.from(new Set(ids));
-  await set(KEY, uniqueIds);
-  return uniqueIds;
+  const existing = await loadReadIds();
+  const merged = Array.from(new Set([...existing.map(String), ...ids]));
+  await set(KEY, merged);
+  return merged;
 }
