@@ -884,6 +884,13 @@ button:focus:not(:focus-visible) {
 	flex-wrap: wrap;
 }
 
+.pane-header-primary {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
 .all-highlights-header h2 {
 	margin: 0;
 	font-size: 1rem;
@@ -1310,13 +1317,20 @@ button:focus:not(:focus-visible) {
 	margin-bottom: 2rem;
 }
 
+.reading-recap-controls {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0 0 2rem 0;
+}
+
 .reading-recap-email-settings {
 	display: inline-flex;
 	align-items: center;
 	justify-content: flex-start;
 	gap: 0.35rem;
 	flex-wrap: wrap;
-	margin: 0 0 2rem 0;
+	margin: 0;
 	padding: 0.45rem 0.6rem;
 	background: var(--ink-segment-background);
 	border-radius: 7px;

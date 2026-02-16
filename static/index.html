@@ -222,7 +222,19 @@
 
 				<section class="subscriptions-pane" data-subscriptions-target="pane" hidden>
 					<header class="subscriptions-header">
-						<h2>Subscriptions</h2>
+						<div class="pane-header-primary">
+							<button
+								type="button"
+								class="mobile-back-button"
+								data-action="session#showTimeline"
+								aria-label="Back to timeline"
+							>
+								<svg class="mobile-back-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+									<path d="M14 6L8 12L14 18"></path>
+								</svg>
+							</button>
+							<h2>Subscriptions</h2>
+						</div>
 						<div class="subscriptions-actions">
 							<button type="button" class="btn-sm" data-action="subscriptions#startNewFeed">New Feed...</button>
 							<button type="button" class="btn-sm" data-subscriptions-target="importButton" data-action="subscriptions#importSubscriptions">Import...</button>
@@ -282,13 +294,37 @@
 				</section>
 				<section class="all-highlights-pane" data-highlights-target="pane" hidden>
 					<header class="all-highlights-header">
-						<h2>Highlights</h2>
+						<div class="pane-header-primary">
+							<button
+								type="button"
+								class="mobile-back-button"
+								data-action="session#showTimeline"
+								aria-label="Back to timeline"
+							>
+								<svg class="mobile-back-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+									<path d="M14 6L8 12L14 18"></path>
+								</svg>
+							</button>
+							<h2>Highlights</h2>
+						</div>
 					</header>
 					<div class="highlights-list" data-highlights-target="globalList"></div>
 				</section>
 				<section class="themes-pane" data-themes-target="pane" hidden>
 					<header class="themes-header">
-						<h2>Themes</h2>
+						<div class="pane-header-primary">
+							<button
+								type="button"
+								class="mobile-back-button"
+								data-action="session#showTimeline"
+								aria-label="Back to timeline"
+							>
+								<svg class="mobile-back-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+									<path d="M14 6L8 12L14 18"></path>
+								</svg>
+							</button>
+							<h2>Themes</h2>
+						</div>
 						<div class="themes-actions">
 							<button type="button" class="btn-sm" data-action="themes#toggleImport">Add Theme...</button>
 						</div>

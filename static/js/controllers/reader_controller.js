@@ -10,21 +10,33 @@ const preview_spinner_markup = "<p class=\"loading\"><img class=\"subscriptions-
 const recap_email_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const recap_email_enabled_storage_key = "inkwell_recap_email_enabled";
 const recap_email_settings_markup = `
-	<div class="reading-recap-email-settings">
-		<label class="reading-recap-email-toggle">
-			<input type="checkbox" class="reading-recap-email-enabled">
-			<span>Send <b>Reading Recap</b> in weekly email on:</span>
-		</label>
-		<select class="reading-recap-email-day" aria-label="Send recap day" disabled>
-			<option value="Monday">Monday</option>
-			<option value="Tuesday">Tuesday</option>
-			<option value="Wednesday">Wednesday</option>
-			<option value="Thursday">Thursday</option>
-			<option value="Friday" selected>Friday</option>
-			<option value="Saturday">Saturday</option>
-			<option value="Sunday">Sunday</option>
-		</select>
-		<img class="reading-recap-email-spinner subscriptions-spinner subscriptions-spinner--inline" src="/images/progress_spinner.svg" alt="" aria-hidden="true" width="20" height="20" hidden>
+	<div class="reading-recap-controls">
+		<button
+			type="button"
+			class="mobile-back-button reading-recap-mobile-back-button"
+			data-action="session#showTimeline"
+			aria-label="Back to timeline"
+		>
+			<svg class="mobile-back-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+				<path d="M14 6L8 12L14 18"></path>
+			</svg>
+		</button>
+		<div class="reading-recap-email-settings">
+			<label class="reading-recap-email-toggle">
+				<input type="checkbox" class="reading-recap-email-enabled">
+				<span>Send <b>Reading Recap</b> in weekly email on:</span>
+			</label>
+			<select class="reading-recap-email-day" aria-label="Send recap day" disabled>
+				<option value="Monday">Monday</option>
+				<option value="Tuesday">Tuesday</option>
+				<option value="Wednesday">Wednesday</option>
+				<option value="Thursday">Thursday</option>
+				<option value="Friday" selected>Friday</option>
+				<option value="Saturday">Saturday</option>
+				<option value="Sunday">Sunday</option>
+			</select>
+			<img class="reading-recap-email-spinner subscriptions-spinner subscriptions-spinner--inline" src="/images/progress_spinner.svg" alt="" aria-hidden="true" width="20" height="20" hidden>
+		</div>
 	</div>
 `;
 
