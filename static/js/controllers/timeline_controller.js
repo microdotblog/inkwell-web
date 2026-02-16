@@ -848,7 +848,7 @@ export default class extends Controller {
 		this.clearSearchInputDebounce();
 		this.search_input_debounce_timer = setTimeout(() => {
 			this.search_input_debounce_timer = null;
-			this.performSearch();
+			this.performSearch({ reset_scroll: true });
 		}, 100);
 	}
 
@@ -859,10 +859,13 @@ export default class extends Controller {
 		}
 	}
 
-	performSearch() {
+	performSearch(options = {}) {
 		const search_query = this.searchInputTarget.value.trim();
 		this.searchQuery = search_query;
 		this.render();
+		if (options.reset_scroll == true) {
+			this.listTarget.scrollTop = 0;
+		}
 	}
 
 	focusTimeline() {
