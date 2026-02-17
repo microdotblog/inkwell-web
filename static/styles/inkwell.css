@@ -1234,6 +1234,7 @@ button:focus:not(:focus-visible) {
 	justify-content: space-between;
 	gap: 1rem;
 	padding: 0.5rem 0rem;
+	min-height: 3.5rem;
 	background: var(--ink-card-background);
 }
 
