@@ -1332,7 +1332,7 @@ button:focus:not(:focus-visible) {
 	padding: 0.45rem 0.6rem;
 	background: var(--ink-segment-background);
 	border-radius: 7px;
-	font-size: 0.82rem;
+	font-size: 0.75rem;
 }
 
 .reading-recap-email-toggle {
@@ -1344,7 +1344,7 @@ button:focus:not(:focus-visible) {
 }
 
 .reading-recap-email-toggle span {
-	font-size: 0.82rem;
+	font-size: 0.75rem;
 	line-height: 1.2;
 }
 
@@ -1363,7 +1363,7 @@ button:focus:not(:focus-visible) {
 	min-width: 6.5rem;
 	margin: 0;
 	padding: 0.2rem 1.6rem 0.2rem 0.45rem;
-	font-size: 0.82rem;
+	font-size: 0.75rem;
 	line-height: 1.2;
 	flex: 0 0 auto;
 }
