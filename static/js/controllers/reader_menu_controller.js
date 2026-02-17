@@ -67,6 +67,7 @@ export default class extends Controller {
 		this.settings_open = false;
 		this.selected_text_theme_id = DEFAULT_TEXT_THEME_ID;
 		this.selected_text_font_id = DEFAULT_TEXT_FONT_ID;
+		this.right_pane_element = this.findRightPaneElement();
 		this.reader_pane_element = this.findReaderPaneElement();
 		this.reader_content_element = this.findReaderContentElement();
 		this.handleDocumentClick = this.handleDocumentClick.bind(this);
@@ -357,6 +358,10 @@ export default class extends Controller {
 			return;
 		}
 
+		if (this.right_pane_element) {
+			this.right_pane_element.style.backgroundColor = selected_theme.background_color;
+		}
+
 		if (this.reader_pane_element) {
 			this.reader_pane_element.style.backgroundColor = selected_theme.background_color;
 			this.reader_pane_element.style.color = selected_theme.text_color;
@@ -384,8 +389,12 @@ export default class extends Controller {
 		return TEXT_FONTS.find((font) => font.id == font_id) || null;
 	}
 
+	findRightPaneElement() {
+		return this.element.closest(".right-pane");
+	}
+
 	findReaderPaneElement() {
-		const right_pane = this.element.closest(".right-pane");
+		const right_pane = this.findRightPaneElement();
 		if (!right_pane) {
 			return null;
 		}
@@ -393,7 +402,7 @@ export default class extends Controller {
 	}
 
 	findReaderContentElement() {
-		const right_pane = this.element.closest(".right-pane");
+		const right_pane = this.findRightPaneElement();
 		if (!right_pane) {
 			return null;
 		}
