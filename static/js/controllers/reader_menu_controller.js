@@ -3,32 +3,46 @@ import { Controller } from "../stimulus.js";
 const TEXT_SETTINGS_STORAGE_KEY = "inkwell_reader_text_settings";
 const DEFAULT_TEXT_THEME_ID = "white";
 const DEFAULT_TEXT_FONT_ID = "system";
+const LIGHT_MODE_BLOCKQUOTE_BACKGROUND = "#F8F8F8";
+const DARK_MODE_BLOCKQUOTE_BACKGROUND = "#212A38";
+const LIGHT_MODE_BLOCKQUOTE_BORDER = "#E7EAF0";
+const DARK_MODE_BLOCKQUOTE_BORDER = "#202632";
 
 const TEXT_THEMES = [
 	{
 		id: "white",
 		background_color: "#FFFFFF",
-		text_color: "#000000"
+		text_color: "#000000",
+		blockquote_background_color: LIGHT_MODE_BLOCKQUOTE_BACKGROUND,
+		blockquote_border_color: LIGHT_MODE_BLOCKQUOTE_BORDER
 	},
 	{
 		id: "light-gray",
 		background_color: "#F3F4F6",
-		text_color: "#000000"
+		text_color: "#000000",
+		blockquote_background_color: LIGHT_MODE_BLOCKQUOTE_BACKGROUND,
+		blockquote_border_color: LIGHT_MODE_BLOCKQUOTE_BORDER
 	},
 	{
 		id: "tan",
 		background_color: "#F2E7D7",
-		text_color: "#000000"
+		text_color: "#000000",
+		blockquote_background_color: LIGHT_MODE_BLOCKQUOTE_BACKGROUND,
+		blockquote_border_color: LIGHT_MODE_BLOCKQUOTE_BORDER
 	},
 	{
 		id: "night",
 		background_color: "#181E28",
-		text_color: "#FFFFFF"
+		text_color: "#FFFFFF",
+		blockquote_background_color: DARK_MODE_BLOCKQUOTE_BACKGROUND,
+		blockquote_border_color: DARK_MODE_BLOCKQUOTE_BORDER
 	},
 	{
 		id: "black",
 		background_color: "#000000",
-		text_color: "#FFFFFF"
+		text_color: "#FFFFFF",
+		blockquote_background_color: DARK_MODE_BLOCKQUOTE_BACKGROUND,
+		blockquote_border_color: DARK_MODE_BLOCKQUOTE_BORDER
 	}
 ];
 
@@ -380,6 +394,8 @@ export default class extends Controller {
 		if (this.reader_content_element) {
 			this.reader_content_element.style.color = selected_theme.text_color;
 			this.reader_content_element.style.fontFamily = selected_font.font_family;
+			this.reader_content_element.style.setProperty("--reader-blockquote-background", selected_theme.blockquote_background_color);
+			this.reader_content_element.style.setProperty("--reader-blockquote-border-color", selected_theme.blockquote_border_color);
 		}
 	}
 

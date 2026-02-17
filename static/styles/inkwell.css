@@ -1513,6 +1513,8 @@ input[type="search"]::-webkit-search-decoration {
 	line-height: 1.8;
 	color: var(--ink-reader-text);
 	--pico-color: currentColor;
+	--reader-blockquote-background: var(--ink-segment-background);
+	--reader-blockquote-border-color: var(--pico-blockquote-border-color);
 	transition: color 180ms ease, font-family 180ms ease;
 	margin-bottom: 0;
 	padding-bottom: 0;
@@ -1524,6 +1526,12 @@ input[type="search"]::-webkit-search-decoration {
 .reader-content p {
 	margin-bottom: 1rem;
 	color: inherit;
+}
+
+.reader-content blockquote {
+	background: var(--reader-blockquote-background);
+	border-left-color: var(--reader-blockquote-border-color);
+	border-inline-start-color: var(--reader-blockquote-border-color);
 }
 
 .reader-content h3 {
