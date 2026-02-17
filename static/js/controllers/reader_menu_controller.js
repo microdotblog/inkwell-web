@@ -8,17 +8,27 @@ const TEXT_THEMES = [
 	{
 		id: "white",
 		background_color: "#FFFFFF",
-		text_color: "#2A241F"
+		text_color: "#000000"
 	},
 	{
 		id: "light-gray",
 		background_color: "#F3F4F6",
-		text_color: "#252B35"
+		text_color: "#000000"
 	},
 	{
 		id: "tan",
 		background_color: "#F2E7D7",
-		text_color: "#3A2F25"
+		text_color: "#000000"
+	},
+	{
+		id: "night",
+		background_color: "#181E28",
+		text_color: "#FFFFFF"
+	},
+	{
+		id: "black",
+		background_color: "#000000",
+		text_color: "#FFFFFF"
 	}
 ];
 
