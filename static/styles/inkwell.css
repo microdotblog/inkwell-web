@@ -1283,6 +1283,15 @@ input[type="text"].subscription-edit {
 	color: var(--ink-text);
 }
 
+.subscription-title-link {
+	color: inherit;
+	text-decoration: none;
+}
+
+.subscription-title-link:hover {
+	text-decoration: underline;
+}
+
 .subscription-url {
 	margin: 0;
 	font-size: 0.8rem;

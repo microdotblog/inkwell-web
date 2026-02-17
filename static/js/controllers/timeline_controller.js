@@ -1081,9 +1081,9 @@ export default class extends Controller {
 		if (!posts.length) {
 			if (this.activeFeedId) {
 				const empty_message = this.feed_filter_loading
-					? "Loading posts for this feed..."
+					? "<!-- Loading posts for this feed... -->"
 					: "No posts in this feed.";
-				this.listTarget.innerHTML = `${mode_filter_markup}<p class="canvas-empty timeline-empty">${empty_message}<br><button type="button" class="btn-sm" data-action="timeline#clearFeedFilter">Clear Filter</button></p>`;
+				this.listTarget.innerHTML = `${mode_filter_markup}<p class="canvas-empty timeline-empty">${empty_message}</p>`;
 				return;
 			}
 			if (this.timeline_mode == TIMELINE_MODE_FEEDS && this.subscriptionCount == 0) {

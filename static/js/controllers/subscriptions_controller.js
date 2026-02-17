@@ -264,6 +264,24 @@ export default class extends Controller {
 		}
 	}
 
+	filterTimelineByFeed(event) {
+		event.preventDefault();
+		const feed_id = (event.currentTarget?.dataset.feedId || "").trim();
+		if (!feed_id) {
+			return;
+		}
+
+		const feed_source = (event.currentTarget?.dataset.feedSource || "").trim();
+		window.dispatchEvent(
+			new CustomEvent("timeline:filterByFeed", {
+				detail: {
+					feedId: feed_id,
+					source: feed_source
+				}
+			})
+		);
+	}
+
 	startRename(event) {
 		event.preventDefault();
 		this.clearStatus();
@@ -738,7 +756,13 @@ export default class extends Controller {
 				const is_editing = subscription.id == this.rename_subscription_id;
 				const title = this.escapeHtml(this.getSubscriptionTitle(subscription));
 				const url = this.escapeHtml(this.getSubscriptionUrl(subscription));
+				const feed_id = this.getSubscriptionFeedId(subscription);
+				const safe_feed_id = this.escapeHtml(feed_id);
+				const safe_feed_source = this.escapeHtml(this.getSubscriptionTitle(subscription));
 				const link = url ? `<a href="${url}">${url}</a>` : "";
+				const title_link = feed_id
+					? `<a href="#" class="subscription-title-link" data-action="subscriptions#filterTimelineByFeed" data-feed-id="${safe_feed_id}" data-feed-source="${safe_feed_source}">${title}</a>`
+					: title;
 				const safe_value = this.escapeHtml(this.rename_value || this.getSubscriptionTitle(subscription));
 				const spinner_hidden = (is_editing && this.rename_is_loading) ? "" : "hidden";
 				const update_disabled = (is_editing && this.rename_is_loading) ? "disabled" : "";
@@ -768,7 +792,7 @@ export default class extends Controller {
 				return `
 					<div class="subscription-item" data-subscription-id="${subscription.id}">
 						<div class="subscription-info">
-							<p class="subscription-title">${title}</p>
+							<p class="subscription-title">${title_link}</p>
 							<p class="subscription-url">${link}</p>
 						</div>
 						<div>
@@ -795,6 +819,14 @@ export default class extends Controller {
 	getSubscriptionUrl(subscription) {
 		const url = subscription?.site_url || subscription?.feed_url || "";
 		return url.trim();
+	}
+
+	getSubscriptionFeedId(subscription) {
+		const feed_id = subscription?.feed_id;
+		if (feed_id == null) {
+			return "";
+		}
+		return String(feed_id).trim();
 	}
 
 	getSubscriptionFeedUrl(subscription) {
