@@ -164,7 +164,7 @@ export function getFeedEntry(entryId) {
 }
 
 export async function fetchFeedSubscriptions() {
-  return fetchFeedsJson("/feeds/subscriptions.json?mode=extended");
+  return fetchFeedsJson("/feeds/v2/subscriptions.json?mode=extended");
 }
 
 export async function createFeedSubscription(feed_url) {
@@ -173,7 +173,7 @@ export async function createFeedSubscription(feed_url) {
 		return null;
 	}
 
-	const url = new URL("/feeds/subscriptions.json", `${getFeedsBaseUrl()}/`);
+	const url = new URL("/feeds/v2/subscriptions.json", `${getFeedsBaseUrl()}/`);
 	const headers = new Headers({
 		"Content-Type": "application/json",
 		"Accept": "application/json"
@@ -206,7 +206,7 @@ export async function deleteFeedSubscription(subscription_id) {
 		return null;
 	}
 
-	const url = new URL(`/feeds/subscriptions/${subscription_id}.json`, `${getFeedsBaseUrl()}/`);
+	const url = new URL(`/feeds/v2/subscriptions/${subscription_id}.json`, `${getFeedsBaseUrl()}/`);
 	const headers = new Headers();
 	const token = getMicroBlogToken();
 	if (token) {
@@ -236,7 +236,7 @@ export async function updateFeedSubscription(subscription_id, title) {
 	}
 
 	const trimmed_title = (title || "").trim();
-	return fetchFeedsJson(`/feeds/subscriptions/${subscription_id}.json`, {
+	return fetchFeedsJson(`/feeds/v2/subscriptions/${subscription_id}.json`, {
 		method: "PATCH",
 		headers: {
 			"Content-Type": "application/json"
@@ -262,7 +262,7 @@ export async function fetchFeedEntries(options = {}) {
 			per_page: String(per_page),
 			page: String(page)
 		});
-		const page_entries = await fetchFeedsJson(`/feeds/entries.json?${params.toString()}`);
+		const page_entries = await fetchFeedsJson(`/feeds/v2/entries.json?${params.toString()}`);
 
 		if (!Array.isArray(page_entries) || page_entries.length === 0) {
 			break;
@@ -370,7 +370,7 @@ export async function fetchFeedEntriesForFeed(feed_id, options = {}) {
 			per_page: String(per_page),
 			page: String(page)
 		});
-		const page_entries = await fetchFeedsJson(`/feeds/feeds/${encoded_feed_id}/entries.json?${params.toString()}`);
+		const page_entries = await fetchFeedsJson(`/feeds/v2/feeds/${encoded_feed_id}/entries.json?${params.toString()}`);
 
 		if (!Array.isArray(page_entries) || page_entries.length == 0) {
 			break;
@@ -392,15 +392,15 @@ export async function fetchFeedEntriesForFeed(feed_id, options = {}) {
 }
 
 export async function fetchFeedUnreadEntryIds() {
-  return fetchFeedsJson("/feeds/unread_entries.json");
+  return fetchFeedsJson("/feeds/v2/unread_entries.json");
 }
 
 export async function fetchFeedStarredEntryIds() {
-	return fetchFeedsJson("/feeds/starred_entries.json");
+	return fetchFeedsJson("/feeds/v2/starred_entries.json");
 }
 
 export async function fetchFeedIcons() {
-  return fetchFeedsJson("/feeds/icons.json");
+  return fetchFeedsJson("/feeds/v2/icons.json");
 }
 
 export async function fetchBookmarkedPosts() {
@@ -458,7 +458,7 @@ export async function markFeedEntriesRead(entryIds) {
     return Number.isNaN(numericId) ? id : numericId;
   });
 
-  return fetchFeedsJson("/feeds/unread_entries.json", {
+  return fetchFeedsJson("/feeds/v2/unread_entries.json", {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json"
@@ -478,7 +478,7 @@ export async function markFeedEntriesUnread(entryIds) {
     return Number.isNaN(numericId) ? id : numericId;
   });
 
-  return fetchFeedsJson("/feeds/unread_entries.json", {
+  return fetchFeedsJson("/feeds/v2/unread_entries.json", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -498,7 +498,7 @@ export async function starFeedEntries(entryIds) {
 		return Number.isNaN(numeric_id) ? id : numeric_id;
 	});
   
-	return fetchFeedsJson("/feeds/starred_entries.json", {
+	return fetchFeedsJson("/feeds/v2/starred_entries.json", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
@@ -518,7 +518,7 @@ export async function unstarFeedEntries(entryIds) {
 		return Number.isNaN(numeric_id) ? id : numeric_id;
 	});
 
-	return fetchFeedsJson("/feeds/starred_entries.json", {
+	return fetchFeedsJson("/feeds/v2/starred_entries.json", {
 		method: "DELETE",
 		headers: {
 			"Content-Type": "application/json"
