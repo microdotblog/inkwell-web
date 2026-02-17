@@ -518,38 +518,70 @@ export default class extends Controller {
     window.dispatchEvent(new CustomEvent(eventName, { detail: { postId: this.currentPostId } }));
   }
 
-  handleKeydown(event) {
-    if (this.shouldIgnoreKey(event)) {
-      return;
-    }
+	handleKeydown(event) {
+		if (this.shouldIgnoreKey(event)) {
+			return;
+		}
 
-    if (event.key.toLowerCase() === "u") {
-      event.preventDefault();
-      this.toggleRead();
-    }
-  }
+		if (this.isSpaceKey(event) && !this.shouldIgnoreSpaceKey(event)) {
+			event.preventDefault();
+			this.scrollReaderPage(event.shiftKey ? -1 : 1);
+			return;
+		}
+
+		if (event.key.toLowerCase() == "u") {
+			event.preventDefault();
+			this.toggleRead();
+		}
+	}
 
 	handleToggleRead() {
 		this.toggleRead();
 	}
 
-  shouldIgnoreKey(event) {
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
-      return true;
-    }
+	scrollReaderPage(direction) {
+		const window_height = window.innerHeight || document.documentElement.clientHeight || 0;
+		const scroll_step = Math.max(1, Math.round(window_height * 0.7));
+		this.element.scrollBy({
+			top: scroll_step * direction,
+			behavior: "smooth"
+		});
+	}
 
-    const target = event.target;
-    if (!target) {
-      return false;
-    }
+	isSpaceKey(event) {
+		if (event.code == "Space") {
+			return true;
+		}
+		return event.key == " " || event.key == "Spacebar";
+	}
 
-    if (target.isContentEditable) {
-      return true;
-    }
+	shouldIgnoreSpaceKey(event) {
+		const target = event.target;
+		if (!target) {
+			return false;
+		}
 
-    const tagName = target.tagName;
-    return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
-  }
+		const tag_name = target.tagName;
+		return tag_name == "BUTTON" || tag_name == "A";
+	}
+
+	shouldIgnoreKey(event) {
+		if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+			return true;
+		}
+
+		const target = event.target;
+		if (!target) {
+			return false;
+		}
+
+		if (target.isContentEditable) {
+			return true;
+		}
+
+		const tag_name = target.tagName;
+		return tag_name == "INPUT" || tag_name == "TEXTAREA" || tag_name == "SELECT";
+	}
 
   setTitle(title) {
     const trimmed = title ? title.trim() : "";
