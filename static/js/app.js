@@ -7,7 +7,7 @@ import ReaderController from "./controllers/reader_controller.js?20260213.1";
 import HighlightController from "./controllers/highlight_controller.js?20260213.1";
 import HighlightsController from "./controllers/highlights_controller.js?20260216.1";
 import SubscriptionsController from "./controllers/subscriptions_controller.js?20260213.1";
-import ReaderMenuController from "./controllers/reader_menu_controller.js?20260213.1";
+import ReaderMenuController from "./controllers/reader_menu_controller.js?20260216.1";
 import { initThemes } from "./theme_manager.js?20260216.1";
 import { init_listener } from "./router.js?20260213.1";
 

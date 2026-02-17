@@ -6,7 +6,7 @@
     <title>Inkwell</title>
     <link rel="modulepreload" href="/js/stimulus.vendor.js?20260213.1">
 	<link rel="stylesheet" href="/styles/pico.css?20260213.1">
-    <link rel="stylesheet" href="/styles/inkwell.css?20260216.3">
+    <link rel="stylesheet" href="/styles/inkwell.css?20260216.9">
   </head>
   <body>
     <main data-controller="auth session" data-auth-state="loading">
@@ -189,6 +189,83 @@
 										<span class="user-menu-label" data-reader-menu-target="bookmarkLabel">Bookmark</span>
 										<span class="user-menu-shortcut">B</span>
 									</button>
+										<button
+											type="button"
+											class="user-menu-item reader-menu-text-settings-toggle"
+											data-reader-menu-target="textSettingsToggle"
+											data-action="reader-menu#toggleTextSettings"
+											aria-expanded="false"
+										>
+											<span class="user-menu-label">Text Settings</span>
+										</button>
+									<div class="reader-menu-text-settings" data-reader-menu-target="textSettingsPane">
+										<p class="reader-text-settings-label">Background</p>
+										<div class="reader-text-theme-grid">
+											<button
+												type="button"
+												class="reader-text-theme-option"
+												data-reader-menu-target="colorOption"
+												data-theme-id="white"
+												data-action="reader-menu#selectTextTheme"
+												aria-label="White"
+												title="White"
+												style="--swatch-color: #FFFFFF;"
+											></button>
+											<button
+												type="button"
+												class="reader-text-theme-option"
+												data-reader-menu-target="colorOption"
+												data-theme-id="light-gray"
+												data-action="reader-menu#selectTextTheme"
+												aria-label="Light Gray"
+												title="Light Gray"
+												style="--swatch-color: #F3F4F6;"
+											></button>
+											<button
+												type="button"
+												class="reader-text-theme-option"
+												data-reader-menu-target="colorOption"
+												data-theme-id="tan"
+												data-action="reader-menu#selectTextTheme"
+												aria-label="Tan"
+												title="Tan"
+												style="--swatch-color: #F2E7D7;"
+											></button>
+										</div>
+										<p class="reader-text-settings-label">Font</p>
+										<div class="reader-text-font-list">
+											<button
+												type="button"
+												class="reader-text-font-option"
+												data-reader-menu-target="fontOption"
+												data-font-id="system"
+												data-action="reader-menu#selectTextFont"
+												style="font-family: system-ui, 'San Francisco', 'Segoe UI', 'Roboto', sans-serif;"
+											>
+												System
+											</button>
+											<button
+												type="button"
+												class="reader-text-font-option"
+												data-reader-menu-target="fontOption"
+												data-font-id="avenir-next"
+												data-action="reader-menu#selectTextFont"
+												style="font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;"
+											>
+												Avenir Next
+											</button>
+											<button
+												type="button"
+												class="reader-text-font-option"
+												data-reader-menu-target="fontOption"
+												data-font-id="times-new-roman"
+												data-action="reader-menu#selectTextFont"
+												style="font-family: 'Times New Roman', Times, serif;"
+											>
+												Times New Roman
+											</button>
+										</div>
+									</div>
 									<div class="user-menu-divider" role="separator"></div>
 									<button type="button" class="user-menu-item" data-reader-menu-target="filterFeed" data-action="reader-menu#filterFeed">
 										Show All Posts
@@ -313,6 +390,6 @@
       </section>
     </main>
 
-    <script type="module" src="/js/app.js?20260216.3"></script>
+    <script type="module" src="/js/app.js?20260216.4"></script>
   </body>
 </html>

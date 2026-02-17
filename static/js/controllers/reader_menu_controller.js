@@ -1,7 +1,58 @@
 import { Controller } from "../stimulus.js";
 
+const TEXT_SETTINGS_STORAGE_KEY = "inkwell_reader_text_settings";
+const DEFAULT_TEXT_THEME_ID = "white";
+const DEFAULT_TEXT_FONT_ID = "system";
+
+const TEXT_THEMES = [
+	{
+		id: "white",
+		background_color: "#FFFFFF",
+		text_color: "#2A241F"
+	},
+	{
+		id: "light-gray",
+		background_color: "#F3F4F6",
+		text_color: "#252B35"
+	},
+	{
+		id: "tan",
+		background_color: "#F2E7D7",
+		text_color: "#3A2F25"
+	}
+];
+
+const TEXT_FONTS = [
+	{
+		id: "system",
+		font_family: "system-ui, \"San Francisco\", \"Segoe UI\", \"Roboto\", sans-serif"
+	},
+	{
+		id: "avenir-next",
+		font_family: "\"Avenir Next\", Avenir, \"Segoe UI\", sans-serif"
+	},
+	{
+		id: "times-new-roman",
+		font_family: "\"Times New Roman\", Times, serif"
+	}
+];
+
 export default class extends Controller {
-	static targets = ["button", "popover", "newPost", "copyLink", "filterFeed", "toggleRead", "bookmark", "toggleReadLabel", "bookmarkLabel"];
+	static targets = [
+		"button",
+		"popover",
+		"newPost",
+		"copyLink",
+		"filterFeed",
+		"toggleRead",
+		"bookmark",
+		"toggleReadLabel",
+		"bookmarkLabel",
+		"textSettingsToggle",
+		"textSettingsPane",
+		"colorOption",
+		"fontOption"
+	];
 
 	connect() {
 		this.current_post_id = "";
@@ -13,6 +64,11 @@ export default class extends Controller {
 		this.current_post_has_title = false;
 		this.is_read = false;
 		this.is_bookmarked = false;
+		this.settings_open = false;
+		this.selected_text_theme_id = DEFAULT_TEXT_THEME_ID;
+		this.selected_text_font_id = DEFAULT_TEXT_FONT_ID;
+		this.reader_pane_element = this.findReaderPaneElement();
+		this.reader_content_element = this.findReaderContentElement();
 		this.handleDocumentClick = this.handleDocumentClick.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
 		this.handlePostOpen = this.handlePostOpen.bind(this);
@@ -30,7 +86,11 @@ export default class extends Controller {
 		window.addEventListener("reader:welcome", this.handleReaderWelcome);
 		window.addEventListener("reader:blank", this.handleReaderWelcome);
 		window.addEventListener("reader:summary", this.handleReaderSummary);
+		this.loadTextSettings();
+		this.applyTextSettings();
 		this.updateMenuState();
+		this.renderTextSettingsPane();
+		this.updateTextSettingsControls();
 	}
 
 	disconnect() {
@@ -54,6 +114,8 @@ export default class extends Controller {
 	}
 
 	open() {
+		this.settings_open = false;
+		this.renderTextSettingsPane();
 		this.popoverTarget.hidden = false;
 		this.buttonTarget.setAttribute("aria-expanded", "true");
 		document.addEventListener("click", this.handleDocumentClick);
@@ -64,6 +126,8 @@ export default class extends Controller {
 		if (this.popoverTarget.hidden) {
 			return;
 		}
+		this.settings_open = false;
+		this.renderTextSettingsPane();
 		this.popoverTarget.hidden = true;
 		this.buttonTarget.setAttribute("aria-expanded", "false");
 		this.removeListeners();
@@ -183,6 +247,157 @@ export default class extends Controller {
 		}
 		this.toggleReadTarget.disabled = !has_post || !has_feed;
 		this.bookmarkTarget.disabled = !has_post;
+	}
+
+	toggleTextSettings(event) {
+		event.preventDefault();
+		this.settings_open = !this.settings_open;
+		this.renderTextSettingsPane();
+	}
+
+	selectTextTheme(event) {
+		event.preventDefault();
+		const theme_id = event.currentTarget?.dataset.themeId || "";
+		if (!this.getTextThemeById(theme_id)) {
+			return;
+		}
+
+		this.selected_text_theme_id = theme_id;
+		this.persistTextSettings();
+		this.applyTextSettings();
+		this.updateTextSettingsControls();
+	}
+
+	selectTextFont(event) {
+		event.preventDefault();
+		const font_id = event.currentTarget?.dataset.fontId || "";
+		if (!this.getTextFontById(font_id)) {
+			return;
+		}
+
+		this.selected_text_font_id = font_id;
+		this.persistTextSettings();
+		this.applyTextSettings();
+		this.updateTextSettingsControls();
+	}
+
+	renderTextSettingsPane() {
+		if (this.hasTextSettingsPaneTarget) {
+			this.textSettingsPaneTarget.classList.toggle("is-open", this.settings_open);
+		}
+		if (this.hasTextSettingsToggleTarget) {
+			this.textSettingsToggleTarget.setAttribute("aria-expanded", this.settings_open ? "true" : "false");
+		}
+	}
+
+	updateTextSettingsControls() {
+		if (this.hasColorOptionTarget) {
+			this.colorOptionTargets.forEach((button) => {
+				const theme_id = button.dataset.themeId || "";
+				const is_selected = theme_id == this.selected_text_theme_id;
+				button.classList.toggle("is-selected", is_selected);
+				button.setAttribute("aria-pressed", is_selected ? "true" : "false");
+			});
+		}
+
+		if (this.hasFontOptionTarget) {
+			this.fontOptionTargets.forEach((button) => {
+				const font_id = button.dataset.fontId || "";
+				const is_selected = font_id == this.selected_text_font_id;
+				button.classList.toggle("is-selected", is_selected);
+				button.setAttribute("aria-pressed", is_selected ? "true" : "false");
+			});
+		}
+	}
+
+	loadTextSettings() {
+		try {
+			const stored = localStorage.getItem(TEXT_SETTINGS_STORAGE_KEY);
+			if (!stored) {
+				return;
+			}
+
+			const payload = JSON.parse(stored);
+			if (!payload || typeof payload != "object") {
+				return;
+			}
+
+			const saved_theme_id = typeof payload.theme_id == "string" ? payload.theme_id.trim() : "";
+			const saved_font_id = typeof payload.font_id == "string" ? payload.font_id.trim() : "";
+			if (saved_theme_id && this.getTextThemeById(saved_theme_id)) {
+				this.selected_text_theme_id = saved_theme_id;
+			}
+			if (saved_font_id && this.getTextFontById(saved_font_id)) {
+				this.selected_text_font_id = saved_font_id;
+			}
+		}
+		catch (error) {
+			// Ignore storage parse errors.
+		}
+	}
+
+	persistTextSettings() {
+		const payload = {
+			theme_id: this.selected_text_theme_id,
+			font_id: this.selected_text_font_id
+		};
+
+		try {
+			localStorage.setItem(TEXT_SETTINGS_STORAGE_KEY, JSON.stringify(payload));
+		}
+		catch (error) {
+			// Ignore storage write errors.
+		}
+	}
+
+	applyTextSettings() {
+		const selected_theme = this.getSelectedTextTheme();
+		const selected_font = this.getSelectedTextFont();
+		if (!selected_theme || !selected_font) {
+			return;
+		}
+
+		if (this.reader_pane_element) {
+			this.reader_pane_element.style.backgroundColor = selected_theme.background_color;
+			this.reader_pane_element.style.color = selected_theme.text_color;
+		}
+
+		if (this.reader_content_element) {
+			this.reader_content_element.style.color = selected_theme.text_color;
+			this.reader_content_element.style.fontFamily = selected_font.font_family;
+		}
+	}
+
+	getSelectedTextTheme() {
+		return this.getTextThemeById(this.selected_text_theme_id) || this.getTextThemeById(DEFAULT_TEXT_THEME_ID);
+	}
+
+	getSelectedTextFont() {
+		return this.getTextFontById(this.selected_text_font_id) || this.getTextFontById(DEFAULT_TEXT_FONT_ID);
+	}
+
+	getTextThemeById(theme_id) {
+		return TEXT_THEMES.find((theme) => theme.id == theme_id) || null;
+	}
+
+	getTextFontById(font_id) {
+		return TEXT_FONTS.find((font) => font.id == font_id) || null;
+	}
+
+	findReaderPaneElement() {
+		const right_pane = this.element.closest(".right-pane");
+		if (!right_pane) {
+			return null;
+		}
+		return right_pane.querySelector(".reader-pane");
+	}
+
+	findReaderContentElement() {
+		const right_pane = this.element.closest(".right-pane");
+		if (!right_pane) {
+			return null;
+		}
+		return right_pane.querySelector(".reader-content");
 	}
 
 	filterFeed(event) {
