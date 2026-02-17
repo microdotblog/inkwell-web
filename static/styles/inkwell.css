@@ -1060,11 +1060,81 @@ button:focus:not(:focus-visible) {
 
 .subscriptions-status {
 	display: flex;
-	align-items: center;
+	margin-top: 1rem;
+	align-items: flex-start;
 	gap: 0.5rem;
 	min-height: 1.2rem;
 	color: var(--ink-muted);
 	font-size: 0.8rem;
+}
+
+.subscriptions-status-text {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.subscriptions-status-label {
+	color: var(--ink-muted);
+}
+
+.subscription-choices {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+
+.subscription-choice {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	width: 100%;
+	margin: 0;
+	padding: 0.45rem 0.55rem;
+	border: 1px solid var(--ink-control-border);
+	background: var(--ink-control-background);
+	border-radius: 8px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.subscription-choice:hover {
+	border-color: var(--ink-link);
+}
+
+.subscription-choice:focus-visible {
+	outline: 2px solid var(--ink-link);
+	outline-offset: 1px;
+}
+
+.subscription-choice-icon {
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	display: block;
+	border-radius: 3px;
+}
+
+.subscription-choice-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+}
+
+.subscription-choice-title {
+	margin: 0;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--ink-text);
+}
+
+.subscription-choice-url {
+	margin: 0;
+	font-size: 0.72rem;
+	color: var(--ink-muted);
+	word-break: break-word;
 }
 
 .subscriptions-import {

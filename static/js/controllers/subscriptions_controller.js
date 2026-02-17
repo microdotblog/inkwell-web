@@ -200,7 +200,8 @@ export default class extends Controller {
 		try {
 			const payload = await createFeedSubscription(feed_url);
 			if (Array.isArray(payload)) {
-				this.showStatus("Multiple feeds found. Please enter a specific feed URL.");
+				const feed_choices = this.normalizeFeedChoices(payload);
+				this.showFeedChoices(feed_choices);
 				return;
 			}
 			this.inputTarget.value = "";
@@ -214,6 +215,28 @@ export default class extends Controller {
 		}
 		finally {
 			this.setSubmitting(false);
+		}
+	}
+
+	selectFeedChoice(event) {
+		event.preventDefault();
+
+		if (this.is_submitting) {
+			return;
+		}
+
+		const feed_url = event.currentTarget?.dataset.feedUrl || "";
+		const trimmed_feed_url = feed_url.trim();
+		if (!trimmed_feed_url) {
+			return;
+		}
+
+		this.inputTarget.value = trimmed_feed_url;
+		this.clearStatus();
+		this.inputTarget.focus();
+		const form = this.inputTarget.form;
+		if (form) {
+			form.requestSubmit();
 		}
 	}
 
@@ -850,6 +873,145 @@ export default class extends Controller {
 	clearStatus() {
 		this.statusTarget.textContent = "";
 		this.statusTarget.hidden = true;
+	}
+
+	showFeedChoices(choices) {
+		if (!Array.isArray(choices) || choices.length == 0) {
+			this.showStatus("Multiple feeds found. Please enter a specific feed URL.");
+			return;
+		}
+
+		const items = choices
+			.map((choice) => {
+				const feed_url = choice.feed_url || "";
+				const safe_feed_url = this.escapeHtml(feed_url);
+				const title = this.escapeHtml(choice.title || "Untitled feed");
+				const display_url = this.escapeHtml(this.trimHttpsScheme(feed_url));
+				const is_json = choice.feed_type == "json";
+				const icon_src = is_json ? "/images/jsonfeed_icon.png" : "/images/rss_icon.png";
+				const icon_alt = is_json ? "JSON Feed" : "RSS Feed";
+
+				return `
+					<button
+						type="button"
+						class="subscription-choice"
+						data-action="subscriptions#selectFeedChoice"
+						data-feed-url="${safe_feed_url}"
+					>
+						<img class="subscription-choice-icon" src="${icon_src}" width="16" height="16" alt="${icon_alt}">
+						<div class="subscription-choice-info">
+							<p class="subscription-choice-title">${title}</p>
+							<p class="subscription-choice-url">${display_url}</p>
+						</div>
+					</button>
+				`;
+			})
+			.join("");
+
+		this.statusTarget.innerHTML = `
+			<span class="subscriptions-status-label">Multiple feeds found:</span>
+			<div class="subscription-choices">${items}</div>
+		`;
+		this.statusTarget.hidden = false;
+	}
+
+	normalizeFeedChoices(payload) {
+		if (!Array.isArray(payload)) {
+			return [];
+		}
+
+		const choices = payload
+			.map((entry) => {
+				if (typeof entry == "string") {
+					const feed_url = entry.trim();
+					if (!feed_url) {
+						return null;
+					}
+					return {
+						title: feed_url,
+						feed_url,
+						feed_type: this.detectFeedType({ feed_url })
+					};
+				}
+
+				if (!entry || typeof entry != "object") {
+					return null;
+				}
+
+				const feed_url = this.getFeedChoiceUrl(entry);
+				if (!feed_url) {
+					return null;
+				}
+
+				const title = this.getFeedChoiceTitle(entry) || feed_url;
+				return {
+					title,
+					feed_url,
+					feed_type: this.detectFeedType(entry)
+				};
+			})
+			.filter(Boolean);
+
+		return this.uniqueFeedChoices(choices);
+	}
+
+	uniqueFeedChoices(choices) {
+		const seen = new Set();
+		const unique_choices = [];
+		(choices || []).forEach((choice) => {
+			const feed_url = (choice?.feed_url || "").trim();
+			if (!feed_url) {
+				return;
+			}
+			const key = feed_url.toLowerCase();
+			if (seen.has(key)) {
+				return;
+			}
+			seen.add(key);
+			unique_choices.push(choice);
+		});
+		return unique_choices;
+	}
+
+	getFeedChoiceTitle(choice) {
+		const title = choice?.title || choice?.name || "";
+		return title.trim();
+	}
+
+	getFeedChoiceUrl(choice) {
+		const feed_url = choice?.feed_url || choice?.url || choice?.xml_url || "";
+		return feed_url.trim();
+	}
+
+	detectFeedType(choice) {
+		const feed_type = `${choice?.feed_type || choice?.type || ""}`.trim().toLowerCase();
+		if (feed_type.includes("json")) {
+			return "json";
+		}
+
+		if (choice?.json_feed) {
+			return "json";
+		}
+
+		const version = `${choice?.version || choice?.json_feed?.version || ""}`.trim().toLowerCase();
+		if (version.includes("jsonfeed.org")) {
+			return "json";
+		}
+
+		const feed_url = this.getFeedChoiceUrl(choice).toLowerCase();
+		if (feed_url.endsWith(".json") || feed_url.includes(".json?") || feed_url.includes("/json")) {
+			return "json";
+		}
+
+		return "rss";
+	}
+
+	trimHttpsScheme(url) {
+		const trimmed = (url || "").trim();
+		if (!trimmed) {
+			return "";
+		}
+		return trimmed.replace(/^https:\/\//i, "");
 	}
 
 	resetScrollPosition() {
