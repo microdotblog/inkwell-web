@@ -1,5 +1,5 @@
 const DEFAULT_THEME_URL = "/themes/default.json?20260216.1";
-const DARK_THEME_URL = "/themes/dark.json?20260216.1";
+const DARK_THEME_URL = "/themes/dark.json?20260217.1";
 
 let default_theme = create_theme("Default", "default", {});
 let dark_theme = create_theme("Dark", "dark", {});
