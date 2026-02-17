@@ -1516,6 +1516,7 @@ input[type="search"]::-webkit-search-decoration {
 	--reader-blockquote-background: var(--ink-segment-background);
 	--reader-blockquote-border-color: var(--pico-blockquote-border-color);
 	transition: color 180ms ease, font-family 180ms ease;
+	margin-top: 10px;
 	margin-bottom: 0;
 	padding-bottom: 0;
 	padding-left: 0;
