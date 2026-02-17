@@ -2,11 +2,13 @@ import { Controller } from "../stimulus.js";
 
 const TEXT_SETTINGS_STORAGE_KEY = "inkwell_reader_text_settings";
 const DEFAULT_TEXT_THEME_ID = "white";
-const DEFAULT_TEXT_FONT_ID = "system";
 const LIGHT_MODE_BLOCKQUOTE_BACKGROUND = "#F8F8F8";
 const DARK_MODE_BLOCKQUOTE_BACKGROUND = "#212A38";
 const LIGHT_MODE_BLOCKQUOTE_BORDER = "#E7EAF0";
 const DARK_MODE_BLOCKQUOTE_BORDER = "#202632";
+const PLATFORM_APPLE = "apple";
+const PLATFORM_WINDOWS = "windows";
+const PLATFORM_ANDROID = "android";
 
 const TEXT_THEMES = [
 	{
@@ -46,20 +48,49 @@ const TEXT_THEMES = [
 	}
 ];
 
-const TEXT_FONTS = [
-	{
-		id: "system",
-		font_family: "system-ui, \"San Francisco\", \"Segoe UI\", \"Roboto\", sans-serif"
-	},
-	{
-		id: "avenir-next",
-		font_family: "\"Avenir Next\", Avenir, \"Segoe UI\", sans-serif"
-	},
-	{
-		id: "times-new-roman",
-		font_family: "\"Times New Roman\", Times, serif"
-	}
-];
+const PLATFORM_TEXT_FONTS = {
+	[PLATFORM_APPLE]: [
+		{
+			id: "san-francisco",
+			label: "San Francisco",
+			font_family: "-apple-system, BlinkMacSystemFont, \"San Francisco\", \"SF Pro Text\", \"Helvetica Neue\", sans-serif"
+		},
+		{
+			id: "avenir-next",
+			label: "Avenir Next",
+			font_family: "\"Avenir Next\", Avenir, \"Segoe UI\", sans-serif"
+		},
+		{
+			id: "times-new-roman",
+			label: "Times New Roman",
+			font_family: "\"Times New Roman\", Times, serif"
+		}
+	],
+	[PLATFORM_WINDOWS]: [
+		{
+			id: "segoe-ui",
+			label: "Segoe UI",
+			font_family: "\"Segoe UI\", Tahoma, Geneva, Verdana, sans-serif"
+		},
+		{
+			id: "georgia",
+			label: "Georgia",
+			font_family: "Georgia, serif"
+		}
+	],
+	[PLATFORM_ANDROID]: [
+		{
+			id: "roboto",
+			label: "Roboto",
+			font_family: "Roboto, \"Noto Sans\", \"Droid Sans\", sans-serif"
+		},
+		{
+			id: "noto-serif",
+			label: "Noto Serif",
+			font_family: "\"Noto Serif\", \"Noto Serif Display\", serif"
+		}
+	]
+};
 
 export default class extends Controller {
 	static targets = [
@@ -75,6 +106,7 @@ export default class extends Controller {
 		"textSettingsToggle",
 		"textSettingsPane",
 		"colorOption",
+		"fontList",
 		"fontOption"
 	];
 
@@ -89,8 +121,10 @@ export default class extends Controller {
 		this.is_read = false;
 		this.is_bookmarked = false;
 		this.settings_open = false;
+		this.platform_font_group = this.detectPlatformFontGroup();
+		this.available_text_fonts = this.getFontsForPlatform(this.platform_font_group);
 		this.selected_text_theme_id = DEFAULT_TEXT_THEME_ID;
-		this.selected_text_font_id = DEFAULT_TEXT_FONT_ID;
+		this.selected_text_font_id = this.available_text_fonts[0]?.id || "";
 		this.right_pane_element = this.findRightPaneElement();
 		this.reader_pane_element = this.findReaderPaneElement();
 		this.reader_content_element = this.findReaderContentElement();
@@ -111,7 +145,9 @@ export default class extends Controller {
 		window.addEventListener("reader:welcome", this.handleReaderWelcome);
 		window.addEventListener("reader:blank", this.handleReaderWelcome);
 		window.addEventListener("reader:summary", this.handleReaderSummary);
+		this.renderFontOptions();
 		this.loadTextSettings();
+		this.ensureSelectedTextFont();
 		this.applyTextSettings();
 		this.updateMenuState();
 		this.renderTextSettingsPane();
@@ -335,6 +371,27 @@ export default class extends Controller {
 		}
 	}
 
+	renderFontOptions() {
+		if (!this.hasFontListTarget) {
+			return;
+		}
+
+		this.fontListTarget.replaceChildren();
+		const fragment = document.createDocumentFragment();
+		this.available_text_fonts.forEach((font) => {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.className = "reader-text-font-option";
+			button.setAttribute("data-reader-menu-target", "fontOption");
+			button.setAttribute("data-font-id", font.id);
+			button.setAttribute("data-action", "reader-menu#selectTextFont");
+			button.style.fontFamily = font.font_family;
+			button.textContent = font.label;
+			fragment.append(button);
+		});
+		this.fontListTarget.append(fragment);
+	}
+
 	loadTextSettings() {
 		try {
 			const stored = localStorage.getItem(TEXT_SETTINGS_STORAGE_KEY);
@@ -359,6 +416,13 @@ export default class extends Controller {
 		catch (error) {
 			// Ignore storage parse errors.
 		}
+	}
+
+	ensureSelectedTextFont() {
+		if (this.getTextFontById(this.selected_text_font_id)) {
+			return;
+		}
+		this.selected_text_font_id = this.available_text_fonts[0]?.id || "";
 	}
 
 	persistTextSettings() {
@@ -404,7 +468,7 @@ export default class extends Controller {
 	}
 
 	getSelectedTextFont() {
-		return this.getTextFontById(this.selected_text_font_id) || this.getTextFontById(DEFAULT_TEXT_FONT_ID);
+		return this.getTextFontById(this.selected_text_font_id) || this.available_text_fonts[0] || null;
 	}
 
 	getTextThemeById(theme_id) {
@@ -412,7 +476,28 @@ export default class extends Controller {
 	}
 
 	getTextFontById(font_id) {
-		return TEXT_FONTS.find((font) => font.id == font_id) || null;
+		return this.available_text_fonts.find((font) => font.id == font_id) || null;
+	}
+
+	getFontsForPlatform(platform_font_group) {
+		return PLATFORM_TEXT_FONTS[platform_font_group] || PLATFORM_TEXT_FONTS[PLATFORM_APPLE];
+	}
+
+	detectPlatformFontGroup() {
+		const user_agent = navigator.userAgent || "";
+		const platform = navigator.userAgentData?.platform || navigator.platform || "";
+		const platform_hint = `${platform} ${user_agent}`;
+
+		if (/android/i.test(platform_hint)) {
+			return PLATFORM_ANDROID;
+		}
+		if (/(iphone|ipad|ipod|mac)/i.test(platform_hint)) {
+			return PLATFORM_APPLE;
+		}
+		if (/win/i.test(platform_hint)) {
+			return PLATFORM_WINDOWS;
+		}
+		return PLATFORM_APPLE;
 	}
 
 	findRightPaneElement() {
