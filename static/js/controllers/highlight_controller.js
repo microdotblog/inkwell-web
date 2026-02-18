@@ -3,39 +3,45 @@ import { createMicroBlogHighlight } from "../api/highlights.js";
 import { saveHighlight, updateHighlight } from "../storage/highlights.js";
 
 export default class extends Controller {
-  static targets = ["content", "toolbar"];
+	static targets = ["content", "toolbar"];
 
-  connect() {
-    this.handleSelection = this.handleSelection.bind(this);
-    this.hideToolbar = this.hideToolbar.bind(this);
+	connect() {
+		this.handleSelection = this.handleSelection.bind(this);
+		this.handleSelectionChange = this.handleSelectionChange.bind(this);
+		this.hideToolbar = this.hideToolbar.bind(this);
 		this.handleSummary = this.handleSummary.bind(this);
-    this.contentTarget.addEventListener("mouseup", this.handleSelection);
-    this.contentTarget.addEventListener("keyup", this.handleSelection);
+		this.contentTarget.addEventListener("mouseup", this.handleSelection);
+		this.contentTarget.addEventListener("keyup", this.handleSelection);
+		document.addEventListener("selectionchange", this.handleSelectionChange);
 		window.addEventListener("reader:summary", this.handleSummary);
-    document.addEventListener("scroll", this.hideToolbar, true);
-  }
+		document.addEventListener("scroll", this.hideToolbar, true);
+	}
 
-  disconnect() {
-    this.contentTarget.removeEventListener("mouseup", this.handleSelection);
-    this.contentTarget.removeEventListener("keyup", this.handleSelection);
+	disconnect() {
+		this.contentTarget.removeEventListener("mouseup", this.handleSelection);
+		this.contentTarget.removeEventListener("keyup", this.handleSelection);
+		document.removeEventListener("selectionchange", this.handleSelectionChange);
 		window.removeEventListener("reader:summary", this.handleSummary);
-    document.removeEventListener("scroll", this.hideToolbar, true);
-  }
+		document.removeEventListener("scroll", this.hideToolbar, true);
+	}
 
-  handleSelection() {
+	handleSelection() {
 		if (this.isSummaryMode()) {
+			this.resetSelectionState();
 			this.hideToolbar();
 			return;
 		}
 
 		const selection = window.getSelection();
 		if (!selection || selection.isCollapsed || !selection.rangeCount) {
+			this.resetSelectionState();
 			this.hideToolbar();
 			return;
 		}
 
 		const range = selection.getRangeAt(0);
 		if (!this.contentTarget.contains(range.commonAncestorContainer)) {
+			this.resetSelectionState();
 			this.hideToolbar();
 			return;
 		}
@@ -43,6 +49,7 @@ export default class extends Controller {
 		const raw_text = selection.toString();
 		const trimmed_text = raw_text.trim();
 		if (!trimmed_text) {
+			this.resetSelectionState();
 			this.hideToolbar();
 			return;
 		}
@@ -74,9 +81,30 @@ export default class extends Controller {
 		toolbar.style.top = `${Math.max(padding, top)}px`;
 		toolbar.style.left = `${left}px`;
 		toolbar.style.visibility = "visible";
-  }
+	}
 
-  async create() {
+	handleSelectionChange() {
+		if (this.isSummaryMode()) {
+			this.resetSelectionState();
+			this.hideToolbar();
+			return;
+		}
+
+		const selection = window.getSelection();
+		if (!selection || selection.isCollapsed || !selection.rangeCount) {
+			this.resetSelectionState();
+			this.hideToolbar();
+			return;
+		}
+
+		const range = selection.getRangeAt(0);
+		if (!this.contentTarget.contains(range.commonAncestorContainer)) {
+			this.resetSelectionState();
+			this.hideToolbar();
+		}
+	}
+
+	async create() {
 		if (this.isSummaryMode()) {
 			return;
 		}
@@ -120,7 +148,7 @@ export default class extends Controller {
 
 		window.dispatchEvent(new CustomEvent("highlight:create", { detail: highlight }));
 		this.clearSelection();
-  }
+	}
 
 	newPost() {
 		if (this.isSummaryMode()) {
@@ -153,16 +181,14 @@ export default class extends Controller {
 		this.clearSelection();
 	}
 
-  clearSelection() {
+	clearSelection() {
 		const selection = window.getSelection();
 		if (selection) {
 			selection.removeAllRanges();
 		}
-		this.currentSelection = "";
-		this.currentSelectionRaw = "";
-		this.currentSelectionRange = null;
+		this.resetSelectionState();
 		this.hideToolbar();
-  }
+	}
 
 	formatQuote(text) {
 		const trimmed = (text || "").trim();
@@ -176,10 +202,16 @@ export default class extends Controller {
 			.join("\n");
 	}
 
-  hideToolbar() {
+	hideToolbar() {
 		this.toolbarTarget.hidden = true;
 		this.toolbarTarget.style.visibility = "";
-  }
+	}
+
+	resetSelectionState() {
+		this.currentSelection = "";
+		this.currentSelectionRaw = "";
+		this.currentSelectionRange = null;
+	}
 
 	getSelectionPayload() {
 		const selection_range = this.currentSelectionRange;
@@ -242,6 +274,7 @@ export default class extends Controller {
 	}
 
 	handleSummary() {
+		this.resetSelectionState();
 		this.hideToolbar();
 	}
 
