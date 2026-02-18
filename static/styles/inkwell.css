@@ -632,6 +632,7 @@ button:focus:not(:focus-visible) {
   margin: 0;
   padding: 0.2rem 0.4rem 0.2rem 0.15rem;
   font-size: 0.7rem;
+  --ink-search-visual-scale: 0.7;
   min-width: 160px;
   box-shadow: none;
 }
@@ -1043,6 +1044,7 @@ button:focus:not(:focus-visible) {
 	flex: 1;
 	min-width: 0;
 	font-size: 0.75rem;
+	--ink-subscribe-input-visual-scale: 0.75;
 	line-height: 1.2;
 	height: 31px;
 	padding: 0.2rem 0.5rem;
@@ -1885,7 +1887,12 @@ input[type="search"]::-webkit-search-decoration {
 
 	.search-field input[type="search"] {
 		font-size: 0.65rem;
+		--ink-search-visual-scale: 0.75;
 		padding: 0.1rem 0.35rem 0.1rem 0.1rem;
+	}
+
+	.subscriptions-form-row input[type="url"] {
+		--ink-subscribe-input-visual-scale: 0.8625;
 	}
 
 	.reader-meta-source,
@@ -1898,5 +1905,25 @@ input[type="search"]::-webkit-search-decoration {
 	.left-pane,
 	.right-pane {
 		transition: none;
+	}
+}
+
+@supports (-webkit-touch-callout: none) {
+	@media (hover: none) and (pointer: coarse) {
+		/* Keep 16px computed size on iOS to avoid focus zoom, then scale visually. */
+		.search-field input[type="search"] {
+			font-size: 16px;
+			transform: scale(var(--ink-search-visual-scale));
+			transform-origin: left center;
+			width: calc(100% / var(--ink-search-visual-scale));
+		}
+
+		/* Keep 16px computed size on iOS to avoid zoom for new-feed URL input too. */
+		.subscriptions-form-row input[type="url"] {
+			font-size: 16px;
+			transform: scale(var(--ink-subscribe-input-visual-scale));
+			transform-origin: left center;
+			width: calc(100% / var(--ink-subscribe-input-visual-scale));
+		}
 	}
 }
