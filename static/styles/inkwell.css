@@ -1785,7 +1785,7 @@ input[type="search"]::-webkit-search-decoration {
 
 @media (max-width: 800px) {
 	html {
-		font-size: 110%;
+		font-size: 115%;
 	}
 
 	.layout {
