@@ -4,10 +4,13 @@ import { USE_MOCK_DATA } from "../config.js";
 import {
 	createFeedSubscription,
 	deleteFeedSubscription,
+	fetchFeedIcons,
 	fetchFeedSubscriptions,
 	isSignedIn,
 	updateFeedSubscription
 } from "../api/feeds.js";
+
+const DEFAULT_SUBSCRIPTION_ICON_URL = "/images/blank_avatar.png";
 
 export default class extends Controller {
 	static targets = [
@@ -44,6 +47,7 @@ export default class extends Controller {
 		this.rename_is_loading = false;
 		this.mode = "manage";
 		this.import_delay_ms = 250;
+		this.subscription_icon_urls = new Map();
 		this.handleOpen = this.handleOpen.bind(this);
 		this.handleClose = this.handleClose.bind(this);
 		this.handleAuthReady = this.handleAuthReady.bind(this);
@@ -140,17 +144,37 @@ export default class extends Controller {
 		}
 		if (!isSignedIn()) {
 			this.subscriptions = [];
+			this.subscription_icon_urls = new Map();
 			this.clearStatus();
 			this.render();
 			return;
 		}
 		this.is_loading = true;
+		this.subscription_icon_urls = new Map();
 		this.renderLoading();
 
 		try {
-			const payload = await fetchFeedSubscriptions();
+			const [subscriptions_result, icons_result] = await Promise.allSettled([
+				fetchFeedSubscriptions(),
+				fetchFeedIcons()
+			]);
+			if (subscriptions_result.status != "fulfilled") {
+				throw subscriptions_result.reason;
+			}
+			const payload = subscriptions_result.value;
 			this.subscriptions = Array.isArray(payload) ? payload : [];
 			this.setStoredSubscriptions(this.subscriptions);
+			if (icons_result.status == "fulfilled") {
+				const icon_pairs = Array.isArray(icons_result.value)
+					? icons_result.value
+						.map((icon) => [`${icon?.host || ""}`.trim().toLowerCase(), `${icon?.url || ""}`.trim()])
+						.filter(([host, url]) => host && url)
+					: [];
+				this.subscription_icon_urls = new Map(icon_pairs);
+			}
+			else {
+				console.warn("Failed to load subscription icons", icons_result.reason);
+			}
 		}
 		catch (error) {
 			console.warn("Failed to load subscriptions", error);
@@ -746,7 +770,7 @@ export default class extends Controller {
 			return left_title.localeCompare(right_title);
 		});
 
-		if (sorted.length === 0) {
+		if (sorted.length == 0) {
 			this.listTarget.innerHTML = "<p class=\"subscriptions-empty\">No subscriptions yet.</p>";
 			return;
 		}
@@ -756,19 +780,24 @@ export default class extends Controller {
 				const is_editing = subscription.id == this.rename_subscription_id;
 				const title = this.escapeHtml(this.getSubscriptionTitle(subscription));
 				const url = this.escapeHtml(this.getSubscriptionUrl(subscription));
+				const icon_url = this.escapeHtml(this.getSubscriptionIconUrl(subscription));
 				const feed_id = this.getSubscriptionFeedId(subscription);
 				const safe_feed_id = this.escapeHtml(feed_id);
 				const safe_feed_source = this.escapeHtml(this.getSubscriptionTitle(subscription));
-				const link = url ? `<a href="${url}">${url}</a>` : "";
-				const title_link = feed_id
-					? `<a href="#" class="subscription-title-link" data-action="subscriptions#filterTimelineByFeed" data-feed-id="${safe_feed_id}" data-feed-source="${safe_feed_source}">${title}</a>`
-					: title;
-				const safe_value = this.escapeHtml(this.rename_value || this.getSubscriptionTitle(subscription));
-				const spinner_hidden = (is_editing && this.rename_is_loading) ? "" : "hidden";
-				const update_disabled = (is_editing && this.rename_is_loading) ? "disabled" : "";
+					const link = url ? `<a href="${url}">${url}</a>` : "";
+					const title_link = feed_id
+						? `<a href="#" class="subscription-title-link" data-action="subscriptions#filterTimelineByFeed" data-feed-id="${safe_feed_id}" data-feed-source="${safe_feed_source}">${title}</a>`
+						: title;
+					const icon_link = feed_id
+						? `<a href="#" class="subscription-icon-link" aria-label="Filter by ${safe_feed_source}" data-action="subscriptions#filterTimelineByFeed" data-feed-id="${safe_feed_id}" data-feed-source="${safe_feed_source}"><img class="subscription-site-icon" src="${icon_url}" alt="" aria-hidden="true" width="30" height="30" loading="lazy"></a>`
+						: `<img class="subscription-site-icon" src="${icon_url}" alt="" aria-hidden="true" width="30" height="30" loading="lazy">`;
+					const safe_value = this.escapeHtml(this.rename_value || this.getSubscriptionTitle(subscription));
+					const spinner_hidden = (is_editing && this.rename_is_loading) ? "" : "hidden";
+					const update_disabled = (is_editing && this.rename_is_loading) ? "disabled" : "";
 				if (is_editing) {
 					return `
 						<div class="subscription-item subscription-item--edit" data-subscription-id="${subscription.id}">
+							<img class="subscription-site-icon" src="${icon_url}" alt="" aria-hidden="true" width="30" height="30" loading="lazy">
 							<input
 								type="text"
 								class="subscription-edit"
@@ -789,13 +818,16 @@ export default class extends Controller {
 						</div>
 					`;
 				}
-				return `
-					<div class="subscription-item" data-subscription-id="${subscription.id}">
-						<div class="subscription-info">
-							<p class="subscription-title">${title_link}</p>
-							<p class="subscription-url">${link}</p>
+					return `
+						<div class="subscription-item" data-subscription-id="${subscription.id}">
+							<div class="subscription-main">
+								${icon_link}
+								<div class="subscription-info">
+									<p class="subscription-title">${title_link}</p>
+									<p class="subscription-url">${link}</p>
+							</div>
 						</div>
-						<div>
+						<div class="subscription-buttons">
 							<button type="button" class="subscription-rename btn-sm" data-action="subscriptions#startRename">
 								Rename
 							</button>
@@ -837,6 +869,28 @@ export default class extends Controller {
 	getSubscriptionSiteUrl(subscription) {
 		const url = subscription?.site_url || "";
 		return url.trim();
+	}
+
+	getSubscriptionIconUrl(subscription) {
+		if (!subscription) {
+			return DEFAULT_SUBSCRIPTION_ICON_URL;
+		}
+
+		const json_icon = `${subscription?.json_feed?.icon || subscription?.json_feed?.favicon || ""}`.trim();
+		if (json_icon) {
+			return json_icon;
+		}
+
+		const source_url = this.getSubscriptionSiteUrl(subscription) || this.getSubscriptionFeedUrl(subscription);
+		const host = this.getDomainName(source_url).toLowerCase();
+		if (host && this.subscription_icon_urls.has(host)) {
+			const icon_url = `${this.subscription_icon_urls.get(host) || ""}`.trim();
+			if (icon_url) {
+				return icon_url;
+			}
+		}
+
+		return DEFAULT_SUBSCRIPTION_ICON_URL;
 	}
 
 	buildOpml(subscriptions) {

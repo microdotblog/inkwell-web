@@ -1271,6 +1271,38 @@ input[type="text"].subscription-edit {
 	margin-left: 5px;
 }
 
+.subscription-main {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.subscription-site-icon {
+	width: 30px;
+	height: 30px;
+	flex: 0 0 30px;
+	display: block;
+	border-radius: 999px;
+	object-fit: cover;
+	background: var(--ink-control-background);
+}
+
+.subscription-icon-link {
+	display: inline-flex;
+	align-items: center;
+	flex: 0 0 auto;
+	line-height: 1;
+	text-decoration: none;
+}
+
+.subscription-buttons {
+	display: inline-flex;
+	align-items: center;
+	flex: 0 0 auto;
+}
+
 .subscription-info {
 	display: flex;
 	flex-direction: column;
@@ -1388,6 +1420,11 @@ input[type="text"].subscription-edit {
 
 .reading-recap {
 	padding-bottom: 1rem;
+}
+
+.reading-recap img {
+	border-radius: 5px;
+	margin-right: 4px;
 }
 
 .reading-recap h2 {
