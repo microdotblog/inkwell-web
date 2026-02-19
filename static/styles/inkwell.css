@@ -769,7 +769,8 @@ button:focus:not(:focus-visible) {
 }
 
 .timeline-item.is-active .avatar:hover {
-	border-color: var(--ink-avatar-border);
+	border-color: rgba(255, 255, 255, 0.25);
+	opacity: 0.75;
 }
 
 .timeline-item.is-read .timeline-title {
