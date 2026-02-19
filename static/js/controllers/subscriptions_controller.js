@@ -7,6 +7,7 @@ import {
 	fetchFeedIcons,
 	fetchFeedSubscriptions,
 	isSignedIn,
+	searchMicroBlogContacts,
 	updateFeedSubscription
 } from "../api/feeds.js";
 
@@ -215,6 +216,31 @@ export default class extends Controller {
 		const feed_url = this.inputTarget.value.trim();
 		if (!feed_url) {
 			this.showStatus("Enter a feed URL to subscribe.");
+			return;
+		}
+
+		if (this.isContactSearchQuery(feed_url)) {
+			const search_terms = this.getContactSearchTerms(feed_url);
+			if (!search_terms) {
+				this.showStatus("Enter a username to search.");
+				return;
+			}
+
+			this.setSubmitting(true);
+			this.clearStatus();
+
+			try {
+				const payload = await searchMicroBlogContacts(search_terms);
+				const contact_choices = this.normalizeContactChoices(payload);
+				this.showContactChoices(contact_choices);
+			}
+			catch (error) {
+				console.warn("Failed to search contacts", error);
+				this.showStatus("Username search failed. Please try again.");
+			}
+			finally {
+				this.setSubmitting(false);
+			}
 			return;
 		}
 
@@ -999,6 +1025,107 @@ export default class extends Controller {
 			<div class="subscription-choices">${items}</div>
 		`;
 		this.statusTarget.hidden = false;
+	}
+
+	showContactChoices(choices) {
+		if (!Array.isArray(choices) || choices.length == 0) {
+			this.showStatus("No matching Micro.blog usernames found.");
+			return;
+		}
+
+		const items = choices
+			.map((choice) => {
+				const feed_url = choice.feed_url || "";
+				const safe_feed_url = this.escapeHtml(feed_url);
+				const title = this.escapeHtml(choice.title || "Unknown user");
+				const display_url = this.escapeHtml(feed_url);
+				const avatar_url = this.escapeHtml(choice.avatar_url || DEFAULT_SUBSCRIPTION_ICON_URL);
+
+				return `
+					<button
+						type="button"
+						class="subscription-choice subscription-choice-contact"
+						data-action="subscriptions#selectFeedChoice"
+						data-feed-url="${safe_feed_url}"
+					>
+						<div class="subscription-choice-info">
+							<p class="subscription-choice-title">${title}</p>
+							<p class="subscription-choice-url">${display_url}</p>
+						</div>
+						<img class="subscription-choice-avatar" src="${avatar_url}" width="30" height="30" alt="">
+					</button>
+				`;
+			})
+			.join("");
+
+		this.statusTarget.innerHTML = `
+			<span class="subscriptions-status-label">Micro.blog usernames:</span>
+			<div class="subscription-choices">${items}</div>
+		`;
+		this.statusTarget.hidden = false;
+	}
+
+	isContactSearchQuery(raw_value) {
+		const trimmed = (raw_value || "").trim();
+		return trimmed.startsWith("@");
+	}
+
+	getContactSearchTerms(raw_value) {
+		const trimmed = (raw_value || "").trim();
+		if (!trimmed.startsWith("@")) {
+			return "";
+		}
+		return trimmed.replace(/^@+/, "").trim();
+	}
+
+	normalizeContactChoices(payload) {
+		const contacts = Array.isArray(payload?.contacts) ? payload.contacts : [];
+		const choices = contacts
+			.map((contact) => this.contactToFeedChoice(contact))
+			.filter(Boolean);
+		return this.uniqueFeedChoices(choices);
+	}
+
+	contactToFeedChoice(contact) {
+		if (!contact || typeof contact != "object") {
+			return null;
+		}
+
+		const nickname = `${contact.nickname || ""}`.trim();
+		if (!nickname || nickname.includes("@") || nickname.includes(".")) {
+			return null;
+		}
+
+		const normalized_nickname = nickname.toLowerCase();
+		const feed_url = `https://${normalized_nickname}.micro.blog/feed.json`;
+		const fallback_name = `@${normalized_nickname}`;
+		const display_name = `${contact.name || fallback_name}`.trim() || fallback_name;
+		const avatar_url = this.normalizeContactAvatarUrl(contact.photo);
+
+		return {
+			title: display_name,
+			feed_url,
+			avatar_url
+		};
+	}
+
+	normalizeContactAvatarUrl(raw_url) {
+		const trimmed = `${raw_url || ""}`.trim();
+		if (!trimmed) {
+			return DEFAULT_SUBSCRIPTION_ICON_URL;
+		}
+
+		try {
+			const parsed = new URL(trimmed);
+			if (parsed.protocol == "http:" || parsed.protocol == "https:") {
+				return parsed.toString();
+			}
+		}
+		catch (error) {
+			return DEFAULT_SUBSCRIPTION_ICON_URL;
+		}
+
+		return DEFAULT_SUBSCRIPTION_ICON_URL;
 	}
 
 	normalizeFeedChoices(payload) {

@@ -201,6 +201,44 @@ export async function createFeedSubscription(feed_url) {
 	return response.json();
 }
 
+export async function searchMicroBlogContacts(terms) {
+	const trimmed_terms = (terms || "").trim();
+	if (!trimmed_terms) {
+		return { contacts: [] };
+	}
+
+	const url = new URL("/micropub", `${getFeedsBaseUrl()}/`);
+	url.searchParams.set("q", "contact");
+	url.searchParams.set("filter", trimmed_terms);
+
+	const headers = new Headers({
+		"Accept": "application/json"
+	});
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers
+	});
+
+	if (!response.ok) {
+		const response_text = await response.text();
+		const request_error = new Error(`Feeds request failed: ${response.status}`);
+		request_error.response_text = response_text;
+		throw request_error;
+	}
+
+	try {
+		return await response.json();
+	}
+	catch (error) {
+		return { contacts: [] };
+	}
+}
+
 export async function deleteFeedSubscription(subscription_id) {
 	if (!subscription_id) {
 		return null;

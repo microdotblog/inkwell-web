@@ -1102,6 +1102,10 @@ button:focus:not(:focus-visible) {
 	cursor: pointer;
 }
 
+.subscription-choice-contact .subscription-choice-info {
+	flex: 1;
+}
+
 .subscription-choice:hover {
 	border-color: var(--ink-link);
 }
@@ -1117,6 +1121,16 @@ button:focus:not(:focus-visible) {
 	flex: 0 0 16px;
 	display: block;
 	border-radius: 3px;
+}
+
+.subscription-choice-avatar {
+	width: 30px;
+	height: 30px;
+	flex: 0 0 30px;
+	display: block;
+	object-fit: cover;
+	border-radius: 999px;
+	margin-left: auto;
 }
 
 .subscription-choice-info {
@@ -1929,7 +1943,7 @@ input[type="search"]::-webkit-search-decoration {
 		padding: 0.1rem 0.35rem 0.1rem 0.1rem;
 	}
 
-	.subscriptions-form-row input[type="url"] {
+	.subscriptions-form-row input[type="text"] {
 		--ink-subscribe-input-visual-scale: 0.8625;
 	}
 
@@ -1956,8 +1970,8 @@ input[type="search"]::-webkit-search-decoration {
 			width: calc(100% / var(--ink-search-visual-scale));
 		}
 
-		/* Keep 16px computed size on iOS to avoid zoom for new-feed URL input too. */
-		.subscriptions-form-row input[type="url"] {
+		/* Keep 16px computed size on iOS to avoid zoom for new-feed input too. */
+		.subscriptions-form-row input[type="text"] {
 			font-size: 16px;
 			transform: scale(var(--ink-subscribe-input-visual-scale));
 			transform-origin: left center;
