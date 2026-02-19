@@ -51,6 +51,7 @@ export async function fetchTimelineData(options = {}) {
 		const feed_entries_options = on_progress
 			? {
 				on_progress: async ({ entries }) => {
+					cacheFeedEntries(entries);
 					const posts = mapEntriesToPosts(entries, subscription_map, unread_set, icon_map, starred_set);
 					await on_progress({ posts, subscription_count, subscriptions: subscriptions_list });
 				}

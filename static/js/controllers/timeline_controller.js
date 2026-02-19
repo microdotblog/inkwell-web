@@ -136,6 +136,8 @@ export default class extends Controller {
 		const was_initial_load = this.isLoading;
 		let has_rendered_first_batch = false;
 		const initial_route = parse_hash();
+		const should_try_progress_route_restore = was_initial_load && Boolean(initial_route.postId);
+		let did_restore_route_during_progress = false;
 		if (this.isLoading && (initial_route.postId || initial_route.feedId || initial_route.feedUrl)) {
 			window.dispatchEvent(new CustomEvent("reader:resolvingRoute"));
 		}
@@ -160,6 +162,9 @@ export default class extends Controller {
 							this.isLoading = false;
 							this.listTarget.classList.remove("is-loading");
 						}
+						if (should_try_progress_route_restore && !did_restore_route_during_progress) {
+							did_restore_route_during_progress = this.tryRestoreRouteDuringProgress(initial_route);
+						}
 						if (has_rendered_first_batch) {
 							this.render();
 						}
@@ -181,7 +186,8 @@ export default class extends Controller {
       }
     }
     finally {
-      this.apply_route_from_url(parse_hash(), was_initial_load);
+			const should_update_reader = was_initial_load && !did_restore_route_during_progress;
+      this.apply_route_from_url(parse_hash(), should_update_reader);
       this.isLoading = false;
       this.listTarget.classList.remove("is-loading");
       this.render();
@@ -206,6 +212,20 @@ export default class extends Controller {
 				post.is_read = true;
 			}
 		});
+	}
+
+	tryRestoreRouteDuringProgress(route_state) {
+		if (!route_state || route_state.postId == null || route_state.postId == "") {
+			return false;
+		}
+
+		const post = this.findPostById(route_state.postId);
+		if (!post) {
+			return false;
+		}
+
+		this.apply_route_from_url(route_state, true);
+		return true;
 	}
 
   syncTimeline() {
