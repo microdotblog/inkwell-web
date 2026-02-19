@@ -926,6 +926,10 @@ button:focus:not(:focus-visible) {
 	display: none;
 }
 
+.right-pane.is-blank .reader-header {
+	display: none;
+}
+
 .right-pane.is-empty .right-content {
   display: flex;
   flex: 1;

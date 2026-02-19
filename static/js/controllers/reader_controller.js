@@ -100,17 +100,18 @@ export default class extends Controller {
 
 		this.setSummaryMode(false);
 		this.element.classList.remove("is-resolving");
-	    this.element.classList.remove("is-empty");
+		this.element.classList.remove("is-empty");
+		this.setBlankMode(false);
 		this.element.hidden = false;
-    this.currentPostTitle = post.title || "Untitled";
-    this.currentPostId = post.id;
-    this.currentPostRead = Boolean(post.is_read);
-    this.setTitle(this.currentPostTitle);
-    this.setMeta(post);
-    this.contentTarget.innerHTML = "<p class=\"loading\">Loading readable view...</p>";
-    this.avatarTarget.hidden = false;
-    this.avatarTarget.src = post.avatar_url || "/images/blank_avatar.png";
-    this.avatarTarget.alt = "";
+		this.currentPostTitle = post.title || "Untitled";
+		this.currentPostId = post.id;
+		this.currentPostRead = Boolean(post.is_read);
+		this.setTitle(this.currentPostTitle);
+		this.setMeta(post);
+		this.contentTarget.innerHTML = "<p class=\"loading\">Loading readable view...</p>";
+		this.avatarTarget.hidden = false;
+		this.avatarTarget.src = post.avatar_url || "/images/blank_avatar.png";
+		this.avatarTarget.alt = "";
 		const post_title = (post.title || "").trim();
 		const post_has_title = this.hasPostTitle(post_title, post.summary);
 		this.contentTarget.dataset.postTitle = post_title;
@@ -128,18 +129,18 @@ export default class extends Controller {
 		if (payload.html) {
 			safe_html = this.sanitizeHtml(payload.html);
 		}
-	    this.currentPostTitle = payload.title || post.title || "Untitled";
-	    this.setTitle(this.currentPostTitle);
-	    this.setMeta(post);
-    this.contentTarget.innerHTML = safe_html;
-    this.contentTarget.dataset.postId = post.id;
-    this.contentTarget.dataset.postUrl = post.url;
+		this.currentPostTitle = payload.title || post.title || "Untitled";
+		this.setTitle(this.currentPostTitle);
+		this.setMeta(post);
+		this.contentTarget.innerHTML = safe_html;
+		this.contentTarget.dataset.postId = post.id;
+		this.contentTarget.dataset.postUrl = post.url;
 		this.contentTarget.dataset.postTitle = post_title;
-			this.contentTarget.dataset.postSource = post.source || "";
-			this.contentTarget.dataset.postPublishedAt = post.published_at || "";
-			this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
-	    this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
-	  }
+		this.contentTarget.dataset.postSource = post.source || "";
+		this.contentTarget.dataset.postPublishedAt = post.published_at || "";
+		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
+		this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
+	}
 
 	handleAvatarError(event) {
 		const image_el = event.target;
@@ -333,6 +334,7 @@ export default class extends Controller {
 		this.setSummaryMode(false);
 		this.element.classList.add("is-resolving");
 		this.element.classList.remove("is-empty");
+		this.setBlankMode(false);
 		this.element.hidden = false;
 		this.currentPostId = null;
 		this.currentPostRead = false;
@@ -356,6 +358,7 @@ export default class extends Controller {
 		this.setSummaryMode(true);
 		this.element.classList.remove("is-resolving");
 		this.element.classList.remove("is-empty");
+		this.setBlankMode(false);
 		this.element.hidden = false;
 		this.currentPostId = null;
 		this.currentPostFeedId = "";
@@ -383,6 +386,7 @@ export default class extends Controller {
 	clearReader() {
 		this.setSummaryMode(false);
 		this.element.classList.remove("is-resolving");
+		this.setBlankMode(false);
 		this.currentPostId = null;
 		this.currentPostFeedId = "";
 		this.currentPostSource = "";
@@ -409,6 +413,7 @@ export default class extends Controller {
 		this.setSummaryMode(false);
 		this.element.classList.remove("is-resolving");
 		this.element.classList.add("is-empty");
+		this.setBlankMode(false);
 		this.element.hidden = false;
 		this.currentPostId = null;
 		this.currentPostFeedId = "";
@@ -452,6 +457,7 @@ export default class extends Controller {
 		this.setSummaryMode(false);
 		this.element.classList.remove("is-resolving");
 		this.element.classList.remove("is-empty");
+		this.setBlankMode(true);
 		this.element.hidden = false;
 		this.currentPostId = null;
 		this.currentPostFeedId = "";
@@ -472,6 +478,10 @@ export default class extends Controller {
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = "";
+	}
+
+	setBlankMode(is_blank) {
+		this.element.classList.toggle("is-blank", Boolean(is_blank));
 	}
 
 	setSummaryMode(is_summary) {
