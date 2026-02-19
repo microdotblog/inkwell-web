@@ -1,3 +1,6 @@
+import { mockContacts } from "../mock_data.js";
+import { USE_MOCK_CONTACTS } from "../config.js";
+
 // const MICRO_BLOG_BASE_URL = "http://localhost:3000";
 const MICRO_BLOG_BASE_URL = "https://micro.blog";
 const MICRO_BLOG_TOKEN_KEY = "inkwell_microblog_token";
@@ -207,6 +210,12 @@ export async function searchMicroBlogContacts(terms) {
 		return { contacts: [] };
 	}
 
+	if (USE_MOCK_CONTACTS) {
+		return {
+			contacts: filterMockContacts(trimmed_terms)
+		};
+	}
+
 	const url = new URL("/micropub", `${getFeedsBaseUrl()}/`);
 	url.searchParams.set("q", "contact");
 	url.searchParams.set("filter", trimmed_terms);
@@ -231,12 +240,21 @@ export async function searchMicroBlogContacts(terms) {
 		throw request_error;
 	}
 
-	try {
-		return await response.json();
+	return response.json();
+}
+
+function filterMockContacts(raw_terms) {
+	const trimmed_terms = (raw_terms || "").trim().toLowerCase();
+	if (!trimmed_terms) {
+		return [...mockContacts];
 	}
-	catch (error) {
-		return { contacts: [] };
-	}
+
+	return mockContacts.filter((contact) => {
+		const name = `${contact?.name || ""}`.trim().toLowerCase();
+		const nickname = `${contact?.nickname || ""}`.trim().toLowerCase();
+		const url = `${contact?.url || ""}`.trim().toLowerCase();
+		return name.includes(trimmed_terms) || nickname.includes(trimmed_terms) || url.includes(trimmed_terms);
+	});
 }
 
 export async function deleteFeedSubscription(subscription_id) {

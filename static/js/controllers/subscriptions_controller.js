@@ -226,6 +226,7 @@ export default class extends Controller {
 				return;
 			}
 
+			this.inputTarget.value = "";
 			this.setSubmitting(true);
 			this.clearStatus();
 
@@ -1048,11 +1049,11 @@ export default class extends Controller {
 						data-action="subscriptions#selectFeedChoice"
 						data-feed-url="${safe_feed_url}"
 					>
+						<img class="subscription-choice-avatar" src="${avatar_url}" width="30" height="30" alt="">
 						<div class="subscription-choice-info">
 							<p class="subscription-choice-title">${title}</p>
 							<p class="subscription-choice-url">${display_url}</p>
 						</div>
-						<img class="subscription-choice-avatar" src="${avatar_url}" width="30" height="30" alt="">
 					</button>
 				`;
 			})

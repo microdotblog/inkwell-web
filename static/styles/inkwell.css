@@ -1130,7 +1130,6 @@ button:focus:not(:focus-visible) {
 	display: block;
 	object-fit: cover;
 	border-radius: 999px;
-	margin-left: auto;
 }
 
 .subscription-choice-info {

@@ -198,6 +198,21 @@ export const mockSubscriptions = [
 	}
 ];
 
+export const mockContacts = [
+	{
+		name: "Manton Reece",
+		url: "https://manton.org",
+		photo: "https://avatars.micro.blog/avatars/2025/22/3.jpg",
+		nickname: "manton"
+	},
+	{
+		name: "Manton Test",
+		url: "https://micro.blog/manton2",
+		photo: "https://avatars.micro.blog/avatars/2025/22/3.jpg",
+		nickname: "manton2"
+	}
+];
+
 export const mockReaderContent = {
   "post-001": {
     title: "The Quiet Edge of Morning",
