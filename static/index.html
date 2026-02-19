@@ -298,9 +298,24 @@
 							</button>
 							<h2>Subscriptions</h2>
 						</div>
+						<div class="subscriptions-search search-field">
+							<svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<circle cx="11" cy="11" r="7"></circle>
+								<path d="M16.65 16.65L21 21"></path>
+							</svg>
+							<input
+								type="search"
+								placeholder="Search subscriptions"
+								aria-label="Search subscriptions"
+								autocomplete="off"
+								spellcheck="false"
+								data-subscriptions-target="searchInput"
+								data-action="input->subscriptions#handleSearchInput"
+							>
+						</div>
 						<div class="subscriptions-actions">
 							<button type="button" class="btn-sm" data-action="subscriptions#startNewFeed">New Feed...</button>
-							<button type="button" class="btn-sm" data-subscriptions-target="importButton" data-action="subscriptions#importSubscriptions">Import OPML...</button>
+							<button type="button" class="btn-sm" data-subscriptions-target="importButton" data-action="subscriptions#importSubscriptions">Import OPML</button>
 							<button type="button" class="btn-sm" data-action="subscriptions#exportSubscriptions">Export</button>
 						</div>
 						<input

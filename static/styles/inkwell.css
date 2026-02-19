@@ -1011,14 +1011,16 @@ button:focus:not(:focus-visible) {
 	font-size: 1rem;
 }
 
-.all-highlights-search {
+.all-highlights-search,
+.subscriptions-search {
 	flex: 1 1 220px;
 	max-width: 200px;
 	margin-left: auto;
 	border: 1px solid var(--ink-control-border);
 }
 
-.all-highlights-search:focus-within {
+.all-highlights-search:focus-within,
+.subscriptions-search:focus-within {
 	border-color: var(--ink-control-border-active);
 }
 
@@ -1040,6 +1042,26 @@ button:focus:not(:focus-visible) {
 	align-items: center;
 	gap: 0.5rem;
 	flex-wrap: wrap;
+}
+
+@media (min-width: 901px) {
+	.subscriptions-header {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: center;
+		column-gap: 1rem;
+	}
+
+	.subscriptions-search {
+		justify-self: center;
+		margin-left: 0;
+		margin-right: 0;
+		width: 100%;
+	}
+
+	.subscriptions-actions {
+		justify-self: end;
+	}
 }
 
 .subscriptions-form {
@@ -1946,7 +1968,8 @@ input[type="search"]::-webkit-search-decoration {
 		width: 100%;
 	}
 
-	.all-highlights-search {
+	.all-highlights-search,
+	.subscriptions-search {
 		flex: 1 1 100%;
 		max-width: none;
 	}

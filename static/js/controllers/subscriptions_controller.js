@@ -19,6 +19,7 @@ export default class extends Controller {
 		"list",
 		"formWrapper",
 		"input",
+		"searchInput",
 		"submit",
 		"spinner",
 		"status",
@@ -46,6 +47,7 @@ export default class extends Controller {
 		this.rename_subscription_id = "";
 		this.rename_value = "";
 		this.rename_is_loading = false;
+		this.search_query = "";
 		this.mode = "manage";
 		this.import_delay_ms = 250;
 		this.subscription_icon_urls = new Map();
@@ -786,23 +788,34 @@ export default class extends Controller {
 		this.listTarget.innerHTML = "<p class=\"subscriptions-empty\"><img class=\"subscriptions-spinner\" src=\"/images/progress_spinner.svg\" alt=\"Loading subscriptions\"></p>";
 	}
 
+	handleSearchInput(event) {
+		this.search_query = (event.target?.value || "").trim().toLowerCase();
+		this.render();
+	}
+
 	render() {
 		if (this.is_loading) {
 			return;
 		}
 
-		const sorted = [...this.subscriptions].sort((left, right) => {
+		const sorted_subscriptions = [...this.subscriptions].sort((left, right) => {
 			const left_title = this.getSubscriptionTitle(left);
 			const right_title = this.getSubscriptionTitle(right);
 			return left_title.localeCompare(right_title);
 		});
 
-		if (sorted.length == 0) {
+		if (sorted_subscriptions.length == 0) {
 			this.listTarget.innerHTML = "<p class=\"subscriptions-empty\">No subscriptions yet.</p>";
 			return;
 		}
 
-		const items = sorted
+		const filtered_subscriptions = this.filterSubscriptions(sorted_subscriptions);
+		if (filtered_subscriptions.length == 0) {
+			this.listTarget.innerHTML = "";
+			return;
+		}
+
+		const items = filtered_subscriptions
 			.map((subscription) => {
 				const is_editing = subscription.id == this.rename_subscription_id;
 				const title = this.escapeHtml(this.getSubscriptionTitle(subscription));
@@ -868,6 +881,26 @@ export default class extends Controller {
 			.join("");
 
 		this.listTarget.innerHTML = items;
+	}
+
+	filterSubscriptions(subscriptions) {
+		const query = (this.search_query || "").trim().toLowerCase();
+		if (!query) {
+			return subscriptions;
+		}
+
+		return (subscriptions || []).filter((subscription) => this.matchesSubscriptionSearch(subscription, query));
+	}
+
+	matchesSubscriptionSearch(subscription, query) {
+		if (!subscription) {
+			return false;
+		}
+
+		const title = `${this.getSubscriptionTitle(subscription) || ""}`.toLowerCase();
+		const site_url = `${this.getSubscriptionSiteUrl(subscription) || ""}`.toLowerCase();
+		const feed_url = `${this.getSubscriptionFeedUrl(subscription) || ""}`.toLowerCase();
+		return title.includes(query) || site_url.includes(query) || feed_url.includes(query);
 	}
 
 	getSubscriptionTitle(subscription) {
