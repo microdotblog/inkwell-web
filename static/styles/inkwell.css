@@ -1011,6 +1011,17 @@ button:focus:not(:focus-visible) {
 	font-size: 1rem;
 }
 
+.all-highlights-search {
+	flex: 1 1 220px;
+	max-width: 200px;
+	margin-left: auto;
+	border: 1px solid var(--ink-control-border);
+}
+
+.all-highlights-search:focus-within {
+	border-color: var(--ink-control-border-active);
+}
+
 .subscriptions-header {
 	display: flex;
 	align-items: center;
@@ -1933,6 +1944,11 @@ input[type="search"]::-webkit-search-decoration {
 		max-width: 250px;
 		justify-self: center;
 		width: 100%;
+	}
+
+	.all-highlights-search {
+		flex: 1 1 100%;
+		max-width: none;
 	}
 
 	.search-field {

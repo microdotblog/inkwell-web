@@ -16,7 +16,8 @@ export default class extends Controller {
 		"readerView",
 		"pane",
 		"globalList",
-		"content"
+		"content",
+		"searchInput"
 	];
 
 	connect() {
@@ -25,6 +26,7 @@ export default class extends Controller {
 		this.activePostHasTitle = false;
 		this.highlights = [];
 		this.globalHighlights = [];
+		this.search_query = "";
 		this.isVisible = false;
 		this.handleHighlight = this.handleHighlight.bind(this);
 		this.handleHighlightUpdate = this.handleHighlightUpdate.bind(this);
@@ -201,7 +203,40 @@ export default class extends Controller {
 		if (!this.hasGlobalListTarget) {
 			return;
 		}
-		this.renderHighlightsList(this.globalListTarget, this.globalHighlights, EMPTY_ALL_MESSAGE);
+		const filtered_highlights = this.filterGlobalHighlights();
+		const empty_message = this.search_query
+			? ""
+			: EMPTY_ALL_MESSAGE;
+		this.renderHighlightsList(this.globalListTarget, filtered_highlights, empty_message);
+	}
+
+	handleSearchInput(event) {
+		this.search_query = (event.target?.value || "").trim().toLowerCase();
+		this.renderGlobal();
+	}
+
+	filterGlobalHighlights() {
+		const query = (this.search_query || "").trim().toLowerCase();
+		if (!query) {
+			return this.globalHighlights;
+		}
+
+		return this.globalHighlights.filter((highlight) => this.matchesHighlightQuery(highlight, query));
+	}
+
+	matchesHighlightQuery(highlight, query) {
+		if (!highlight) {
+			return false;
+		}
+
+		const text = `${highlight.text || ""}`.toLowerCase();
+		const post_label = `${this.getPostLabel(highlight) || ""}`.toLowerCase();
+		const post_source = `${highlight.post_source || ""}`.toLowerCase();
+		const post_url = `${this.resolvePostUrl(highlight) || ""}`.toLowerCase();
+		return text.includes(query) ||
+			post_label.includes(query) ||
+			post_source.includes(query) ||
+			post_url.includes(query);
 	}
 
 	renderHighlightsList(target, highlights, empty_message) {
@@ -210,6 +245,10 @@ export default class extends Controller {
 		}
 
 		if (!highlights.length) {
+			if (!empty_message) {
+				target.innerHTML = "";
+				return;
+			}
 			target.innerHTML = `<p class="highlights-empty">${this.escapeHtml(empty_message)}</p>`;
 			return;
 		}

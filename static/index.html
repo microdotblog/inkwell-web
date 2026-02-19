@@ -370,6 +370,21 @@
 							</button>
 							<h2>Highlights</h2>
 						</div>
+						<div class="all-highlights-search search-field">
+							<svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<circle cx="11" cy="11" r="7"></circle>
+								<path d="M16.65 16.65L21 21"></path>
+							</svg>
+							<input
+								type="search"
+								placeholder="Search highlights"
+								aria-label="Search highlights"
+								autocomplete="off"
+								spellcheck="false"
+								data-highlights-target="searchInput"
+								data-action="input->highlights#handleSearchInput"
+							>
+						</div>
 					</header>
 					<div class="highlights-list" data-highlights-target="globalList"></div>
 				</section>
