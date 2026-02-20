@@ -870,6 +870,56 @@ button:focus:not(:focus-visible) {
   margin-bottom: 0;
 }
 
+.right-pane.right-pane--reader-ui-light {
+	color-scheme: light;
+	--ink-text: #1d1a16;
+	--ink-muted: #6b6258;
+	--ink-link: #4779b2;
+	--ink-avatar-border-muted: rgba(29, 26, 22, 0.1);
+	--ink-popover-background: #fff;
+	--ink-popover-border: rgba(29, 26, 22, 0.12);
+	--ink-popover-shadow: rgba(29, 26, 22, 0.18);
+	--ink-button-surface: #f8f8f8;
+	--ink-button-border: rgba(29, 26, 22, 0.12);
+	--ink-button-border-hover: rgba(29, 26, 22, 0.2);
+	--ink-menu-hover: rgba(29, 26, 22, 0.06);
+	--ink-menu-divider: rgba(29, 26, 22, 0.12);
+	--ink-segment-background: #f8f8f8;
+	--ink-segment-border: #d8d8d8;
+	--ink-segment-active: #eaeaea;
+	--ink-control-border: #DDD;
+	--ink-control-background: #f8f8f8;
+	--ink-control-border-active: #c9c9c9;
+	--ink-control-background-active: #e8e8e8;
+	--ink-control-shadow-inset: rgba(0, 0, 0, 0.12);
+	--ink-search-background: #FFF;
+}
+
+.right-pane.right-pane--reader-ui-dark {
+	color-scheme: dark;
+	--ink-text: #F4F6FB;
+	--ink-muted: #B5BDCB;
+	--ink-link: #7CB7FF;
+	--ink-avatar-border-muted: rgba(218, 226, 240, 0.24);
+	--ink-popover-background: #1C2430;
+	--ink-popover-border: rgba(212, 223, 242, 0.18);
+	--ink-popover-shadow: rgba(2, 4, 8, 0.6);
+	--ink-button-surface: #242E3D;
+	--ink-button-border: rgba(226, 234, 247, 0.16);
+	--ink-button-border-hover: rgba(226, 234, 247, 0.3);
+	--ink-menu-hover: rgba(230, 237, 249, 0.09);
+	--ink-menu-divider: rgba(230, 237, 249, 0.15);
+	--ink-segment-background: #212A38;
+	--ink-segment-border: #2B3442;
+	--ink-segment-active: #2D384A;
+	--ink-control-border: #2C3543;
+	--ink-control-background: #1C2532;
+	--ink-control-border-active: #6B9BE4;
+	--ink-control-background-active: #2A3648;
+	--ink-control-shadow-inset: rgba(0, 0, 0, 0.42);
+	--ink-search-background: #1B2431;
+}
+
 .mobile-back-button {
 	display: none;
 }

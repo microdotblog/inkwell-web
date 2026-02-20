@@ -9,6 +9,8 @@ const DARK_MODE_BLOCKQUOTE_BORDER = "#202632";
 const PLATFORM_APPLE = "apple";
 const PLATFORM_WINDOWS = "windows";
 const PLATFORM_ANDROID = "android";
+const RIGHT_PANE_UI_LIGHT_CLASS = "right-pane--reader-ui-light";
+const RIGHT_PANE_UI_DARK_CLASS = "right-pane--reader-ui-dark";
 
 const TEXT_THEMES = [
 	{
@@ -47,6 +49,9 @@ const TEXT_THEMES = [
 		blockquote_border_color: DARK_MODE_BLOCKQUOTE_BORDER
 	}
 ];
+
+const LIGHT_TEXT_THEME_IDS = new Set(["white", "light-gray", "tan"]);
+const DARK_TEXT_THEME_IDS = new Set(["night", "black"]);
 
 const PLATFORM_TEXT_FONTS = {
 	[PLATFORM_APPLE]: [
@@ -485,6 +490,19 @@ export default class extends Controller {
 			this.reader_content_element.style.setProperty("--reader-blockquote-background", selected_theme.blockquote_background_color);
 			this.reader_content_element.style.setProperty("--reader-blockquote-border-color", selected_theme.blockquote_border_color);
 		}
+
+		this.applyRightPaneUiTheme(selected_theme.id);
+	}
+
+	applyRightPaneUiTheme(theme_id) {
+		if (!this.right_pane_element) {
+			return;
+		}
+
+		const is_dark = DARK_TEXT_THEME_IDS.has(theme_id);
+		const is_light = LIGHT_TEXT_THEME_IDS.has(theme_id) || !is_dark;
+		this.right_pane_element.classList.toggle(RIGHT_PANE_UI_LIGHT_CLASS, is_light);
+		this.right_pane_element.classList.toggle(RIGHT_PANE_UI_DARK_CLASS, is_dark);
 	}
 
 	getSelectedTextTheme() {
