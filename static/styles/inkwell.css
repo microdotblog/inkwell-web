@@ -1497,6 +1497,11 @@ input[type="text"].subscription-edit {
 	margin-bottom: 2rem;
 }
 
+.reading-recap-photos {
+	margin-top: 1.5rem;
+	margin-bottom: 1.5rem;
+}
+
 .reading-recap-controls {
 	display: flex;
 	align-items: center;
@@ -1830,7 +1835,7 @@ input[type="search"]::-webkit-search-decoration {
 
 .reply-author {
 	margin: 0 0 0.25rem;
-	font-size: 0.78rem;
+	font-size: 0.82rem;
 	font-weight: 600;
 }
 
@@ -1844,9 +1849,9 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 .reply-content {
-	font-size: 0.82rem;
+	font-size: 0.87rem;
 	color: var(--ink-text);
-	line-height: 1.45;
+	line-height: 1.5;
 }
 
 .reply-content a {
@@ -1863,7 +1868,7 @@ input[type="search"]::-webkit-search-decoration {
 
 .reply-date {
 	margin: 0.35rem 0 0;
-	font-size: 0.72rem;
+	font-size: 0.75rem;
 	color: var(--ink-muted);
 }
 
