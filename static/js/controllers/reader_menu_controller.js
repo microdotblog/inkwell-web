@@ -126,6 +126,7 @@ export default class extends Controller {
 		this.current_post_has_title = false;
 		this.current_conversation_url = "";
 		this.has_conversation = false;
+		this.reader_view_mode = "none";
 		this.is_read = false;
 		this.is_bookmarked = false;
 		this.settings_open = false;
@@ -145,6 +146,9 @@ export default class extends Controller {
 		this.handleReaderClear = this.handleReaderClear.bind(this);
 		this.handleReaderWelcome = this.handleReaderWelcome.bind(this);
 		this.handleReaderSummary = this.handleReaderSummary.bind(this);
+		this.handleSubscriptionsOpen = this.handleSubscriptionsOpen.bind(this);
+		this.handleSubscriptionsClose = this.handleSubscriptionsClose.bind(this);
+		this.handleHighlightsOpen = this.handleHighlightsOpen.bind(this);
 		this.handleConversation = this.handleConversation.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("post:read", this.handlePostRead);
@@ -154,6 +158,9 @@ export default class extends Controller {
 		window.addEventListener("reader:welcome", this.handleReaderWelcome);
 		window.addEventListener("reader:blank", this.handleReaderWelcome);
 		window.addEventListener("reader:summary", this.handleReaderSummary);
+		window.addEventListener("subscriptions:open", this.handleSubscriptionsOpen);
+		window.addEventListener("subscriptions:close", this.handleSubscriptionsClose);
+		window.addEventListener("highlights:open", this.handleHighlightsOpen);
 		window.addEventListener("reader:conversation", this.handleConversation);
 		this.renderFontOptions();
 		this.loadTextSettings();
@@ -174,6 +181,9 @@ export default class extends Controller {
 		window.removeEventListener("reader:welcome", this.handleReaderWelcome);
 		window.removeEventListener("reader:blank", this.handleReaderWelcome);
 		window.removeEventListener("reader:summary", this.handleReaderSummary);
+		window.removeEventListener("subscriptions:open", this.handleSubscriptionsOpen);
+		window.removeEventListener("subscriptions:close", this.handleSubscriptionsClose);
+		window.removeEventListener("highlights:open", this.handleHighlightsOpen);
 		window.removeEventListener("reader:conversation", this.handleConversation);
 	}
 
@@ -226,6 +236,7 @@ export default class extends Controller {
 	handlePostOpen(event) {
 		const post = event.detail?.post;
 		if (!post) {
+			this.reader_view_mode = "none";
 			this.clearState();
 			return;
 		}
@@ -239,9 +250,11 @@ export default class extends Controller {
 		this.current_post_has_title = this.hasPostTitle(this.current_post_title, post.summary);
 		this.current_conversation_url = "";
 		this.has_conversation = false;
+		this.reader_view_mode = "post";
 		this.is_read = Boolean(post.is_read);
 		this.is_bookmarked = Boolean(post.is_bookmarked);
 		this.updateMenuState();
+		this.applyTextSettings();
 	}
 
 	handleConversation(event) {
@@ -280,15 +293,36 @@ export default class extends Controller {
 	}
 
 	handleReaderClear() {
+		this.reader_view_mode = "none";
 		this.clearState();
 	}
 
 	handleReaderWelcome() {
+		this.reader_view_mode = "none";
 		this.clearState();
 	}
 
 	handleReaderSummary() {
+		this.reader_view_mode = "summary";
 		this.clearState();
+	}
+
+	handleSubscriptionsOpen() {
+		this.reader_view_mode = "subscriptions";
+		this.applyTextSettings();
+	}
+
+	handleSubscriptionsClose() {
+		if (this.reader_view_mode != "subscriptions") {
+			return;
+		}
+		this.reader_view_mode = this.current_post_id ? "post" : "none";
+		this.applyTextSettings();
+	}
+
+	handleHighlightsOpen() {
+		this.reader_view_mode = "highlights";
+		this.applyTextSettings();
 	}
 
 	clearState() {
@@ -304,6 +338,7 @@ export default class extends Controller {
 		this.is_read = false;
 		this.is_bookmarked = false;
 		this.updateMenuState();
+		this.applyTextSettings();
 	}
 
 	matchesActivePost(post_id) {
@@ -474,6 +509,10 @@ export default class extends Controller {
 		if (!selected_theme || !selected_font) {
 			return;
 		}
+		if (!this.shouldApplyTextSettings()) {
+			this.clearTextSettingsStyles();
+			return;
+		}
 
 		if (this.right_pane_element) {
 			this.right_pane_element.style.backgroundColor = selected_theme.background_color;
@@ -492,6 +531,30 @@ export default class extends Controller {
 		}
 
 		this.applyRightPaneUiTheme(selected_theme.id);
+	}
+
+	shouldApplyTextSettings() {
+		return this.reader_view_mode == "post" && Boolean(this.current_post_id);
+	}
+
+	clearTextSettingsStyles() {
+		if (this.right_pane_element) {
+			this.right_pane_element.style.backgroundColor = "";
+			this.right_pane_element.classList.remove(RIGHT_PANE_UI_LIGHT_CLASS);
+			this.right_pane_element.classList.remove(RIGHT_PANE_UI_DARK_CLASS);
+		}
+
+		if (this.reader_pane_element) {
+			this.reader_pane_element.style.backgroundColor = "";
+			this.reader_pane_element.style.color = "";
+		}
+
+		if (this.reader_content_element) {
+			this.reader_content_element.style.color = "";
+			this.reader_content_element.style.fontFamily = "";
+			this.reader_content_element.style.removeProperty("--reader-blockquote-background");
+			this.reader_content_element.style.removeProperty("--reader-blockquote-border-color");
+		}
 	}
 
 	applyRightPaneUiTheme(theme_id) {
