@@ -148,6 +148,16 @@
 								<button
 									type="button"
 									class="highlights-toggle"
+									data-action="highlights#showReplies"
+									data-highlights-target="repliesToggle"
+									aria-pressed="false"
+									hidden
+								>
+									0 replies
+								</button>
+								<button
+									type="button"
+									class="highlights-toggle"
 									data-action="highlights#showHighlights"
 									data-highlights-target="toggle"
 									aria-pressed="false"
@@ -259,6 +269,9 @@
 									<button type="button" class="user-menu-item" data-reader-menu-target="filterFeed" data-action="reader-menu#filterFeed">
 										Show All Posts
 									</button>
+									<button type="button" class="user-menu-item" data-reader-menu-target="reply" data-action="reader-menu#replyOnMicroBlog" hidden>
+										Reply on Micro.blog
+									</button>
 								</div>
 							</div>
 						</div>
@@ -280,6 +293,10 @@
 
 					<div class="highlights-pane" data-highlights-target="highlightsPane" hidden>
 						<div class="highlights-list" data-highlights-target="list"></div>
+					</div>
+
+					<div class="highlights-pane replies-pane" data-highlights-target="repliesPane" hidden>
+						<div class="replies-list" data-highlights-target="repliesList"></div>
 					</div>
 				</div>
 

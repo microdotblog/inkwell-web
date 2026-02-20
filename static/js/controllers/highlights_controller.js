@@ -1,5 +1,7 @@
 import { Controller } from "../stimulus.js";
 import { deleteMicroBlogHighlight } from "../api/highlights.js";
+import { fetchConversationReplies } from "../api/feeds.js";
+import { DEFAULT_AVATAR_URL } from "../api/posts.js";
 import { deleteHighlight, getAllHighlights, getHighlightsForPost } from "../storage/highlights.js";
 
 const EMPTY_POST_MESSAGE = "No highlights yet.";
@@ -9,8 +11,11 @@ export default class extends Controller {
 	static targets = [
 		"readerPane",
 		"highlightsPane",
+		"repliesPane",
 		"list",
+		"repliesList",
 		"toggle",
+		"repliesToggle",
 		"readerTab",
 		"tabs",
 		"readerView",
@@ -25,9 +30,12 @@ export default class extends Controller {
 		this.activePostSource = "";
 		this.activePostHasTitle = false;
 		this.highlights = [];
+		this.replies = [];
+		this.conversation_home_page_url = "";
 		this.globalHighlights = [];
 		this.search_query = "";
 		this.isVisible = false;
+		this.post_load_token = 0;
 		this.handleHighlight = this.handleHighlight.bind(this);
 		this.handleHighlightUpdate = this.handleHighlightUpdate.bind(this);
 		this.handlePostOpen = this.handlePostOpen.bind(this);
@@ -36,6 +44,7 @@ export default class extends Controller {
 		this.handleReaderReady = this.handleReaderReady.bind(this);
 		this.handleOpenAll = this.handleOpenAll.bind(this);
 		this.handleSubscriptionsOpen = this.handleSubscriptionsOpen.bind(this);
+		this.handleReplyAvatarError = this.handleReplyAvatarError.bind(this);
 		window.addEventListener("highlight:create", this.handleHighlight);
 		window.addEventListener("highlight:update", this.handleHighlightUpdate);
 		window.addEventListener("post:open", this.handlePostOpen);
@@ -45,6 +54,7 @@ export default class extends Controller {
 		window.addEventListener("reader:ready", this.handleReaderReady);
 		window.addEventListener("highlights:open", this.handleOpenAll);
 		window.addEventListener("subscriptions:open", this.handleSubscriptionsOpen);
+		this.element.addEventListener("error", this.handleReplyAvatarError, true);
 		this.render();
 		this.renderGlobal();
 	}
@@ -59,6 +69,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:ready", this.handleReaderReady);
 		window.removeEventListener("highlights:open", this.handleOpenAll);
 		window.removeEventListener("subscriptions:open", this.handleSubscriptionsOpen);
+		this.element.removeEventListener("error", this.handleReplyAvatarError, true);
 	}
 
 	async handlePostOpen(event) {
@@ -67,10 +78,20 @@ export default class extends Controller {
 		this.activePostId = post?.id || null;
 		this.activePostSource = post?.source || "";
 		this.activePostHasTitle = this.hasPostTitle(post?.title, post?.summary);
-		this.highlights = await getHighlightsForPost(this.activePostId);
+		this.post_load_token += 1;
+		const load_token = this.post_load_token;
+		this.highlights = [];
+		this.resetConversation();
 		this.showReader();
 		this.render();
 		this.restoreReaderHighlights();
+		this.highlights = await getHighlightsForPost(this.activePostId);
+		if (this.post_load_token != load_token) {
+			return;
+		}
+		this.render();
+		this.restoreReaderHighlights();
+		this.loadConversation(post?.url, load_token);
 	}
 
 	handleSummary() {
@@ -79,6 +100,7 @@ export default class extends Controller {
 		this.activePostSource = "";
 		this.activePostHasTitle = false;
 		this.highlights = [];
+		this.resetConversation();
 		this.showReader();
 		this.render();
 		this.restoreReaderHighlights();
@@ -86,7 +108,13 @@ export default class extends Controller {
 
 	handleWelcome() {
 		this.hidePane();
+		this.activePostId = null;
+		this.activePostSource = "";
+		this.activePostHasTitle = false;
+		this.highlights = [];
+		this.resetConversation();
 		this.showReader();
+		this.render();
 		this.restoreReaderHighlights();
 	}
 
@@ -110,6 +138,55 @@ export default class extends Controller {
 
 	handleSubscriptionsOpen() {
 		this.hidePane();
+	}
+
+	async loadConversation(post_url, load_token) {
+		const trimmed_post_url = (post_url || "").trim();
+		if (!trimmed_post_url) {
+			return;
+		}
+
+		try {
+			const payload = await fetchConversationReplies(trimmed_post_url);
+			if (this.post_load_token != load_token) {
+				return;
+			}
+
+			const not_found = payload?.not_found == true;
+			this.replies = this.normalizeReplies(payload?.items);
+			this.conversation_home_page_url = this.normalizeUrl(payload?.home_page_url);
+			this.dispatchConversationState(not_found);
+		}
+		catch (error) {
+			if (this.post_load_token != load_token) {
+				return;
+			}
+
+			console.warn("Failed to fetch post conversation", error);
+			this.replies = [];
+			this.conversation_home_page_url = "";
+			this.dispatchConversationState(false);
+		}
+
+		this.render();
+	}
+
+	resetConversation() {
+		this.replies = [];
+		this.conversation_home_page_url = "";
+		this.dispatchConversationState(false);
+	}
+
+	dispatchConversationState(not_found) {
+		const post_id = String(this.activePostId || "");
+		window.dispatchEvent(new CustomEvent("reader:conversation", {
+			detail: {
+				postId: post_id,
+				url: this.conversation_home_page_url,
+				hasConversation: not_found != true && Boolean(this.conversation_home_page_url),
+				notFound: not_found == true
+			}
+		}));
 	}
 
 	handleHighlight(event) {
@@ -158,10 +235,23 @@ export default class extends Controller {
 
 		this.readerPaneTarget.hidden = true;
 		this.highlightsPaneTarget.hidden = false;
+		this.repliesPaneTarget.hidden = true;
 		this.updateTabs("highlights");
 	}
 
+	showReplies() {
+		if (!this.replies.length) {
+			return;
+		}
+
+		this.readerPaneTarget.hidden = true;
+		this.highlightsPaneTarget.hidden = true;
+		this.repliesPaneTarget.hidden = false;
+		this.updateTabs("replies");
+	}
+
 	showReader() {
+		this.repliesPaneTarget.hidden = true;
 		this.highlightsPaneTarget.hidden = true;
 		this.readerPaneTarget.hidden = false;
 		this.updateTabs("reader");
@@ -191,12 +281,25 @@ export default class extends Controller {
 	}
 
 	render() {
-		const count = this.highlights.length;
-		const label = `${count} highlight${count == 1 ? "" : "s"}`;
-		this.toggleTarget.textContent = label;
-		this.toggleTarget.hidden = count == 0;
-		this.tabsTarget.classList.toggle("is-single", count == 0);
+		const highlight_count = this.highlights.length;
+		const highlight_label = `${highlight_count} highlight${highlight_count == 1 ? "" : "s"}`;
+		this.toggleTarget.textContent = highlight_label;
+		this.toggleTarget.hidden = highlight_count == 0;
+
+		const reply_count = this.replies.length;
+		const reply_label = `${reply_count} repl${reply_count == 1 ? "y" : "ies"}`;
+		this.repliesToggleTarget.textContent = reply_label;
+		this.repliesToggleTarget.hidden = reply_count == 0;
+
+		const has_segments = highlight_count > 0 || reply_count > 0;
+		this.tabsTarget.classList.toggle("is-single", !has_segments);
+
+		if (this.repliesPaneTarget.hidden == false && reply_count == 0) {
+			this.showReader();
+		}
+
 		this.renderHighlightsList(this.listTarget, this.highlights, EMPTY_POST_MESSAGE);
+		this.renderReplies();
 	}
 
 	renderGlobal() {
@@ -257,6 +360,58 @@ export default class extends Controller {
 		target.innerHTML = items;
 	}
 
+	renderReplies() {
+		if (!this.hasRepliesListTarget) {
+			return;
+		}
+		if (!this.replies.length) {
+			this.repliesListTarget.innerHTML = "";
+			return;
+		}
+
+		const reply_markup = this.replies.map((reply) => this.renderReplyItem(reply)).join("");
+		this.repliesListTarget.innerHTML = reply_markup;
+	}
+
+	renderReplyItem(reply) {
+		const author_name = this.escapeHtml(this.getReplyAuthorName(reply));
+		const author_url = this.normalizeUrl(reply?.author?.url || "");
+		const author_avatar = this.normalizeUrl(reply?.author?.avatar || "") || DEFAULT_AVATAR_URL;
+		const safe_avatar = this.escapeAttribute(author_avatar);
+		const safe_author_url = this.escapeAttribute(author_url);
+		const content_html = this.renderReplyContent(reply);
+		const date_text = this.escapeHtml(this.formatReplyDate(reply?.date_published));
+		const author_markup = author_url
+			? `<a href="${safe_author_url}" target="_blank" rel="noopener noreferrer">${author_name}</a>`
+			: author_name;
+
+		return `
+			<article class="reply-item">
+				<img class="reply-avatar" src="${safe_avatar}" alt="" loading="lazy" width="30" height="30">
+				<div class="reply-body">
+					<p class="reply-author">${author_markup}</p>
+					<div class="reply-content">${content_html}</div>
+					<p class="reply-date">${date_text}</p>
+				</div>
+			</article>
+		`;
+	}
+
+	renderReplyContent(reply) {
+		const content_html = (reply?.content_html || "").trim();
+		if (content_html) {
+			return this.sanitizeHtml(content_html);
+		}
+
+		const content_text = `${reply?.content_text || ""}`.trim();
+		if (!content_text) {
+			return "";
+		}
+
+		const safe_text = this.escapeHtml(content_text).replace(/\r?\n/g, "<br>");
+		return `<p>${safe_text}</p>`;
+	}
+
 	renderHighlightItem(highlight) {
 		const highlight_id = this.escapeAttribute(highlight.id || "");
 		const post_id = this.escapeAttribute(highlight.post_id || "");
@@ -288,9 +443,9 @@ export default class extends Controller {
 	}
 
 	updateTabs(active_tab) {
-		const is_reader = active_tab == "reader";
-		this.readerTabTarget.setAttribute("aria-pressed", is_reader ? "true" : "false");
-		this.toggleTarget.setAttribute("aria-pressed", is_reader ? "false" : "true");
+		this.readerTabTarget.setAttribute("aria-pressed", active_tab == "reader" ? "true" : "false");
+		this.repliesToggleTarget.setAttribute("aria-pressed", active_tab == "replies" ? "true" : "false");
+		this.toggleTarget.setAttribute("aria-pressed", active_tab == "highlights" ? "true" : "false");
 	}
 
 	newPost(event) {
@@ -679,6 +834,129 @@ export default class extends Controller {
 			return null;
 		}
 		return date;
+	}
+
+	normalizeReplies(items) {
+		if (!Array.isArray(items)) {
+			return [];
+		}
+
+		return items.filter((item) => item && typeof item == "object");
+	}
+
+	getReplyAuthorName(reply) {
+		const name = `${reply?.author?.name || ""}`.trim();
+		if (name) {
+			return name;
+		}
+
+		const username = `${reply?.author?._microblog?.username || ""}`.trim();
+		if (username) {
+			return username;
+		}
+		return "Unknown";
+	}
+
+	formatReplyDate(raw_date) {
+		const date = this.parseDate(raw_date);
+		if (!date) {
+			return "";
+		}
+
+		const date_text = new Intl.DateTimeFormat("en-US", {
+			month: "numeric",
+			day: "numeric",
+			year: "numeric"
+		}).format(date);
+		const time_text = new Intl.DateTimeFormat("en-US", {
+			hour: "numeric",
+			minute: "2-digit",
+			hour12: true
+		}).format(date).toLowerCase();
+		return `${date_text} ${time_text}`;
+	}
+
+	handleReplyAvatarError(event) {
+		const image_el = event.target;
+		if (!image_el || image_el.tagName != "IMG") {
+			return;
+		}
+		if (!image_el.classList.contains("reply-avatar")) {
+			return;
+		}
+
+		const current_src = image_el.getAttribute("src") || "";
+		if (current_src == DEFAULT_AVATAR_URL) {
+			return;
+		}
+		image_el.src = DEFAULT_AVATAR_URL;
+	}
+
+	normalizeUrl(raw_url) {
+		const trimmed = `${raw_url || ""}`.trim();
+		if (!trimmed) {
+			return "";
+		}
+
+		try {
+			return new URL(trimmed).toString();
+		}
+		catch (error) {
+			try {
+				return new URL(`https://${trimmed}`).toString();
+			}
+			catch (second_error) {
+				return "";
+			}
+		}
+	}
+
+	sanitizeHtml(markup) {
+		if (!markup) {
+			return "";
+		}
+
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(markup, "text/html");
+		const blocked_tags = ["script", "style", "iframe", "object", "embed", "link", "meta"];
+		blocked_tags.forEach((tag) => {
+			doc.querySelectorAll(tag).forEach((node) => node.remove());
+		});
+
+		const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
+		let node = walker.nextNode();
+		while (node) {
+			[...node.attributes].forEach((attribute) => {
+				const name = attribute.name.toLowerCase();
+				const value = attribute.value.trim().toLowerCase();
+				if (name.startsWith("on")) {
+					node.removeAttribute(attribute.name);
+				}
+				if ((name == "href" || name == "src") && value.startsWith("javascript:")) {
+					node.removeAttribute(attribute.name);
+				}
+			});
+
+			const tag_name = node.tagName ? node.tagName.toLowerCase() : "";
+			if (tag_name == "a") {
+				const href = (node.getAttribute("href") || "").trim();
+				if (href) {
+					node.setAttribute("target", "_blank");
+					const rel_tokens = (node.getAttribute("rel") || "")
+						.split(/\s+/)
+						.map((token) => token.trim().toLowerCase())
+						.filter(Boolean);
+					const rel_set = new Set(rel_tokens);
+					rel_set.add("noopener");
+					rel_set.add("noreferrer");
+					node.setAttribute("rel", [...rel_set].join(" "));
+				}
+			}
+
+			node = walker.nextNode();
+		}
+
+		return doc.body.innerHTML;
 	}
 
 	hasPostTitle(title, summary) {

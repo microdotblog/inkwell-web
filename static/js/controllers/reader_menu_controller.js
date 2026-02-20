@@ -99,6 +99,7 @@ export default class extends Controller {
 		"newPost",
 		"copyLink",
 		"filterFeed",
+		"reply",
 		"toggleRead",
 		"bookmark",
 		"toggleReadLabel",
@@ -118,6 +119,8 @@ export default class extends Controller {
 		this.current_feed_source = "";
 		this.current_post_source = "";
 		this.current_post_has_title = false;
+		this.current_conversation_url = "";
+		this.has_conversation = false;
 		this.is_read = false;
 		this.is_bookmarked = false;
 		this.settings_open = false;
@@ -137,6 +140,7 @@ export default class extends Controller {
 		this.handleReaderClear = this.handleReaderClear.bind(this);
 		this.handleReaderWelcome = this.handleReaderWelcome.bind(this);
 		this.handleReaderSummary = this.handleReaderSummary.bind(this);
+		this.handleConversation = this.handleConversation.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("post:read", this.handlePostRead);
 		window.addEventListener("post:unread", this.handlePostUnread);
@@ -145,6 +149,7 @@ export default class extends Controller {
 		window.addEventListener("reader:welcome", this.handleReaderWelcome);
 		window.addEventListener("reader:blank", this.handleReaderWelcome);
 		window.addEventListener("reader:summary", this.handleReaderSummary);
+		window.addEventListener("reader:conversation", this.handleConversation);
 		this.renderFontOptions();
 		this.loadTextSettings();
 		this.ensureSelectedTextFont();
@@ -164,6 +169,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:welcome", this.handleReaderWelcome);
 		window.removeEventListener("reader:blank", this.handleReaderWelcome);
 		window.removeEventListener("reader:summary", this.handleReaderSummary);
+		window.removeEventListener("reader:conversation", this.handleConversation);
 	}
 
 	toggle() {
@@ -226,8 +232,21 @@ export default class extends Controller {
 		this.current_feed_source = (post.source || "").trim();
 		this.current_post_source = (post.source || "").trim();
 		this.current_post_has_title = this.hasPostTitle(this.current_post_title, post.summary);
+		this.current_conversation_url = "";
+		this.has_conversation = false;
 		this.is_read = Boolean(post.is_read);
 		this.is_bookmarked = Boolean(post.is_bookmarked);
+		this.updateMenuState();
+	}
+
+	handleConversation(event) {
+		const post_id = String(event.detail?.postId || "");
+		if (!post_id || post_id != String(this.current_post_id || "")) {
+			return;
+		}
+
+		this.current_conversation_url = (event.detail?.url || "").trim();
+		this.has_conversation = Boolean(event.detail?.hasConversation) && Boolean(this.current_conversation_url);
 		this.updateMenuState();
 	}
 
@@ -275,6 +294,8 @@ export default class extends Controller {
 		this.current_feed_source = "";
 		this.current_post_source = "";
 		this.current_post_has_title = false;
+		this.current_conversation_url = "";
+		this.has_conversation = false;
 		this.is_read = false;
 		this.is_bookmarked = false;
 		this.updateMenuState();
@@ -288,11 +309,14 @@ export default class extends Controller {
 		const has_post = Boolean(this.current_post_id);
 		const has_link = Boolean(this.current_post_url);
 		const has_feed = Boolean(this.current_feed_id);
+		const has_reply = has_post && this.has_conversation && Boolean(this.current_conversation_url);
 		const read_label = this.is_read ? "Mark as Unread" : "Mark as Read";
 		const bookmark_label = this.is_bookmarked ? "Unbookmark" : "Bookmark";
 		this.newPostTarget.disabled = !has_link;
 		this.copyLinkTarget.disabled = !has_link;
 		this.filterFeedTarget.disabled = !has_feed;
+		this.replyTarget.hidden = !has_reply;
+		this.replyTarget.disabled = !has_reply;
 		this.toggleReadTarget.hidden = !has_feed;
 		if (this.hasToggleReadLabelTarget) {
 			this.toggleReadLabelTarget.textContent = read_label;
@@ -533,6 +557,16 @@ export default class extends Controller {
 				}
 			})
 		);
+		this.close();
+	}
+
+	replyOnMicroBlog(event) {
+		event.preventDefault();
+		if (!this.current_conversation_url) {
+			return;
+		}
+
+		window.open(this.current_conversation_url, "_blank", "noopener,noreferrer");
 		this.close();
 	}
 

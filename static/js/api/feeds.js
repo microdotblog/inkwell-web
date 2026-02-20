@@ -583,6 +583,51 @@ export async function unstarFeedEntries(entryIds) {
 	});
 }
 
+export async function fetchConversationReplies(post_url) {
+	const trimmed_post_url = (post_url || "").trim();
+	if (!trimmed_post_url) {
+		return { items: [], home_page_url: "", not_found: false };
+	}
+
+	const params = new URLSearchParams({
+		url: trimmed_post_url,
+		format: "jsonfeed"
+	});
+	const url = new URL(`/conversation.js?${params.toString()}`, `${getFeedsBaseUrl()}/`);
+	const headers = new Headers({
+		"Accept": "application/json"
+	});
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers
+	});
+	if (response.status == 404) {
+		return { items: [], home_page_url: "", not_found: true };
+	}
+	if (!response.ok) {
+		const response_text = await response.text();
+		const request_error = new Error(`Feeds conversation failed: ${response.status}`);
+		request_error.response_text = response_text;
+		throw request_error;
+	}
+
+	try {
+		const payload = await response.json();
+		return {
+			...payload,
+			not_found: false
+		};
+	}
+	catch (error) {
+		return { items: [], home_page_url: "", not_found: false };
+	}
+}
+
 export async function summarizeFeedEntries(entryIds) {
 	const ids = Array.isArray(entryIds) ? entryIds.filter(Boolean).map(String) : [];
 	if (ids.length == 0) {

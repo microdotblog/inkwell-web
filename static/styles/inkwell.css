@@ -1798,6 +1798,75 @@ input[type="search"]::-webkit-search-decoration {
 	margin-top: 0.7rem;
 }
 
+.replies-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	margin-top: 0.7rem;
+}
+
+.reply-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.6rem;
+	margin-top: 0;
+	margin-bottom: 0;
+	padding-left: 0;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+}
+
+.reply-avatar {
+	width: 30px;
+	height: 30px;
+	border-radius: 999px;
+	border: 1px solid var(--ink-avatar-border-muted);
+	flex: 0 0 auto;
+}
+
+.reply-body {
+	min-width: 0;
+}
+
+.reply-author {
+	margin: 0 0 0.25rem;
+	font-size: 0.78rem;
+	font-weight: 600;
+}
+
+.reply-author a {
+	color: var(--ink-text);
+	text-decoration: none;
+}
+
+.reply-author a:hover {
+	text-decoration: underline;
+}
+
+.reply-content {
+	font-size: 0.82rem;
+	color: var(--ink-text);
+	line-height: 1.45;
+}
+
+.reply-content a {
+	text-decoration: none;
+}
+
+.reply-content a:hover {
+	text-decoration: underline;
+}
+
+.reply-content p:last-child {
+	margin-bottom: 0;
+}
+
+.reply-date {
+	margin: 0.35rem 0 0;
+	font-size: 0.72rem;
+	color: var(--ink-muted);
+}
+
 .highlight-item {
   padding: 0.25rem 0;
 }
