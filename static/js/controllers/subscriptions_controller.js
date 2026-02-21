@@ -59,6 +59,7 @@ export default class extends Controller {
 		window.addEventListener("subscriptions:close", this.handleClose);
 		window.addEventListener("auth:ready", this.handleAuthReady);
 		window.addEventListener("post:open", this.handlePostOpen);
+		window.addEventListener("reader:summary", this.handlePostOpen);
 		this.resetImportStatus();
 		this.setImporting(this.is_importing);
 	}
@@ -68,6 +69,7 @@ export default class extends Controller {
 		window.removeEventListener("subscriptions:close", this.handleClose);
 		window.removeEventListener("auth:ready", this.handleAuthReady);
 		window.removeEventListener("post:open", this.handlePostOpen);
+		window.removeEventListener("reader:summary", this.handlePostOpen);
 	}
 
 	handleAuthReady() {
