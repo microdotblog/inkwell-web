@@ -15,8 +15,11 @@
 	--ink-pane-divider: rgba(107, 98, 88, 0.15);
 	--ink-sidebar-divider-line: var(--ink-pane-divider);
 	--ink-sidebar-divider-shadow: none;
+	--ink-summary-background: var(--ink-left-pane-background);
 	--ink-summary-divider-line: var(--ink-card-border);
-	--ink-summary-divider-shadow: none;
+	--ink-summary-divider-shadow-color: transparent;
+	--ink-summary-divider-shadow-fade: transparent;
+	--ink-summary-divider-shadow-size: 0px;
 	--ink-avatar-border: #DDD;
 	--ink-avatar-border-muted: rgba(29, 26, 22, 0.1);
 	--ink-popover-background: #fff;
@@ -679,8 +682,16 @@ button:focus:not(:focus-visible) {
 	margin-top: -10px;
 	margin-bottom: 10px;
 	padding: 0.6rem;
-	border-bottom: 1px solid var(--ink-card-border);
-	background-color: var(--ink-day-4-cell);
+	border-bottom: 1px solid var(--ink-summary-divider-line, var(--ink-card-border));
+	background-color: var(--ink-summary-background, var(--ink-left-pane-background));
+	background-image:
+		linear-gradient(to bottom, var(--ink-summary-divider-shadow-color, transparent), var(--ink-summary-divider-shadow-fade, transparent)),
+		linear-gradient(to top, var(--ink-summary-divider-shadow-color, transparent), var(--ink-summary-divider-shadow-fade, transparent));
+	background-repeat: no-repeat;
+	background-size:
+		100% var(--ink-summary-divider-shadow-size, 0px),
+		100% var(--ink-summary-divider-shadow-size, 0px);
+	background-position: top left, bottom left;
 }
 
 .timeline-feed-filter-label {
@@ -698,8 +709,15 @@ button:focus:not(:focus-visible) {
 	margin-bottom: 10px;
 	padding: 0.6rem;
 	border-bottom: 1px solid var(--ink-summary-divider-line, var(--ink-card-border));
-	background-color: var(--ink-left-pane-background);
-	box-shadow: var(--ink-summary-divider-shadow, none);
+	background-color: var(--ink-summary-background, var(--ink-left-pane-background));
+	background-image:
+		linear-gradient(to bottom, var(--ink-summary-divider-shadow-color, transparent), var(--ink-summary-divider-shadow-fade, transparent)),
+		linear-gradient(to top, var(--ink-summary-divider-shadow-color, transparent), var(--ink-summary-divider-shadow-fade, transparent));
+	background-repeat: no-repeat;
+	background-size:
+		100% var(--ink-summary-divider-shadow-size, 0px),
+		100% var(--ink-summary-divider-shadow-size, 0px);
+	background-position: top left, bottom left;
 }
 
 .timeline-summary-detail {
@@ -714,11 +732,13 @@ button:focus:not(:focus-visible) {
 	animation: spinner-rotate 0.9s linear infinite;
 }
 
+.timeline-feed-filter .btn-sm,
 .timeline-summary-item .btn-sm {
 	background-color: var(--ink-control-background);
 	border-color: var(--ink-control-border);
 }
 
+.timeline-feed-filter .btn-sm:hover,
 .timeline-summary-item .btn-sm:hover {
 	background-color: var(--ink-control-background);
 	border-color: var(--ink-control-border);
