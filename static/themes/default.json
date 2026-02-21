@@ -11,6 +11,10 @@
 		"--ink-auth-card-background": "rgba(255, 255, 255, 0.6)",
 		"--ink-left-pane-background": "#f4f6f9",
 		"--ink-pane-divider": "rgba(107, 98, 88, 0.15)",
+		"--ink-sidebar-divider-line": "rgba(107, 98, 88, 0.15)",
+		"--ink-sidebar-divider-shadow": "none",
+		"--ink-summary-divider-line": "rgba(29, 26, 22, 0.08)",
+		"--ink-summary-divider-shadow": "none",
 		"--ink-avatar-border": "#DDD",
 		"--ink-avatar-border-muted": "rgba(29, 26, 22, 0.1)",
 		"--ink-popover-background": "#fff",
@@ -62,6 +66,9 @@
 		"--ink-day-4-border": "#E3E7EE",
 		"--ink-day-5-border": "#E3E7EE",
 		"--ink-day-6-border": "#E3E7EE",
-		"--ink-day-7-border": "#E3E7EE"
+		"--ink-day-7-border": "#E3E7EE",
+		"--ink-timeline-read-opacity": "0.4",
+		"--ink-timeline-read-background": "var(--row-color, var(--ink-row-default))",
+		"--ink-timeline-read-border": "var(--ink-card-border)"
 	}
 }

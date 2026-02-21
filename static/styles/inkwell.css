@@ -13,6 +13,10 @@
 	--ink-auth-card-background: rgba(255, 255, 255, 0.6);
 	--ink-left-pane-background: #f4f6f9;
 	--ink-pane-divider: rgba(107, 98, 88, 0.15);
+	--ink-sidebar-divider-line: var(--ink-pane-divider);
+	--ink-sidebar-divider-shadow: none;
+	--ink-summary-divider-line: var(--ink-card-border);
+	--ink-summary-divider-shadow: none;
 	--ink-avatar-border: #DDD;
 	--ink-avatar-border-muted: rgba(29, 26, 22, 0.1);
 	--ink-popover-background: #fff;
@@ -65,6 +69,9 @@
 	--ink-day-5-border: #E3E7EE;
 	--ink-day-6-border: #E3E7EE;
 	--ink-day-7-border: #E3E7EE;
+	--ink-timeline-read-opacity: 0.4;
+	--ink-timeline-read-background: var(--row-color, var(--ink-row-default));
+	--ink-timeline-read-border: var(--ink-card-border);
 	color-scheme: light;
 }
 
@@ -254,11 +261,14 @@ button:focus:not(:focus-visible) {
 	padding: 1rem;
 	min-height: 82px;
 	max-height: 82px;
-	border-bottom: 1px solid var(--ink-pane-divider);
+	border-bottom: 1px solid var(--ink-sidebar-divider-line, var(--ink-pane-divider));
+	box-shadow: var(--ink-sidebar-divider-shadow, none);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	text-align: center;
+	position: relative;
+	z-index: 1;
 }
 
 .sidebar-controls {
@@ -687,8 +697,9 @@ button:focus:not(:focus-visible) {
 	margin-top: -10px;
 	margin-bottom: 10px;
 	padding: 0.6rem;
-	border-bottom: 1px solid var(--ink-card-border);
+	border-bottom: 1px solid var(--ink-summary-divider-line, var(--ink-card-border));
 	background-color: var(--ink-left-pane-background);
+	box-shadow: var(--ink-summary-divider-shadow, none);
 }
 
 .timeline-summary-detail {
@@ -701,6 +712,16 @@ button:focus:not(:focus-visible) {
 	height: 20px;
 	margin-left: auto;
 	animation: spinner-rotate 0.9s linear infinite;
+}
+
+.timeline-summary-item .btn-sm {
+	background-color: var(--ink-control-background);
+	border-color: var(--ink-control-border);
+}
+
+.timeline-summary-item .btn-sm:hover {
+	background-color: var(--ink-control-background);
+	border-color: var(--ink-control-border);
 }
 
 .timeline.is-loading {
@@ -749,7 +770,9 @@ button:focus:not(:focus-visible) {
 }
 
 .timeline-item.is-read {
-  opacity: 0.4;
+	opacity: var(--ink-timeline-read-opacity, 0.4);
+	background: var(--ink-timeline-read-background, var(--row-color, var(--ink-row-default)));
+	border-color: var(--ink-timeline-read-border, var(--ink-card-border));
 }
 
 .timeline-item.is-archived {

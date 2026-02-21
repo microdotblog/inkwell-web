@@ -11,6 +11,10 @@
 		"--ink-auth-card-background": "rgba(22, 28, 39, 0.74)",
 		"--ink-left-pane-background": "#171E29",
 		"--ink-pane-divider": "#2B3442",
+		"--ink-sidebar-divider-line": "rgba(255, 255, 255, 0)",
+		"--ink-sidebar-divider-shadow": "0 2px 5px rgba(4, 8, 14, 0.42)",
+		"--ink-summary-divider-line": "rgba(255, 255, 255, 0)",
+		"--ink-summary-divider-shadow": "inset 0 -2px 5px rgba(4, 8, 14, 0.42)",
 		"--ink-avatar-border": "#3B4456",
 		"--ink-avatar-border-muted": "rgba(218, 226, 240, 0.24)",
 		"--ink-popover-background": "#1C2430",
@@ -62,6 +66,9 @@
 		"--ink-day-4-border": "#2E4766",
 		"--ink-day-5-border": "#293F59",
 		"--ink-day-6-border": "#24364B",
-		"--ink-day-7-border": "#1E2D3E"
+		"--ink-day-7-border": "#1E2D3E",
+		"--ink-timeline-read-opacity": "0.42",
+		"--ink-timeline-read-background": "color-mix(in srgb, var(--row-color, var(--ink-row-default)) 34%, var(--ink-left-pane-background))",
+		"--ink-timeline-read-border": "color-mix(in srgb, var(--row-border, var(--ink-row-border)) 34%, var(--ink-left-pane-background))"
 	}
 }
