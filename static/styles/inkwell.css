@@ -1563,7 +1563,12 @@ input[type="text"].subscription-edit {
 }
 
 .reading-recap {
-	padding-bottom: 1rem;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	padding-left: 18px;
+	padding-right: 18px;
+	border-radius: 10px;
+	margin-bottom: 2rem;
 }
 
 .reading-recap img {
@@ -1571,7 +1576,8 @@ input[type="text"].subscription-edit {
 	margin-right: 4px;
 }
 
-.reading-recap h2 {
+.reader-content .reading-recap h2 {
+	margin-top: 0.1rem;
 	margin-bottom: 1rem;
 	display: flex;
 	align-items: center;
@@ -1587,7 +1593,7 @@ input[type="text"].subscription-edit {
 }
 
 .reading-recap ul {
-	margin-bottom: 2rem;
+	margin-bottom: 0;
 }
 
 .reading-recap-photos {

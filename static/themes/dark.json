@@ -10,7 +10,7 @@
 		"--ink-auth-background": "#151B24",
 		"--ink-auth-card-background": "rgba(22, 28, 39, 0.74)",
 		"--ink-left-pane-background": "#171E29",
-		"--ink-summary-background": "#151C27",
+		"--ink-summary-background": "#141B25",
 		"--ink-pane-divider": "#2B3442",
 		"--ink-sidebar-divider-line": "rgba(255, 255, 255, 0)",
 		"--ink-sidebar-divider-shadow": "0 2px 5px rgba(4, 8, 14, 0.42)",

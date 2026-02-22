@@ -54,6 +54,7 @@ export default class extends Controller {
 		this.handleSummaryAvatarError = this.handleSummaryAvatarError.bind(this);
 		this.handleRecapBookmarkClick = this.handleRecapBookmarkClick.bind(this);
 		this.handleRecapEmailSettingsChange = this.handleRecapEmailSettingsChange.bind(this);
+		this.handleThemeApplied = this.handleThemeApplied.bind(this);
 		this.handleKeydown = this.handleKeydown.bind(this);
 		this.handleToggleRead = this.handleToggleRead.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
@@ -63,6 +64,7 @@ export default class extends Controller {
 		window.addEventListener("reader:resolvingRoute", this.handleResolvingRoute);
 		window.addEventListener("reader:summary", this.handleSummary);
 		window.addEventListener("reader:toggleRead", this.handleToggleRead);
+		window.addEventListener("theme:applied", this.handleThemeApplied);
 		window.addEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.addEventListener("error", this.handleAvatarError);
 		this.contentTarget.addEventListener("error", this.handleSummaryAvatarError, true);
@@ -85,6 +87,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:resolvingRoute", this.handleResolvingRoute);
 		window.removeEventListener("reader:summary", this.handleSummary);
 		window.removeEventListener("reader:toggleRead", this.handleToggleRead);
+		window.removeEventListener("theme:applied", this.handleThemeApplied);
 		window.removeEventListener("keydown", this.handleKeydown);
 		this.avatarTarget.removeEventListener("error", this.handleAvatarError);
 		this.contentTarget.removeEventListener("error", this.handleSummaryAvatarError, true);
@@ -380,7 +383,12 @@ export default class extends Controller {
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
 		this.contentTarget.innerHTML = this.sanitizeHtml(decorated_summary_html);
+		this.applyRecapColors();
 		this.loadRecapEmailSettings();
+	}
+
+	handleThemeApplied() {
+		this.applyRecapColors();
 	}
 
 	clearReader() {
@@ -764,13 +772,78 @@ export default class extends Controller {
 
 		const recap_container = doc.querySelector(".reading-recap");
 		if (recap_container) {
-			recap_container.insertBefore(settings_el, recap_container.firstChild);
+			doc.body.insertBefore(settings_el, recap_container);
 		}
 		else {
 			doc.body.insertBefore(settings_el, doc.body.firstChild);
 		}
 
 		return doc.body.innerHTML;
+	}
+
+	applyRecapColors() {
+		const recap_els = this.contentTarget.querySelectorAll(".reading-recap");
+		if (!recap_els.length) {
+			return;
+		}
+
+		const is_dark_theme = this.isDarkTheme();
+		recap_els.forEach((recap_el) => {
+			const light_color = this.normalizeRecapColor(recap_el.dataset.colorLight);
+			const dark_color = this.normalizeRecapColor(recap_el.dataset.colorDark || recap_el.dataset.colorRight);
+			const recap_base_color = is_dark_theme
+				? (dark_color || light_color)
+				: (light_color || dark_color);
+			const recap_color = this.withRecapColorOpacity(recap_base_color);
+
+			recap_el.style.backgroundColor = recap_color || "";
+		});
+	}
+
+	isDarkTheme() {
+		const root_theme = (document.documentElement.dataset.theme || "").trim().toLowerCase();
+		if (root_theme == "dark") {
+			return true;
+		}
+		if (root_theme == "default") {
+			return false;
+		}
+		if (typeof window == "undefined" || typeof window.matchMedia != "function") {
+			return false;
+		}
+		return window.matchMedia("(prefers-color-scheme: dark)").matches;
+	}
+
+	normalizeRecapColor(raw_color) {
+		const normalized_color = (raw_color || "").trim();
+		if (!normalized_color) {
+			return "";
+		}
+
+		const is_hex_color = /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(normalized_color);
+		if (!is_hex_color) {
+			return "";
+		}
+
+		const hex = normalized_color.slice(1);
+		if (hex.length == 3 || hex.length == 4) {
+			const expanded = [...hex].map((character) => `${character}${character}`).join("");
+			return `#${expanded}`;
+		}
+
+		return `#${hex}`;
+	}
+
+	withRecapColorOpacity(color_value) {
+		const normalized_color = this.normalizeRecapColor(color_value);
+		if (!normalized_color) {
+			return "";
+		}
+
+		const base_color = normalized_color.length == 9
+			? normalized_color.slice(0, 7)
+			: normalized_color;
+		return `${base_color}80`;
 	}
 
 	normalizeRecapEmailDay(raw_day) {

@@ -562,6 +562,10 @@ export default class extends Controller {
         detail: { source: "timeline" }
       })
     );
+
+		if (!this.isLoading) {
+			this.render();
+		}
   }
 
 	handleClick(event) {
@@ -1234,7 +1238,7 @@ export default class extends Controller {
 	}
 
 	renderSummaryItem(has_posts, summary_count, summary_label) {
-		const is_disabled = !has_posts || this.summary_is_loading;
+		const is_disabled = !has_posts || this.summary_is_loading || this.isSyncing;
 		const spinner_hidden = this.summary_is_loading ? "" : "hidden";
 		const disabled_attribute = is_disabled ? "disabled" : "";
 		return `
@@ -1267,6 +1271,9 @@ export default class extends Controller {
 		}
 
 		if (this.summary_is_loading) {
+			return;
+		}
+		if (this.isSyncing) {
 			return;
 		}
 
