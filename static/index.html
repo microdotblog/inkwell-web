@@ -6,7 +6,7 @@
     <title>Inkwell</title>
     <link rel="modulepreload" href="/js/stimulus.vendor.js?20260213.1">
 	<link rel="stylesheet" href="/styles/pico.css?20260213.1">
-	<link rel="stylesheet" href="/styles/inkwell.css?20260216.16">
+	<link rel="stylesheet" href="/styles/inkwell.css?20260222.1">
   </head>
   <body>
     <main data-controller="auth session" data-auth-state="loading">
@@ -53,6 +53,9 @@
 					</button>
 					<button type="button" class="user-menu-item" data-action="user-menu#openHighlights user-menu#close">
 						Highlights
+					</button>
+					<button type="button" class="user-menu-item" data-action="user-menu#openDiscover user-menu#close">
+						Discover
 					</button>
 					<div class="user-menu-divider" role="separator"></div>
 					<button type="button" class="user-menu-item" data-action="user-menu#refresh user-menu#close">
@@ -119,9 +122,9 @@
             <div class="timeline" data-timeline-target="list"></div>
           </aside>
 
-          <section class="right-pane" data-controller="reader highlight highlights subscriptions">
+          <section class="right-pane" data-controller="reader highlight highlights subscriptions discover">
             <div class="right-content">              
-				<div class="reader-view" data-subscriptions-target="readerView" data-highlights-target="readerView">
+				<div class="reader-view" data-subscriptions-target="readerView" data-highlights-target="readerView" data-discover-target="readerView">
 					<header class="reader-header">
 						<div class="reader-primary">
 							<button
@@ -420,12 +423,32 @@
 					</header>
 					<div class="highlights-list" data-highlights-target="globalList"></div>
 				</section>
+				<section class="discover-pane" data-discover-target="pane" hidden>
+					<header class="discover-header">
+						<div class="pane-header-primary">
+							<button
+								type="button"
+								class="mobile-back-button"
+								data-action="session#showTimeline"
+								aria-label="Back to timeline"
+							>
+								<svg class="mobile-back-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+									<path d="M14 6L8 12L14 18"></path>
+								</svg>
+							</button>
+							<h2>Discover</h2>
+						</div>
+					</header>
+					<p class="discover-description">A curated list of personal and indie blogs from <a href="https://blogroll.org/" target="_blank">Blogroll.org</a>.</p>
+					<div class="discover-topics" data-discover-target="topics"></div>
+					<div class="discover-list" data-discover-target="list"></div>
+				</section>
             </div>
           </section>
         </div>
       </section>
     </main>
 
-    <script type="module" src="/js/app.js?20260216.6"></script>
+    <script type="module" src="/js/app.js?20260222.1"></script>
   </body>
 </html>

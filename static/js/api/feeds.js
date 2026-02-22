@@ -459,6 +459,10 @@ export async function fetchFeedIcons() {
   return fetchFeedsJson("/feeds/v2/icons.json");
 }
 
+export async function fetchBlogrollDirectory() {
+	return fetchFeedsJson("/blogroll.org.json");
+}
+
 export async function fetchBookmarkedPosts() {
 	return fetchFeedsJson("/posts/bookmarks");
 }

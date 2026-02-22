@@ -55,11 +55,13 @@ export default class extends Controller {
 		this.handleClose = this.handleClose.bind(this);
 		this.handleAuthReady = this.handleAuthReady.bind(this);
 		this.handlePostOpen = this.handlePostOpen.bind(this);
+		this.handleDiscoverOpen = this.handleDiscoverOpen.bind(this);
 		window.addEventListener("subscriptions:open", this.handleOpen);
 		window.addEventListener("subscriptions:close", this.handleClose);
 		window.addEventListener("auth:ready", this.handleAuthReady);
 		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("reader:summary", this.handlePostOpen);
+		window.addEventListener("discover:open", this.handleDiscoverOpen);
 		this.resetImportStatus();
 		this.setImporting(this.is_importing);
 	}
@@ -70,6 +72,7 @@ export default class extends Controller {
 		window.removeEventListener("auth:ready", this.handleAuthReady);
 		window.removeEventListener("post:open", this.handlePostOpen);
 		window.removeEventListener("reader:summary", this.handlePostOpen);
+		window.removeEventListener("discover:open", this.handleDiscoverOpen);
 	}
 
 	handleAuthReady() {
@@ -109,6 +112,11 @@ export default class extends Controller {
 	}
 
 	handlePostOpen() {
+		this.hidePane();
+		this.setReaderEmptyState(false);
+	}
+
+	handleDiscoverOpen() {
 		this.hidePane();
 		this.setReaderEmptyState(false);
 	}

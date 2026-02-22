@@ -44,6 +44,7 @@ export default class extends Controller {
 		this.handleReaderReady = this.handleReaderReady.bind(this);
 		this.handleOpenAll = this.handleOpenAll.bind(this);
 		this.handleSubscriptionsOpen = this.handleSubscriptionsOpen.bind(this);
+		this.handleDiscoverOpen = this.handleDiscoverOpen.bind(this);
 		this.handleReplyAvatarError = this.handleReplyAvatarError.bind(this);
 		window.addEventListener("highlight:create", this.handleHighlight);
 		window.addEventListener("highlight:update", this.handleHighlightUpdate);
@@ -54,6 +55,7 @@ export default class extends Controller {
 		window.addEventListener("reader:ready", this.handleReaderReady);
 		window.addEventListener("highlights:open", this.handleOpenAll);
 		window.addEventListener("subscriptions:open", this.handleSubscriptionsOpen);
+		window.addEventListener("discover:open", this.handleDiscoverOpen);
 		this.element.addEventListener("error", this.handleReplyAvatarError, true);
 		this.render();
 		this.renderGlobal();
@@ -69,6 +71,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:ready", this.handleReaderReady);
 		window.removeEventListener("highlights:open", this.handleOpenAll);
 		window.removeEventListener("subscriptions:open", this.handleSubscriptionsOpen);
+		window.removeEventListener("discover:open", this.handleDiscoverOpen);
 		this.element.removeEventListener("error", this.handleReplyAvatarError, true);
 	}
 
@@ -137,6 +140,10 @@ export default class extends Controller {
 	}
 
 	handleSubscriptionsOpen() {
+		this.hidePane();
+	}
+
+	handleDiscoverOpen() {
 		this.hidePane();
 	}
 

@@ -13,6 +13,7 @@ export default class extends Controller {
 		window.addEventListener("reader:resolvingRoute", this.handleDetailOpen);
 		window.addEventListener("subscriptions:open", this.handleDetailOpen);
 		window.addEventListener("highlights:open", this.handleDetailOpen);
+		window.addEventListener("discover:open", this.handleDetailOpen);
 		window.addEventListener("reader:clear", this.handleDetailClose);
 		window.addEventListener("reader:welcome", this.handleDetailClose);
 		window.addEventListener("reader:blank", this.handleDetailClose);
@@ -26,6 +27,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:resolvingRoute", this.handleDetailOpen);
 		window.removeEventListener("subscriptions:open", this.handleDetailOpen);
 		window.removeEventListener("highlights:open", this.handleDetailOpen);
+		window.removeEventListener("discover:open", this.handleDetailOpen);
 		window.removeEventListener("reader:clear", this.handleDetailClose);
 		window.removeEventListener("reader:welcome", this.handleDetailClose);
 		window.removeEventListener("reader:blank", this.handleDetailClose);
