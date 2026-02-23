@@ -21,12 +21,13 @@ const TOPIC_LABELS = {
 };
 
 export default class extends Controller {
-	static targets = ["pane", "readerView", "topics", "list"];
+	static targets = ["pane", "readerView", "topics", "list", "searchInput"];
 
 	connect() {
 		this.entries = [];
 		this.topics = [];
 		this.active_topic = "";
+		this.search_query = "";
 		this.is_visible = false;
 		this.is_loading = false;
 		this.has_loaded = false;
@@ -118,6 +119,13 @@ export default class extends Controller {
 			return;
 		}
 
+		if (this.search_query) {
+			this.search_query = "";
+			if (this.hasSearchInputTarget) {
+				this.searchInputTarget.value = "";
+			}
+		}
+
 		this.active_topic = next_topic;
 		this.render();
 	}
@@ -176,16 +184,43 @@ export default class extends Controller {
 			return;
 		}
 
-		const matching_entries = this.active_topic
-			? this.getEntriesForTopic(this.active_topic)
-			: this.getSortedEntries(this.entries);
+		const matching_entries = this.getFilteredEntries();
 		if (!matching_entries.length) {
-			this.listTarget.innerHTML = "<p class=\"discover-empty\">No blogs found for this topic.</p>";
+			if (this.search_query) {
+				this.listTarget.innerHTML = "<p class=\"discover-empty\">No blogs match this search.</p>";
+				return;
+			}
+			if (this.active_topic) {
+				this.listTarget.innerHTML = "<p class=\"discover-empty\">No blogs found for this topic.</p>";
+				return;
+			}
+			this.listTarget.innerHTML = "<p class=\"discover-empty\">No blogs found.</p>";
 			return;
 		}
 
 		const list_markup = matching_entries.map((entry) => this.renderSite(entry)).join("");
 		this.listTarget.innerHTML = list_markup;
+	}
+
+	handleSearchInput(event) {
+		this.search_query = (event.target?.value || "").trim().toLowerCase();
+		if (this.search_query && this.active_topic) {
+			this.active_topic = "";
+		}
+		this.render();
+	}
+
+	getFilteredEntries() {
+		let matching_entries = this.active_topic
+			? this.getEntriesForTopic(this.active_topic)
+			: this.getSortedEntries(this.entries);
+
+		if (!this.search_query) {
+			return matching_entries;
+		}
+
+		const search_query = this.search_query;
+		return matching_entries.filter((entry) => this.matchesSearchQuery(entry, search_query));
 	}
 
 	getEntriesForTopic(topic_key) {
@@ -199,6 +234,25 @@ export default class extends Controller {
 			const left_title = (left_entry.title || "").toLowerCase();
 			const right_title = (right_entry.title || "").toLowerCase();
 			return left_title.localeCompare(right_title);
+		});
+	}
+
+	matchesSearchQuery(entry, search_query) {
+		if (!entry) {
+			return false;
+		}
+
+		const search_fields = [
+			entry.title,
+			entry.description,
+			entry.url
+		];
+
+		return search_fields.some((field) => {
+			if (!field) {
+				return false;
+			}
+			return field.toLowerCase().includes(search_query);
 		});
 	}
 

@@ -1096,7 +1096,21 @@ button:focus:not(:focus-visible) {
 	align-items: center;
 	justify-content: space-between;
 	gap: 1rem;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
+}
+
+.discover-search {
+	flex: 0 0 220px;
+	width: 220px;
+	max-width: 220px;
+	margin-left: auto;
+	border: 1px solid var(--ink-control-border);
+	height: 36px;
+	padding: 0.15rem 0.35rem;
+}
+
+.discover-search:focus-within {
+	border-color: var(--ink-control-border-active);
 }
 
 .discover-description {
@@ -2239,9 +2253,16 @@ input[type="search"]::-webkit-search-decoration {
 	}
 
 	.all-highlights-search,
-	.subscriptions-search {
+	.subscriptions-search,
+	.discover-search {
 		flex: 1 1 100%;
 		max-width: none;
+		width: 100%;
+		min-width: 0;
+	}
+
+	.discover-header {
+		flex-wrap: wrap;
 	}
 
 	.search-field {

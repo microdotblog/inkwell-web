@@ -6,7 +6,7 @@
     <title>Inkwell</title>
     <link rel="modulepreload" href="/js/stimulus.vendor.js?20260213.1">
 	<link rel="stylesheet" href="/styles/pico.css?20260213.1">
-	<link rel="stylesheet" href="/styles/inkwell.css?20260222.1">
+	<link rel="stylesheet" href="/styles/inkwell.css?20260222.3">
   </head>
   <body>
     <main data-controller="auth session" data-auth-state="loading">
@@ -438,6 +438,21 @@
 							</button>
 							<h2>Discover</h2>
 						</div>
+						<div class="discover-search search-field">
+							<svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<circle cx="11" cy="11" r="7"></circle>
+								<path d="M16.65 16.65L21 21"></path>
+							</svg>
+							<input
+								type="search"
+								placeholder="Search blogs"
+								aria-label="Search blogs"
+								autocomplete="off"
+								spellcheck="false"
+								data-discover-target="searchInput"
+								data-action="input->discover#handleSearchInput"
+							>
+						</div>
 					</header>
 					<p class="discover-description">A curated list of personal and indie blogs from <a href="https://blogroll.org/" target="_blank">Blogroll.org</a>.</p>
 					<div class="discover-topics" data-discover-target="topics"></div>
@@ -449,6 +464,6 @@
       </section>
     </main>
 
-    <script type="module" src="/js/app.js?20260222.1"></script>
+    <script type="module" src="/js/app.js?20260222.2"></script>
   </body>
 </html>
