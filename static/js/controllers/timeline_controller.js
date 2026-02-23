@@ -245,6 +245,7 @@ export default class extends Controller {
 	}
 
 	handleTimelineOpenFeeds() {
+		this.scrollTimelineToTop(true);
 		this.switchTimelineMode(TIMELINE_MODE_FEEDS);
 	}
 

@@ -210,6 +210,22 @@ export default class extends Controller {
 		this.render();
 	}
 
+	subscribe(event) {
+		event.preventDefault();
+		const feed_url = (event.currentTarget?.dataset.feedUrl || "").trim();
+		if (!feed_url) {
+			return;
+		}
+
+		window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
+		window.dispatchEvent(new CustomEvent("subscriptions:open", {
+			detail: {
+				mode: "subscribe",
+				feedUrl: feed_url
+			}
+		}));
+	}
+
 	getFilteredEntries() {
 		let matching_entries = this.active_topic
 			? this.getEntriesForTopic(this.active_topic)
@@ -262,6 +278,7 @@ export default class extends Controller {
 		const site_url = this.escapeAttribute(entry.url || "");
 		const display_url = this.escapeHtml(this.displayUrl(entry.url || ""));
 		const avatar_url = this.escapeAttribute(this.getFaviconUrl(entry.url || ""));
+		const feed_url = this.escapeAttribute(entry.url || "");
 		const description_markup = site_description
 			? `<p class="discover-site-description">${site_description}</p>`
 			: "";
@@ -273,6 +290,9 @@ export default class extends Controller {
 					<h3 class="discover-site-title">${site_title}</h3>
 					${description_markup}
 					<p class="discover-site-url"><a href="${site_url}" target="_blank" rel="noopener noreferrer">${display_url}</a></p>
+				</div>
+				<div class="discover-site-actions">
+					<button type="button" class="btn-sm" data-feed-url="${feed_url}" data-action="discover#subscribe">Subscribe</button>
 				</div>
 			</article>
 		`;

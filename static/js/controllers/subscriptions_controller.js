@@ -83,6 +83,7 @@ export default class extends Controller {
 
 	handleOpen(event) {
 		const mode = event.detail?.mode || "manage";
+		const feed_url = (event.detail?.feedUrl || "").trim();
 		this.mode = mode;
 		this.element.hidden = false;
 		this.showPane();
@@ -91,8 +92,21 @@ export default class extends Controller {
 		this.clearStatus();
 
 		if (this.mode === "subscribe") {
+			if (feed_url && this.hasInputTarget) {
+				this.inputTarget.value = feed_url;
+			}
 			requestAnimationFrame(() => {
+				if (feed_url && this.hasInputTarget && typeof this.inputTarget.setSelectionRange == "function") {
+					const input_length = this.inputTarget.value.length;
+					this.inputTarget.setSelectionRange(input_length, input_length);
+				}
 				this.inputTarget.focus();
+				if (feed_url) {
+					const form = this.inputTarget.form;
+					if (form && typeof form.requestSubmit == "function") {
+						form.requestSubmit();
+					}
+				}
 			});
 		}
 	}

@@ -1158,6 +1158,19 @@ button:focus:not(:focus-visible) {
 
 .discover-site-content {
 	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.discover-site-actions {
+	margin-left: auto;
+	display: inline-flex;
+	align-items: flex-start;
+	flex: 0 0 auto;
+}
+
+.discover-site-actions .btn-sm {
+	margin: 0;
+	white-space: nowrap;
 }
 
 .discover-site-title {
