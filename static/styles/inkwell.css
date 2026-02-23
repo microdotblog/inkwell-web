@@ -1693,6 +1693,7 @@ input[type="text"].subscription-edit {
 	padding-right: 18px;
 	border-radius: 10px;
 	margin-bottom: 2rem;
+	--recap-topics-background: rgba(0, 0, 0, 0.08);
 }
 
 .reading-recap img {
@@ -1700,12 +1701,38 @@ input[type="text"].subscription-edit {
 	margin-right: 4px;
 }
 
-.reader-content .reading-recap h2 {
+.reading-recap .reading-header {
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
 	margin-top: 0.1rem;
 	margin-bottom: 1rem;
+}
+
+.reader-content .reading-recap .reading-header h2 {
+	margin: 0;
 	display: flex;
 	align-items: center;
 	gap: 0.4rem;
+}
+
+.reading-recap .reading-header .topics {
+	margin: 0 0 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.35rem;
+}
+
+.reading-recap .reading-header .topics span {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.18rem 0.48rem;
+	border-radius: 999px;
+	background: var(--recap-topics-background);
+	font-size: 0.68rem;
+	line-height: 1.2;
+	white-space: nowrap;
 }
 
 .reading-recap h2 img {

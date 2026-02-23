@@ -795,8 +795,10 @@ export default class extends Controller {
 				? (dark_color || light_color)
 				: (light_color || dark_color);
 			const recap_color = this.withRecapColorOpacity(recap_base_color);
+			const recap_topics_color = this.withRecapColorOpacity(recap_base_color, "e6");
 
 			recap_el.style.backgroundColor = recap_color || "";
+			recap_el.style.setProperty("--recap-topics-background", recap_topics_color || "");
 		});
 	}
 
@@ -834,7 +836,7 @@ export default class extends Controller {
 		return `#${hex}`;
 	}
 
-	withRecapColorOpacity(color_value) {
+	withRecapColorOpacity(color_value, opacity_hex = "80") {
 		const normalized_color = this.normalizeRecapColor(color_value);
 		if (!normalized_color) {
 			return "";
@@ -843,7 +845,9 @@ export default class extends Controller {
 		const base_color = normalized_color.length == 9
 			? normalized_color.slice(0, 7)
 			: normalized_color;
-		return `${base_color}80`;
+		const normalized_opacity = (opacity_hex || "").trim().toLowerCase();
+		const safe_opacity = /^[0-9a-f]{2}$/i.test(normalized_opacity) ? normalized_opacity : "80";
+		return `${base_color}${safe_opacity}`;
 	}
 
 	normalizeRecapEmailDay(raw_day) {
