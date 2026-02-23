@@ -261,13 +261,14 @@ export default class extends Controller {
 		const site_description = this.escapeHtml(entry.description || "");
 		const site_url = this.escapeAttribute(entry.url || "");
 		const display_url = this.escapeHtml(this.displayUrl(entry.url || ""));
+		const avatar_url = this.escapeAttribute(this.getFaviconUrl(entry.url || ""));
 		const description_markup = site_description
 			? `<p class="discover-site-description">${site_description}</p>`
 			: "";
 
 		return `
 			<article class="discover-site">
-				<img class="discover-site-avatar" src="${DEFAULT_AVATAR_URL}" alt="" loading="lazy" width="30" height="30">
+				<img class="discover-site-avatar" src="${avatar_url}" alt="" loading="lazy" width="30" height="30">
 				<div class="discover-site-content">
 					<h3 class="discover-site-title">${site_title}</h3>
 					${description_markup}
@@ -275,6 +276,24 @@ export default class extends Controller {
 				</div>
 			</article>
 		`;
+	}
+
+	getFaviconUrl(raw_url) {
+		const trimmed_url = (raw_url || "").trim();
+		if (!trimmed_url) {
+			return DEFAULT_AVATAR_URL;
+		}
+
+		try {
+			const domain = new URL(trimmed_url).hostname;
+			if (!domain) {
+				return DEFAULT_AVATAR_URL;
+			}
+			return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}`;
+		}
+		catch (error) {
+			return DEFAULT_AVATAR_URL;
+		}
 	}
 
 	normalizeTopics(raw_categories, entries) {
