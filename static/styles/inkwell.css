@@ -110,6 +110,11 @@ blockquote p:last-child {
 	margin-bottom: 0;
 }
 
+video {
+	max-width: 100%;
+	height: auto;
+}
+
 button[type="submit"] {
 	font-size: 0.9rem;
 	padding-left: 7px;
