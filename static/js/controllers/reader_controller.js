@@ -796,9 +796,28 @@ export default class extends Controller {
 				: (light_color || dark_color);
 			const recap_color = this.withRecapColorOpacity(recap_base_color);
 			const recap_topics_color = this.withRecapColorOpacity(recap_base_color, "e6");
+			const recap_blockquote_background = this.withRecapColorOpacity(recap_base_color, "99");
+			const recap_blockquote_border = this.withRecapColorOpacity(recap_base_color, "ff");
 
 			recap_el.style.backgroundColor = recap_color || "";
-			recap_el.style.setProperty("--recap-topics-background", recap_topics_color || "");
+			if (recap_topics_color) {
+				recap_el.style.setProperty("--recap-topics-background", recap_topics_color);
+			}
+			else {
+				recap_el.style.removeProperty("--recap-topics-background");
+			}
+			if (recap_blockquote_background) {
+				recap_el.style.setProperty("--recap-blockquote-background", recap_blockquote_background);
+			}
+			else {
+				recap_el.style.removeProperty("--recap-blockquote-background");
+			}
+			if (recap_blockquote_border) {
+				recap_el.style.setProperty("--recap-blockquote-border", recap_blockquote_border);
+			}
+			else {
+				recap_el.style.removeProperty("--recap-blockquote-border");
+			}
 		});
 	}
 

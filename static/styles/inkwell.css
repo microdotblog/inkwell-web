@@ -1694,6 +1694,8 @@ input[type="text"].subscription-edit {
 	border-radius: 10px;
 	margin-bottom: 2rem;
 	--recap-topics-background: rgba(0, 0, 0, 0.08);
+	--recap-blockquote-background: #e1e3f0;
+	--recap-blockquote-border: #9b99cb;
 }
 
 .reading-recap img {
@@ -1812,9 +1814,9 @@ input[type="text"].subscription-edit {
 }
 
 .reading-recap blockquote {
-	background: #e1e3f0;
-	border-left-color: #9b99cb;
-	border-inline-start-color: #9b99cb;
+	background: var(--recap-blockquote-background);
+	border-left-color: var(--recap-blockquote-border);
+	border-inline-start-color: var(--recap-blockquote-border);
 }
 
 .reading-recap-quote {
@@ -1955,9 +1957,9 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 .reader-content blockquote {
-	background: var(--reader-blockquote-background);
-	border-left-color: var(--reader-blockquote-border-color);
-	border-inline-start-color: var(--reader-blockquote-border-color);
+	background: var(--recap-blockquote-background, var(--reader-blockquote-background));
+	border-left-color: var(--recap-blockquote-border, var(--reader-blockquote-border-color));
+	border-inline-start-color: var(--recap-blockquote-border, var(--reader-blockquote-border-color));
 }
 
 .reader-content h3 {
