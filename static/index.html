@@ -436,9 +436,40 @@
 									<path d="M14 6L8 12L14 18"></path>
 								</svg>
 							</button>
-							<h2>Discover</h2>
+							<div class="segments discover-tabs" data-discover-target="segments">
+								<button
+									type="button"
+									class="discover-tab"
+									data-segment="microblog"
+									data-action="discover#showMicroBlog"
+									aria-pressed="true"
+								>
+									<img class="discover-tab-icon" src="https://cdn.micro.blog/images/icons/favicon_64.png" alt="" width="16" height="16">
+									<span class="discover-tab-label">Micro.blog</span>
+								</button>
+								<button
+									type="button"
+									class="discover-tab"
+									data-segment="blogroll"
+									data-action="discover#showBlogroll"
+									aria-pressed="false"
+								>
+									<img class="discover-tab-icon" src="https://blogroll.org/favicon.ico" alt="" width="16" height="16">
+									<span class="discover-tab-label">Blogroll.org</span>
+								</button>
+								<button
+									type="button"
+									class="discover-tab"
+									data-segment="slowreads"
+									data-action="discover#showSlowReads"
+									aria-pressed="false"
+								>
+									<span class="discover-tab-emoji" aria-hidden="true">🐢</span>
+									<span class="discover-tab-label">Slow Reads</span>
+								</button>
+							</div>
 						</div>
-						<div class="discover-search search-field">
+						<div class="discover-search search-field" data-discover-target="search">
 							<svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 								<circle cx="11" cy="11" r="7"></circle>
 								<path d="M16.65 16.65L21 21"></path>
@@ -454,7 +485,7 @@
 							>
 						</div>
 					</header>
-					<p class="discover-description">A curated list of personal and indie blogs from <a href="https://blogroll.org/" target="_blank">Blogroll.org</a>.</p>
+					<p class="discover-description" data-discover-target="description">A curated list of personal and indie blogs from <a href="https://blogroll.org/" target="_blank">Blogroll.org</a>.</p>
 					<div class="discover-topics" data-discover-target="topics"></div>
 					<div class="discover-list" data-discover-target="list"></div>
 				</section>
@@ -464,6 +495,6 @@
       </section>
     </main>
 
-    <script type="module" src="/js/app.js?20260222.2"></script>
+    <script type="module" src="/js/app.js?20260225.1"></script>
   </body>
 </html>

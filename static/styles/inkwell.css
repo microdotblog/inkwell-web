@@ -1104,6 +1104,42 @@ button:focus:not(:focus-visible) {
 	flex-wrap: nowrap;
 }
 
+.discover-header .pane-header-primary {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.discover-tabs {
+	display: flex;
+	flex: 1 1 auto;
+	width: auto;
+	max-width: 430px;
+	min-width: 0;
+}
+
+.discover-tabs .discover-tab {
+	flex: 1 1 0;
+	justify-content: center;
+	gap: 0.35rem;
+}
+
+.discover-tab-icon {
+	width: 16px;
+	height: 16px;
+	border-radius: 4px;
+	flex: 0 0 auto;
+}
+
+.discover-tab-emoji {
+	font-size: 0.9rem;
+	line-height: 1;
+	flex: 0 0 auto;
+}
+
+.discover-tab-label {
+	line-height: 1.1;
+}
+
 .discover-search {
 	flex: 0 0 220px;
 	width: 220px;
@@ -1141,7 +1177,8 @@ button:focus:not(:focus-visible) {
 .discover-list {
 	display: flex;
 	flex-direction: column;
-	gap: 0.85rem;
+	gap: 1rem;
+	margin-top: 0.7rem;
 }
 
 .discover-site {
@@ -1203,6 +1240,38 @@ button:focus:not(:focus-visible) {
 }
 
 .discover-site-url a:hover {
+	text-decoration: underline;
+}
+
+.discover-post {
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+}
+
+.discover-post-body {
+	flex: 1 1 auto;
+}
+
+.discover-post-content > :first-child {
+	margin-top: 0;
+}
+
+.discover-post-content img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 6px;
+}
+
+.discover-post-date {
+	margin-top: 0.35rem;
+}
+
+.discover-post-date-link {
+	color: var(--ink-muted);
+	text-decoration: none;
+}
+
+.discover-post-date-link:hover {
 	text-decoration: underline;
 }
 
@@ -2310,6 +2379,10 @@ input[type="search"]::-webkit-search-decoration {
 
 	.discover-header {
 		flex-wrap: wrap;
+	}
+
+	.discover-tabs {
+		max-width: none;
 	}
 
 	.search-field {
