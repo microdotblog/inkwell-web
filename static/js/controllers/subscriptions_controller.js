@@ -151,8 +151,10 @@ export default class extends Controller {
 			return;
 		}
 		this.paneTarget.hidden = true;
-		this.readerViewTarget.hidden = false;
 		this.is_visible = false;
+		if (!this.hasVisibleOverlayPane()) {
+			this.readerViewTarget.hidden = false;
+		}
 		this.restoreReaderEmptyState();
 	}
 
@@ -1287,6 +1289,14 @@ export default class extends Controller {
 
 	resetScrollPosition() {
 		this.element.scrollTop = 0;
+	}
+
+	hasVisibleOverlayPane() {
+		const pane_selectors = [".subscriptions-pane", ".all-highlights-pane", ".discover-pane"];
+		return pane_selectors.some((selector) => {
+			const pane_el = this.element.querySelector(selector);
+			return pane_el && pane_el.hidden == false;
+		});
 	}
 
 	restoreReaderEmptyState() {
