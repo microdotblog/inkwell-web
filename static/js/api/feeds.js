@@ -463,6 +463,10 @@ export async function fetchBlogrollDirectory() {
 	return fetchFeedsJson("/blogroll.org.json");
 }
 
+export async function fetchDiscoverPosts() {
+	return fetchFeedsJson("/posts/discover");
+}
+
 export async function fetchBookmarkedPosts() {
 	return fetchFeedsJson("/posts/bookmarks");
 }
