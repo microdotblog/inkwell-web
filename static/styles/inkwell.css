@@ -1132,6 +1132,18 @@ button:focus:not(:focus-visible) {
 	margin-bottom: 1rem;
 }
 
+.discover-topic.btn-sm {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.2rem;
+}
+
+.discover-topic-icon {
+	width: 16px;
+	height: 16px;
+	flex: 0 0 auto;
+}
+
 .discover-topic.btn-sm[aria-pressed="true"] {
 	border-color: var(--ink-control-border-active);
 	background: var(--ink-control-background-active);

@@ -195,6 +195,10 @@ export default class extends Controller {
 
 		const topics_markup = this.topics.map((topic_key) => {
 			const is_active = topic_key == this.active_topic;
+			const topic_label = this.escapeHtml(this.topicLabel(topic_key));
+			const label_markup = topic_key == RECENTLY_ON_MICRO_BLOG_TOPIC_KEY
+				? `<img class="discover-topic-icon" src="https://cdn.micro.blog/images/icons/favicon_32.png" alt="" aria-hidden="true" width="16" height="16"><span>${topic_label}</span>`
+				: topic_label;
 			return `
 				<button
 					type="button"
@@ -202,7 +206,7 @@ export default class extends Controller {
 					data-topic="${this.escapeAttribute(topic_key)}"
 					data-action="discover#selectTopic"
 					aria-pressed="${is_active ? "true" : "false"}"
-				>${this.escapeHtml(this.topicLabel(topic_key))}</button>
+				>${label_markup}</button>
 			`;
 		}).join("");
 		this.topicsTarget.innerHTML = topics_markup;
