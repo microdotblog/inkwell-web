@@ -202,15 +202,15 @@
 										<span class="user-menu-label" data-reader-menu-target="bookmarkLabel">Bookmark</span>
 										<span class="user-menu-shortcut">B</span>
 									</button>
-										<button
-											type="button"
-											class="user-menu-item reader-menu-text-settings-toggle"
-											data-reader-menu-target="textSettingsToggle"
-											data-action="reader-menu#toggleTextSettings"
-											aria-expanded="false"
-										>
-											<span class="user-menu-label">Text Settings</span>
-										</button>
+									<button
+										type="button"
+										class="user-menu-item reader-menu-text-settings-toggle"
+										data-reader-menu-target="textSettingsToggle"
+										data-action="reader-menu#toggleTextSettings"
+										aria-expanded="false"
+									>
+										<span class="user-menu-label">Text Settings</span>
+									</button>
 									<div class="reader-menu-text-settings" data-reader-menu-target="textSettingsPane">
 										<p class="reader-text-settings-label">Background</p>
 										<div class="reader-text-theme-grid">
@@ -267,6 +267,34 @@
 										</div>
 										<p class="reader-text-settings-label">Font</p>
 										<div class="reader-text-font-list" data-reader-menu-target="fontList"></div>
+										<p class="reader-text-settings-label">Size</p>
+										<div class="reader-text-size-row">
+											<button
+												type="button"
+												class="reader-text-size-option"
+												data-reader-menu-target="sizeDecrease"
+												data-action="reader-menu#decreaseTextSize"
+												aria-label="Decrease text size"
+												title="Decrease text size"
+											>
+												<svg class="reader-text-size-icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+													<path d="M2.5 6H9.5"></path>
+												</svg>
+											</button>
+											<button
+												type="button"
+												class="reader-text-size-option"
+												data-reader-menu-target="sizeIncrease"
+												data-action="reader-menu#increaseTextSize"
+												aria-label="Increase text size"
+												title="Increase text size"
+											>
+												<svg class="reader-text-size-icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+													<path d="M2.5 6H9.5"></path>
+													<path d="M6 2.5V9.5"></path>
+												</svg>
+											</button>
+										</div>
 									</div>
 									<div class="user-menu-divider" role="separator"></div>
 									<button type="button" class="user-menu-item" data-reader-menu-target="filterFeed" data-action="reader-menu#filterFeed">

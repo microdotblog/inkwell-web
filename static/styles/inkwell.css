@@ -432,6 +432,10 @@ button:focus:not(:focus-visible) {
 	margin-top: 0.9rem;
 }
 
+.reader-text-font-list + .reader-text-settings-label {
+	margin-top: 0.9rem;
+}
+
 .reader-text-theme-grid {
 	display: flex;
 	align-items: center;
@@ -453,6 +457,47 @@ button:focus:not(:focus-visible) {
 .reader-text-theme-option.is-selected {
 	border-color: var(--ink-control-border-active);
 	box-shadow: 0 0 0 1px var(--ink-control-border-active);
+}
+
+.reader-text-size-row {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin: 0 0 0.6rem;
+}
+
+.reader-text-size-option {
+	border: 1px solid var(--ink-button-border);
+	background: var(--ink-button-surface);
+	color: var(--ink-text);
+	width: 24px;
+	height: 24px;
+	border-radius: 7px;
+	cursor: pointer;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	place-items: center;
+}
+
+.reader-text-size-icon {
+	display: block;
+	width: 11px;
+	height: 11px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.1;
+	stroke-linecap: round;
+	pointer-events: none;
+}
+
+.reader-text-size-option:hover:not(:disabled) {
+	border-color: var(--ink-control-border-active);
+}
+
+.reader-text-size-option:disabled {
+	opacity: 0.5;
+	cursor: default;
 }
 
 .reader-text-font-list {

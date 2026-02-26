@@ -2,6 +2,11 @@ import { Controller } from "../stimulus.js";
 
 const TEXT_SETTINGS_STORAGE_KEY = "inkwell_reader_text_settings";
 const DEFAULT_TEXT_THEME_ID = "white";
+const DEFAULT_TEXT_SIZE_STEP = 0;
+const BASE_TEXT_SIZE_REM = 0.9;
+const TEXT_SIZE_STEP_REM = 0.1;
+const MIN_TEXT_SIZE_STEP = -2;
+const MAX_TEXT_SIZE_STEP = 6;
 const LIGHT_MODE_BLOCKQUOTE_BACKGROUND = "#F8F8F8";
 const DARK_MODE_BLOCKQUOTE_BACKGROUND = "#212A38";
 const LIGHT_MODE_BLOCKQUOTE_BORDER = "#E7EAF0";
@@ -112,6 +117,8 @@ export default class extends Controller {
 		"textSettingsToggle",
 		"textSettingsPane",
 		"colorOption",
+		"sizeDecrease",
+		"sizeIncrease",
 		"fontList",
 		"fontOption"
 	];
@@ -134,6 +141,7 @@ export default class extends Controller {
 		this.available_text_fonts = this.getFontsForPlatform(this.platform_font_group);
 		this.selected_text_theme_id = DEFAULT_TEXT_THEME_ID;
 		this.selected_text_font_id = this.available_text_fonts[0]?.id || "";
+		this.selected_text_size_step = DEFAULT_TEXT_SIZE_STEP;
 		this.right_pane_element = this.findRightPaneElement();
 		this.reader_pane_element = this.findReaderPaneElement();
 		this.reader_content_element = this.findReaderContentElement();
@@ -406,6 +414,29 @@ export default class extends Controller {
 		this.updateTextSettingsControls();
 	}
 
+	decreaseTextSize(event) {
+		event.preventDefault();
+		this.bumpTextSize(-1);
+	}
+
+	increaseTextSize(event) {
+		event.preventDefault();
+		this.bumpTextSize(1);
+	}
+
+	bumpTextSize(step_delta) {
+		const current_step = Number(this.selected_text_size_step) || DEFAULT_TEXT_SIZE_STEP;
+		const next_step = this.clampTextSizeStep(current_step + step_delta);
+		if (next_step == current_step) {
+			return;
+		}
+
+		this.selected_text_size_step = next_step;
+		this.persistTextSettings();
+		this.applyTextSettings();
+		this.updateTextSettingsControls();
+	}
+
 	renderTextSettingsPane() {
 		if (this.hasTextSettingsPaneTarget) {
 			this.textSettingsPaneTarget.classList.toggle("is-open", this.settings_open);
@@ -432,6 +463,14 @@ export default class extends Controller {
 				button.classList.toggle("is-selected", is_selected);
 				button.setAttribute("aria-pressed", is_selected ? "true" : "false");
 			});
+		}
+
+		this.selected_text_size_step = this.clampTextSizeStep(this.selected_text_size_step);
+		if (this.hasSizeDecreaseTarget) {
+			this.sizeDecreaseTarget.disabled = this.selected_text_size_step <= MIN_TEXT_SIZE_STEP;
+		}
+		if (this.hasSizeIncreaseTarget) {
+			this.sizeIncreaseTarget.disabled = this.selected_text_size_step >= MAX_TEXT_SIZE_STEP;
 		}
 	}
 
@@ -470,11 +509,15 @@ export default class extends Controller {
 
 			const saved_theme_id = typeof payload.theme_id == "string" ? payload.theme_id.trim() : "";
 			const saved_font_id = typeof payload.font_id == "string" ? payload.font_id.trim() : "";
+			const parsed_size_step = Number(payload.size_step);
 			if (saved_theme_id && this.getTextThemeById(saved_theme_id)) {
 				this.selected_text_theme_id = saved_theme_id;
 			}
 			if (saved_font_id && this.getTextFontById(saved_font_id)) {
 				this.selected_text_font_id = saved_font_id;
+			}
+			if (Number.isFinite(parsed_size_step)) {
+				this.selected_text_size_step = this.clampTextSizeStep(parsed_size_step);
 			}
 		}
 		catch (error) {
@@ -492,7 +535,8 @@ export default class extends Controller {
 	persistTextSettings() {
 		const payload = {
 			theme_id: this.selected_text_theme_id,
-			font_id: this.selected_text_font_id
+			font_id: this.selected_text_font_id,
+			size_step: this.selected_text_size_step
 		};
 
 		try {
@@ -526,6 +570,7 @@ export default class extends Controller {
 		if (this.reader_content_element) {
 			this.reader_content_element.style.color = selected_theme.text_color;
 			this.reader_content_element.style.fontFamily = selected_font.font_family;
+			this.reader_content_element.style.fontSize = `${this.getSelectedTextSizeRem()}rem`;
 			this.reader_content_element.style.setProperty("--reader-blockquote-background", selected_theme.blockquote_background_color);
 			this.reader_content_element.style.setProperty("--reader-blockquote-border-color", selected_theme.blockquote_border_color);
 		}
@@ -552,9 +597,26 @@ export default class extends Controller {
 		if (this.reader_content_element) {
 			this.reader_content_element.style.color = "";
 			this.reader_content_element.style.fontFamily = "";
+			this.reader_content_element.style.fontSize = "";
 			this.reader_content_element.style.removeProperty("--reader-blockquote-background");
 			this.reader_content_element.style.removeProperty("--reader-blockquote-border-color");
 		}
+	}
+
+	getSelectedTextSizeRem() {
+		const size_step = this.clampTextSizeStep(this.selected_text_size_step);
+		const text_size = BASE_TEXT_SIZE_REM + (size_step * TEXT_SIZE_STEP_REM);
+		const rounded = Math.round(text_size * 100) / 100;
+		return rounded;
+	}
+
+	clampTextSizeStep(raw_size_step) {
+		const parsed = Number(raw_size_step);
+		if (!Number.isFinite(parsed)) {
+			return DEFAULT_TEXT_SIZE_STEP;
+		}
+		const rounded = Math.round(parsed);
+		return Math.max(MIN_TEXT_SIZE_STEP, Math.min(MAX_TEXT_SIZE_STEP, rounded));
 	}
 
 	applyRightPaneUiTheme(theme_id) {
