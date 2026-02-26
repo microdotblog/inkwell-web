@@ -502,14 +502,14 @@ export default class extends Controller {
 
 		try {
 			const file_text = await file.text();
-			const feed_urls = this.extractOpmlFeedUrls(file_text);
-			if (!Array.isArray(feed_urls) || feed_urls.length == 0) {
+			const opml_feeds = this.extractOpmlFeedUrls(file_text);
+			if (!Array.isArray(opml_feeds) || opml_feeds.length == 0) {
 				this.showStatus("No feeds found in the OPML file.");
 				return;
 			}
 
-			this.setImportProgress(0, feed_urls.length, 0);
-			const totals = await this.importFeedUrls(feed_urls);
+			this.setImportProgress(0, opml_feeds.length, 0);
+			const totals = await this.importFeedUrls(opml_feeds);
 			await this.loadSubscriptions();
 			this.dispatchTimelineSync();
 			if (this.cancel_import) {
@@ -538,7 +538,13 @@ export default class extends Controller {
 		let imported_count = 0;
 		let failed_count = 0;
 
-		for (const feed_url of feed_urls) {
+		for (const feed_entry of feed_urls) {
+			const feed_url = (typeof feed_entry == "string")
+				? (feed_entry || "").trim()
+				: (feed_entry?.feed_url || "").trim();
+			const feed_title = (typeof feed_entry == "string")
+				? ""
+				: (feed_entry?.title || "").trim();
 			if (this.cancel_import) {
 				break;
 			}
@@ -547,6 +553,7 @@ export default class extends Controller {
 				if (Array.isArray(payload)) {
 					throw new Error("Multiple feeds found");
 				}
+				await this.renameImportedFeed(payload, feed_title);
 			}
 			catch (error) {
 				if (!this.cancel_import) {
@@ -581,11 +588,83 @@ export default class extends Controller {
 			.map((outline) => {
 				const xml_url = this.getOutlineAttribute(outline, ["xmlUrl", "xmlurl", "xmlURL"]);
 				const html_url = this.getOutlineAttribute(outline, ["htmlUrl", "htmlurl", "htmlURL"]);
-				return xml_url || html_url || "";
+				const feed_url = xml_url || html_url || "";
+				if (!feed_url) {
+					return null;
+				}
+				return {
+					feed_url,
+					title: this.getOutlineAttribute(outline, ["text"])
+				};
 			})
-			.filter((url) => url);
+			.filter(Boolean);
 
-		return this.uniqueUrls(feed_urls);
+		return this.uniqueOpmlFeedUrls(feed_urls);
+	}
+
+	uniqueOpmlFeedUrls(feed_urls) {
+		const seen = new Set();
+		const unique_feeds = [];
+		const feed_indexes = new Map();
+		(feed_urls || []).forEach((feed) => {
+			const feed_url = `${feed?.feed_url || ""}`.trim();
+			if (!feed_url) {
+				return;
+			}
+			const key = feed_url.toLowerCase();
+			const title = `${feed?.title || ""}`.trim();
+			if (seen.has(key)) {
+				const index = feed_indexes.get(key);
+				if (typeof index == "number" && title && !unique_feeds[index].title) {
+					unique_feeds[index].title = title;
+				}
+				return;
+			}
+			seen.add(key);
+			feed_indexes.set(key, unique_feeds.length);
+			unique_feeds.push({
+				feed_url,
+				title
+			});
+		});
+		return unique_feeds;
+	}
+
+	async renameImportedFeed(payload, feed_title) {
+		const trimmed_title = (feed_title || "").trim();
+		if (!trimmed_title) {
+			return;
+		}
+
+		const subscription_id = this.getCreatedSubscriptionId(payload);
+		if (!subscription_id) {
+			return;
+		}
+
+		const created_title = this.getCreatedSubscriptionTitle(payload);
+		if (trimmed_title == created_title) {
+			return;
+		}
+
+		try {
+			await updateFeedSubscription(subscription_id, trimmed_title);
+		}
+		catch (error) {
+			console.warn(`Failed to rename imported feed (${subscription_id})`, error);
+		}
+	}
+
+	getCreatedSubscriptionId(payload) {
+		const subscription_id = payload?.id ?? payload?.subscription?.id ?? null;
+		if (subscription_id == null) {
+			return "";
+		}
+		return `${subscription_id}`.trim();
+	}
+
+	getCreatedSubscriptionTitle(payload) {
+		const title = payload?.title || payload?.subscription?.title || "";
+		return `${title}`.trim();
 	}
 
 	getOutlineAttribute(outline, names) {
