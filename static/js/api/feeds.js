@@ -6,6 +6,7 @@ const MICRO_BLOG_BASE_URL = "https://micro.blog";
 const MICRO_BLOG_TOKEN_KEY = "inkwell_microblog_token";
 const MICRO_BLOG_AVATAR_KEY = "inkwell_microblog_avatar";
 const MICRO_BLOG_AI_KEY = "inkwell_is_using_ai";
+const MICRO_BLOG_PREMIUM_KEY = "inkwell_is_premium";
 
 const entryCache = new Map();
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -117,10 +118,41 @@ export function setMicroBlogIsUsingAI(is_using_ai) {
 	return null;
 }
 
+export function getMicroBlogIsPremium() {
+	const stored = localStorage.getItem(MICRO_BLOG_PREMIUM_KEY);
+	if (stored == "false") {
+		return false;
+	}
+	if (stored == "true") {
+		return true;
+	}
+
+	return true;
+}
+
+export function setMicroBlogIsPremium(is_premium) {
+	if (is_premium == true || is_premium == "true") {
+		localStorage.setItem(MICRO_BLOG_PREMIUM_KEY, "true");
+		return true;
+	}
+	if (is_premium == false || is_premium == "false") {
+		localStorage.setItem(MICRO_BLOG_PREMIUM_KEY, "false");
+		return false;
+	}
+
+	localStorage.removeItem(MICRO_BLOG_PREMIUM_KEY);
+	return null;
+}
+
 export async function fetchMicroBlogAvatar() {
 	const token = getMicroBlogToken();
 	if (!token) {
-		return { avatar: "", has_inkwell: true, is_using_ai: getMicroBlogIsUsingAI() };
+		return {
+			avatar: "",
+			has_inkwell: true,
+			is_using_ai: getMicroBlogIsUsingAI(),
+			is_premium: getMicroBlogIsPremium()
+		};
 	}
 
 	const url = new URL("/account/verify", `${MICRO_BLOG_BASE_URL}/`);
@@ -141,13 +173,26 @@ export async function fetchMicroBlogAvatar() {
 	}
 
 	const payload = await response.json();
+	const next_token = payload?.token;
+	if (typeof next_token == "string" && next_token.trim()) {
+		setMicroBlogToken(next_token);
+	}
 	const avatar = setMicroBlogAvatar(payload?.avatar || "");
 	const has_inkwell = payload?.has_inkwell;
 	const is_using_ai = payload?.is_using_ai;
+	const is_premium = payload?.is_premium;
 	if (is_using_ai != null) {
 		setMicroBlogIsUsingAI(is_using_ai);
 	}
-	return { avatar, has_inkwell, is_using_ai: getMicroBlogIsUsingAI() };
+	if (is_premium != null) {
+		setMicroBlogIsPremium(is_premium);
+	}
+	return {
+		avatar,
+		has_inkwell,
+		is_using_ai: getMicroBlogIsUsingAI(),
+		is_premium: getMicroBlogIsPremium()
+	};
 }
 
 export function cacheFeedEntries(entries) {

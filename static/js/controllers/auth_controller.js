@@ -4,6 +4,7 @@ import {
 	getMicroBlogAvatar,
 	getMicroBlogToken,
 	setMicroBlogAvatar,
+	setMicroBlogIsPremium,
 	setMicroBlogIsUsingAI,
 	setMicroBlogToken
 } from "../api/feeds.js";
@@ -47,6 +48,7 @@ export default class extends Controller {
 		setMicroBlogToken("");
 		setMicroBlogAvatar("");
 		setMicroBlogIsUsingAI(null);
+		setMicroBlogIsPremium(null);
 		this.showSignin();
 	}
 
@@ -119,8 +121,9 @@ export default class extends Controller {
 				alert("Inkwell is not yet enabled for your Micro.blog account.");
 			}
 			const is_using_ai = verify_payload?.is_using_ai;
+			const is_premium = verify_payload?.is_premium;
 			window.dispatchEvent(
-				new CustomEvent("auth:verify", { detail: { is_using_ai } })
+				new CustomEvent("auth:verify", { detail: { is_using_ai, is_premium } })
 			);
 		}
 		catch (error) {

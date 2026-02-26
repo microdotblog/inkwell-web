@@ -490,6 +490,9 @@ export default class extends Controller {
 		if (!highlight) {
 			return;
 		}
+		if (!window.confirm("Are you sure you want to delete this highlight?")) {
+			return;
+		}
 
 		let remote_failed = false;
 		if (highlight.highlight_id) {

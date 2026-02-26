@@ -3,6 +3,7 @@ import { timelineBorderColors, timelineCellColors, timelineSelectedColors } from
 import { DEFAULT_AVATAR_URL, fetchTimelineData, fetchTimelineDataForFeed } from "../api/posts.js";
 import {
 	fetchFeedIcons,
+	getMicroBlogIsPremium,
 	fetchFeedStarredEntryIds,
 	getMicroBlogIsUsingAI,
 	deleteBookmarkedPost,
@@ -1097,11 +1098,17 @@ export default class extends Controller {
 		const posts = this.getVisiblePosts();
 		const mode_filter_markup = this.getModeFilterMarkup();
 		const is_using_ai = getMicroBlogIsUsingAI();
+		const is_premium = getMicroBlogIsPremium();
 		const summary_posts = this.getSummaryPosts();
-		const should_render_summary = this.timeline_mode == TIMELINE_MODE_FEEDS &&
-			this.activeSegment == "fading" && !this.searchActive && !this.activeFeedId && is_using_ai;
+		const is_fading_premium_locked = this.isFadingPremiumLockedView();
+		const should_render_summary = this.isFadingRootView() && is_premium;
 		const summary_count = summary_posts.length;
 		const summary_label = summary_count == 1 ? "post" : "posts";
+
+		if (is_fading_premium_locked) {
+			this.listTarget.innerHTML = `${mode_filter_markup}${this.renderPremiumLockedFadingMessage()}`;
+			return;
+		}
 
 		if (!posts.length) {
 			if (this.activeFeedId) {
@@ -1116,7 +1123,7 @@ export default class extends Controller {
 				return;
 			}
 			if (should_render_summary) {
-				this.listTarget.innerHTML = `${mode_filter_markup}${this.renderSummaryItem(summary_count > 0, summary_count, summary_label)}<p class="canvas-empty"><!-- No posts. --></p>`;
+				this.listTarget.innerHTML = `${mode_filter_markup}${this.renderSummaryItem(summary_count > 0, summary_count, summary_label, is_using_ai)}<p class="canvas-empty"><!-- No posts. --></p>`;
 				return;
 			}
 			this.listTarget.innerHTML = `${mode_filter_markup}<p class="canvas-empty"><!-- No posts. --></p>`;
@@ -1124,7 +1131,9 @@ export default class extends Controller {
 		}
 
 		const items = posts.map((post) => this.renderPost(post)).join("");
-		const list_markup = should_render_summary ? `${this.renderSummaryItem(true, summary_count, summary_label)}${items}` : items;
+		const list_markup = should_render_summary
+			? `${this.renderSummaryItem(true, summary_count, summary_label, is_using_ai)}${items}`
+			: items;
 		this.listTarget.innerHTML = `${mode_filter_markup}${list_markup}`;
 	}
 
@@ -1238,10 +1247,13 @@ export default class extends Controller {
 		`;
 	}
 
-	renderSummaryItem(has_posts, summary_count, summary_label) {
-		const is_disabled = !has_posts || this.summary_is_loading || this.isSyncing;
-		const spinner_hidden = this.summary_is_loading ? "" : "hidden";
+	renderSummaryItem(has_posts, summary_count, summary_label, is_using_ai) {
+		const is_disabled = !has_posts || this.summary_is_loading || this.isSyncing || !is_using_ai;
+		const spinner_hidden = this.summary_is_loading && is_using_ai ? "" : "hidden";
 		const disabled_attribute = is_disabled ? "disabled" : "";
+		const detail_text = is_using_ai
+			? `${summary_count} older ${summary_label}, grouped`
+			: "Enable AI in Micro.blog to access Reading Recap";
 		return `
 			<div class="timeline-summary-item">
 				<button
@@ -1250,10 +1262,34 @@ export default class extends Controller {
 					data-action="timeline#summarizeFading"
 					${disabled_attribute}
 				>Reading Recap</button>
-				<span class="timeline-summary-detail">${summary_count} older ${summary_label}, grouped</span>
+				<span class="timeline-summary-detail">${detail_text}</span>
 				<img class="timeline-summary-spinner" src="/images/progress_spinner.svg" alt="" aria-hidden="true" ${spinner_hidden}>
 			</div>
 		`;
+	}
+
+	renderPremiumLockedFadingMessage() {
+		return `
+			<p class="canvas-empty timeline-empty">
+				The <b>Fading</b> tab and <b>Reading Recap</b> feature are only available to Micro.blog Premium subscribers.
+			</p>
+			<p class="timeline-empty">
+				<button
+					type="button"
+					class="btn-sm discover-topic"
+					title="Plans"
+					data-action="timeline#openPlans"
+				>
+					<img class="discover-topic-icon" src="https://cdn.micro.blog/images/icons/favicon_32.png" alt="" aria-hidden="true" width="16" height="16">
+					<span>Micro.blog Plans</span>
+				</button>
+			</p>
+		`;
+	}
+
+	openPlans(event) {
+		event?.preventDefault();
+		window.open("https://micro.blog/account/plans", "_blank", "noopener,noreferrer");
 	}
 
 	openSubscriptions(event) {
@@ -1267,6 +1303,12 @@ export default class extends Controller {
 		event?.preventDefault();
 		event?.stopPropagation();
 
+		if (this.isFadingPremiumLockedView()) {
+			return;
+		}
+		if (!getMicroBlogIsUsingAI()) {
+			return;
+		}
 		if (this.activeSegment != "fading" || this.searchActive) {
 			return;
 		}
@@ -1409,11 +1451,17 @@ export default class extends Controller {
 		if (this.searchActive || this.activeFeedId) {
 			return [];
 		}
+		if (this.isFadingPremiumLockedView()) {
+			return [];
+		}
 
 		return this.getBasePosts();
 	}
 
 	getBasePosts() {
+		if (this.isFadingPremiumLockedView()) {
+			return [];
+		}
 		if (this.searchActive) {
 			return this.getSearchResults();
 		}
@@ -1427,6 +1475,17 @@ export default class extends Controller {
 
 		const segment_buckets = SEGMENT_BUCKETS[this.activeSegment] || [];
 		return this.posts.filter((post) => segment_buckets.includes(post.age_bucket));
+	}
+
+	isFadingRootView() {
+		return this.timeline_mode == TIMELINE_MODE_FEEDS &&
+			this.activeSegment == "fading" &&
+			!this.searchActive &&
+			!this.activeFeedId;
+	}
+
+	isFadingPremiumLockedView() {
+		return this.isFadingRootView() && !getMicroBlogIsPremium();
 	}
 
 	getSearchResults() {

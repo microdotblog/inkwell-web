@@ -2253,8 +2253,11 @@ input[type="search"]::-webkit-search-decoration {
 
 .canvas-empty {
   color: var(--ink-muted);
-  font-size: 0.9rem;
-  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.timeline-empty {
+	margin-bottom: 0;
 }
 
 @media (max-width: 800px) {
