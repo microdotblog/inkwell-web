@@ -1,5 +1,36 @@
 import { getFeedsBaseUrl, getMicroBlogToken } from "./feeds.js";
 
+export async function fetchMicroBlogHighlightsFeed() {
+	const url = new URL("/feeds/highlights", `${getFeedsBaseUrl()}/`);
+	const headers = new Headers({
+		"Accept": "application/json"
+	});
+	const token = getMicroBlogToken();
+	if (token) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers
+	});
+
+	if (!response.ok) {
+		const response_text = await response.text();
+		const request_error = new Error(`Micro.blog highlights failed: ${response.status}`);
+		request_error.response_text = response_text;
+		throw request_error;
+	}
+
+	try {
+		const payload = await response.json();
+		return Array.isArray(payload?.items) ? payload.items : [];
+	}
+	catch (error) {
+		return [];
+	}
+}
+
 export async function createMicroBlogHighlight({ post_id, text, start_offset, end_offset }) {
 	if (!post_id || !text) {
 		return null;

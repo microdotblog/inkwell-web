@@ -1,8 +1,8 @@
 import { Controller } from "../stimulus.js";
-import { deleteMicroBlogHighlight } from "../api/highlights.js";
+import { deleteMicroBlogHighlight, fetchMicroBlogHighlightsFeed } from "../api/highlights.js";
 import { fetchConversationReplies } from "../api/feeds.js";
 import { DEFAULT_AVATAR_URL } from "../api/posts.js";
-import { deleteHighlight, getAllHighlights, getHighlightsForPost } from "../storage/highlights.js";
+import { deleteHighlight, getAllHighlights, getHighlightsForPost, mergeRemoteHighlights } from "../storage/highlights.js";
 
 const EMPTY_POST_MESSAGE = "No highlights yet.";
 const EMPTY_ALL_MESSAGE = "No highlights saved yet.";
@@ -845,6 +845,72 @@ export default class extends Controller {
 		return date;
 	}
 
+	normalizeServerHighlights(items) {
+		if (!Array.isArray(items)) {
+			return [];
+		}
+
+		return items
+			.map((item) => this.normalizeServerHighlight(item))
+			.filter(Boolean);
+	}
+
+	normalizeServerHighlight(item) {
+		if (!item || typeof item != "object") {
+			return null;
+		}
+
+		const microblog_data = (item._microblog && typeof item._microblog == "object")
+			? item._microblog
+			: {};
+		const post_id = microblog_data.entry_id == null
+			? ""
+			: `${microblog_data.entry_id}`.trim();
+		if (!post_id) {
+			return null;
+		}
+
+		const text = item.content_text == null ? "" : `${item.content_text}`;
+		if (!text.trim()) {
+			return null;
+		}
+
+		const post_title = `${item.title || ""}`.trim();
+		const start_offset = this.parseHighlightOffset(microblog_data.selection_start);
+		const end_offset = this.parseHighlightOffset(microblog_data.selection_end);
+		const created_at = `${item.date_published || item.date_modified || ""}`.trim();
+		const remote_highlight_id = item.id == null ? "" : `${item.id}`.trim();
+		const fallback_id = `mb-${post_id}-${start_offset ?? "x"}-${end_offset ?? "x"}-${created_at || "unknown"}`;
+		const resolved_id = remote_highlight_id || fallback_id;
+
+		return {
+			id: resolved_id,
+			highlight_id: remote_highlight_id,
+			post_id,
+			post_url: this.normalizeUrl(item.url || ""),
+			post_title,
+			post_source: "",
+			post_published_at: created_at,
+			post_has_title: Boolean(post_title && post_title.toLowerCase() != "untitled"),
+			text,
+			html: text,
+			start_offset,
+			end_offset,
+			selection_start: start_offset,
+			selection_end: end_offset,
+			intent: "highlight",
+			created_at
+		};
+	}
+
+	parseHighlightOffset(raw_value) {
+		const numeric_value = Number(raw_value);
+		if (!Number.isFinite(numeric_value)) {
+			return null;
+		}
+		return Math.max(0, Math.floor(numeric_value));
+	}
+
 	normalizeReplies(items) {
 		if (!Array.isArray(items)) {
 			return [];
@@ -1026,6 +1092,26 @@ export default class extends Controller {
 		catch (error) {
 			console.warn("Failed to load highlights", error);
 			this.globalHighlights = [];
+		}
+
+		try {
+			const server_items = await fetchMicroBlogHighlightsFeed();
+			const server_highlights = this.normalizeServerHighlights(server_items);
+			if (server_highlights.length == 0) {
+				return;
+			}
+
+			await mergeRemoteHighlights(server_highlights);
+			this.globalHighlights = await getAllHighlights();
+			const active_post_id = `${this.activePostId || ""}`.trim();
+			if (active_post_id) {
+				this.highlights = await getHighlightsForPost(active_post_id);
+				this.render();
+				this.restoreReaderHighlights();
+			}
+		}
+		catch (error) {
+			console.warn("Failed to sync server highlights", error);
 		}
 	}
 
