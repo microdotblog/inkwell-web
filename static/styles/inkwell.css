@@ -2005,6 +2005,10 @@ input[type="search"]::-webkit-search-decoration {
 	padding-top: 0;
 }
 
+.reader-content.reader-content--narrow-feed-images img {
+	max-width: 70%;
+}
+
 .reader-content p {
 	margin-bottom: 1rem;
 	color: inherit;

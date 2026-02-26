@@ -9,6 +9,8 @@ import { parse_hash } from "../router.js";
 const preview_spinner_markup = "<p class=\"loading\"><img class=\"subscriptions-spinner subscriptions-spinner--inline\" src=\"/images/progress_spinner.svg\" alt=\"Loading preview\" style=\"width: 20px; height: 20px;\"></p>";
 const recap_email_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const recap_email_enabled_storage_key = "inkwell_recap_email_enabled";
+const narrow_image_domains = ["theverge.com"];
+const narrow_image_css_class = "reader-content--narrow-feed-images";
 const recap_email_settings_markup = `
 	<div class="reading-recap-controls">
 		<button
@@ -111,6 +113,8 @@ export default class extends Controller {
 		this.currentPostRead = Boolean(post.is_read);
 		this.setTitle(this.currentPostTitle);
 		this.setMeta(post);
+		const post_url = (post.url || "").trim();
+		this.applyDomainImageClass(post_url);
 		this.contentTarget.innerHTML = "<p class=\"loading\">Loading readable view...</p>";
 		this.avatarTarget.hidden = false;
 		this.avatarTarget.src = post.avatar_url || "/images/blank_avatar.png";
@@ -352,6 +356,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postSource = "";
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
+		this.applyDomainImageClass("");
 		this.contentTarget.innerHTML = "";
 	}
 
@@ -382,6 +387,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postSource = "";
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
+		this.applyDomainImageClass("");
 		this.contentTarget.innerHTML = this.sanitizeHtml(decorated_summary_html);
 		this.applyRecapColors();
 		this.loadRecapEmailSettings();
@@ -412,6 +418,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postSource = "";
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
+		this.applyDomainImageClass("");
 		this.contentTarget.innerHTML = "";
 		this.element.classList.remove("is-empty");
 		this.element.hidden = true;
@@ -440,6 +447,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postSource = "";
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
+		this.applyDomainImageClass("");
 		this.contentTarget.innerHTML = `
 			<div class="reader-welcome">
 				<p class="reader-welcome-eyebrow">Welcome to Inkwell</p>
@@ -485,6 +493,7 @@ export default class extends Controller {
 		this.contentTarget.dataset.postSource = "";
 		this.contentTarget.dataset.postPublishedAt = "";
 		this.contentTarget.dataset.postHasTitle = "";
+		this.applyDomainImageClass("");
 		this.contentTarget.innerHTML = "";
 	}
 
@@ -867,6 +876,42 @@ export default class extends Controller {
 		const normalized_opacity = (opacity_hex || "").trim().toLowerCase();
 		const safe_opacity = /^[0-9a-f]{2}$/i.test(normalized_opacity) ? normalized_opacity : "80";
 		return `${base_color}${safe_opacity}`;
+	}
+
+	applyDomainImageClass(post_url) {
+		const should_use_narrow_images = this.shouldUseNarrowDomainImages(post_url);
+		this.contentTarget.classList.toggle(narrow_image_css_class, should_use_narrow_images);
+	}
+
+	shouldUseNarrowDomainImages(post_url) {
+		const normalized_post_url = (post_url || "").trim();
+		if (!normalized_post_url) {
+			return false;
+		}
+
+		let hostname = "";
+		try {
+			hostname = new URL(normalized_post_url).hostname.toLowerCase();
+		}
+		catch (error) {
+			try {
+				hostname = new URL(`https://${normalized_post_url}`).hostname.toLowerCase();
+			}
+			catch (second_error) {
+				hostname = "";
+			}
+		}
+
+		return narrow_image_domains.some((domain) => {
+			const normalized_domain = (domain || "").trim().toLowerCase();
+			if (!normalized_domain) {
+				return false;
+			}
+			if (hostname) {
+				return hostname == normalized_domain || hostname.endsWith(`.${normalized_domain}`);
+			}
+			return normalized_post_url.toLowerCase().includes(normalized_domain);
+		});
 	}
 
 	normalizeRecapEmailDay(raw_day) {
