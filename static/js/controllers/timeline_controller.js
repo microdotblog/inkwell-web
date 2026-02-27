@@ -801,32 +801,36 @@ export default class extends Controller {
 		}
 	}
 
-  handleKeydown(event) {
-    if (this.shouldIgnoreKey(event)) {
-      return;
-    }
+	handleKeydown(event) {
+		if (this.shouldIgnoreKey(event)) {
+			return;
+		}
 
-    switch (event.key) {
-      case "1":
-        event.preventDefault();
-        this.showToday();
-        break;
-      case "2":
-        event.preventDefault();
-        this.showRecent();
-        break;
-      case "3":
-        event.preventDefault();
-        this.showFading();
-        break;
-      case "/":
-        event.preventDefault();
-        this.toggleSearch();
-        break;
-      case "r":
-        event.preventDefault();
-        this.syncTimeline();
-        break;
+		switch (event.key) {
+			case "1":
+				event.preventDefault();
+				this.showToday();
+				break;
+			case "2":
+				event.preventDefault();
+				this.showRecent();
+				break;
+			case "3":
+				event.preventDefault();
+				this.showFading();
+				break;
+			case "/":
+				event.preventDefault();
+				if (this.searchActive && this.isTimelineFocused()) {
+					this.searchInputTarget.focus();
+					break;
+				}
+				this.toggleSearch();
+				break;
+			case "r":
+				event.preventDefault();
+				this.syncTimeline();
+				break;
 			case "b":
 				event.preventDefault();
 				this.toggleBookmark();
@@ -842,18 +846,18 @@ export default class extends Controller {
 				event.preventDefault();
 				this.toggleHideRead();
 				break;
-      case "ArrowUp":
-        event.preventDefault();
-        this.selectAdjacentPost(-1);
-        break;
-      case "ArrowDown":
-        event.preventDefault();
-        this.selectAdjacentPost(1);
-        break;
-      default:
-        break;
-    }
-  }
+			case "ArrowUp":
+				event.preventDefault();
+				this.selectAdjacentPost(-1);
+				break;
+			case "ArrowDown":
+				event.preventDefault();
+				this.selectAdjacentPost(1);
+				break;
+			default:
+				break;
+		}
+	}
 
 	handleSearchKeydown(event) {
 		if (event.key == "Escape") {
@@ -1001,6 +1005,15 @@ export default class extends Controller {
 				}
 			})
 		);
+	}
+
+	isTimelineFocused() {
+		const active_element = document.activeElement;
+		if (!active_element || !this.listTarget) {
+			return false;
+		}
+
+		return active_element == this.listTarget || this.listTarget.contains(active_element);
 	}
 
 	isSearchFocused() {
