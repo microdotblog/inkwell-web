@@ -1101,6 +1101,31 @@ button:focus:not(:focus-visible) {
 	padding: 0;
 }
 
+.right-pane.is-empty.has-overlay-pane {
+	justify-content: initial;
+	padding: 1rem;
+	background: var(--ink-right-pane-background);
+	overflow-y: auto;
+	isolation: auto;
+}
+
+.right-pane.is-empty.has-overlay-pane::before,
+.right-pane.is-empty.has-overlay-pane::after {
+	content: none;
+	background-image: none;
+}
+
+.right-pane.is-empty.has-overlay-pane .right-content {
+	display: block;
+	flex: initial;
+	width: 100%;
+	max-width: 700px;
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+	z-index: 1;
+}
+
 .right-pane .right-content {
   width: 100%;
   max-width: 700px;

@@ -76,6 +76,9 @@ export default class extends Controller {
 		if (route.postId || route.feedId || route.feedUrl) {
 			this.showResolving();
 		}
+		else if (route.pane) {
+			this.showBlank();
+		}
 		else {
 			this.showPlaceholder();
 		}

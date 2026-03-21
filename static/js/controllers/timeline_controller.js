@@ -690,6 +690,12 @@ export default class extends Controller {
 			this.render();
 			return;
 		}
+		if (state.pane) {
+			this.clearActivePost(true);
+			this.applying_route = false;
+			this.render();
+			return;
+		}
 		if (state.postId != null && state.postId != "") {
 			const post = this.findPostById(state.postId);
 			if (post) {

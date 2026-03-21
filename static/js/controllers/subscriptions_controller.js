@@ -161,17 +161,20 @@ export default class extends Controller {
 
 	showPane() {
 		if (this.is_visible) {
+			this.syncOverlayPaneState();
 			return;
 		}
 		this.paneTarget.hidden = false;
 		this.readerViewTarget.hidden = true;
 		this.is_visible = true;
 		this.setReaderEmptyState(false);
+		this.syncOverlayPaneState();
 		this.resetScrollPosition();
 	}
 
 	hidePane() {
 		if (!this.is_visible) {
+			this.syncOverlayPaneState();
 			return;
 		}
 		this.paneTarget.hidden = true;
@@ -179,6 +182,7 @@ export default class extends Controller {
 		if (!this.hasVisibleOverlayPane()) {
 			this.readerViewTarget.hidden = false;
 		}
+		this.syncOverlayPaneState();
 		this.restoreReaderEmptyState();
 	}
 
@@ -1415,6 +1419,10 @@ export default class extends Controller {
 			const pane_el = this.element.querySelector(selector);
 			return pane_el && pane_el.hidden == false;
 		});
+	}
+
+	syncOverlayPaneState() {
+		this.element.classList.toggle("has-overlay-pane", this.hasVisibleOverlayPane());
 	}
 
 	restoreReaderEmptyState() {
