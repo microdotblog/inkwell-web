@@ -8,7 +8,7 @@ function get_hash() {
 function parse_hash(hash_string) {
 	const hash = (hash_string != null ? hash_string : get_hash()).replace(/^#/, "").trim();
 	if (hash == "" || hash == "/") {
-		return { feedId: null, feedUrl: null, postId: null };
+		return { feedId: null, feedUrl: null, postId: null, pane: null };
 	}
 
 	const question = hash.indexOf("?");
@@ -21,7 +21,8 @@ function parse_hash(hash_string) {
 		return {
 			feedId: segments[1],
 			feedUrl: null,
-			postId: segments[3]
+			postId: segments[3],
+			pane: null
 		};
 	}
 
@@ -29,7 +30,8 @@ function parse_hash(hash_string) {
 		return {
 			feedId: segments[1],
 			feedUrl: null,
-			postId: null
+			postId: null,
+			pane: null
 		};
 	}
 
@@ -37,7 +39,8 @@ function parse_hash(hash_string) {
 		return {
 			feedId: null,
 			feedUrl: params.get("url"),
-			postId: null
+			postId: null,
+			pane: null
 		};
 	}
 
@@ -45,16 +48,31 @@ function parse_hash(hash_string) {
 		return {
 			feedId: null,
 			feedUrl: null,
-			postId: segments[1]
+			postId: segments[1],
+			pane: null
 		};
 	}
 
-	return { feedId: null, feedUrl: null, postId: null };
+	if (segments[0] == "feeds") {
+		return {
+			feedId: null,
+			feedUrl: null,
+			postId: null,
+			pane: "feeds"
+		};
+	}
+
+	return { feedId: null, feedUrl: null, postId: null, pane: null };
 }
 
 function build_hash(state) {
 	const feed_id = state.feedId != null && state.feedId != "" ? state.feedId : null;
 	const post_id = state.postId != null && state.postId != "" ? state.postId : null;
+	const pane = state.pane != null && state.pane != "" ? state.pane : null;
+
+	if (pane == "feeds") {
+		return "#/feeds";
+	}
 
 	if (feed_id && post_id) {
 		return `#/feed/${encodeURIComponent(feed_id)}/post/${encodeURIComponent(post_id)}`;

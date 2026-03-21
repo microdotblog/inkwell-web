@@ -247,6 +247,9 @@ export default class extends Controller {
 
 	handleTimelineOpenFeeds() {
 		this.scrollTimelineToTop(true);
+		if (this.activePostId) {
+			this.clearActivePost(true);
+		}
 		this.switchTimelineMode(TIMELINE_MODE_FEEDS);
 	}
 

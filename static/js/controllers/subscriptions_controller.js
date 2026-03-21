@@ -1,6 +1,7 @@
 import { Controller } from "../stimulus.js";
 import { mockSubscriptions } from "../mock_data.js";
 import { USE_MOCK_DATA } from "../config.js";
+import { parse_hash, replace_state, ROUTE_CHANGE } from "../router.js?20260321.1";
 import {
 	createFeedSubscription,
 	deleteFeedSubscription,
@@ -49,6 +50,7 @@ export default class extends Controller {
 		this.rename_is_loading = false;
 		this.search_query = "";
 		this.mode = "manage";
+		this.route_pane_active = false;
 		this.import_delay_ms = 250;
 		this.subscription_icon_urls = new Map();
 		this.handleOpen = this.handleOpen.bind(this);
@@ -56,14 +58,17 @@ export default class extends Controller {
 		this.handleAuthReady = this.handleAuthReady.bind(this);
 		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleDiscoverOpen = this.handleDiscoverOpen.bind(this);
+		this.handleUrlChange = this.handleUrlChange.bind(this);
 		window.addEventListener("subscriptions:open", this.handleOpen);
 		window.addEventListener("subscriptions:close", this.handleClose);
 		window.addEventListener("auth:ready", this.handleAuthReady);
 		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("reader:summary", this.handlePostOpen);
 		window.addEventListener("discover:open", this.handleDiscoverOpen);
+		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.resetImportStatus();
 		this.setImporting(this.is_importing);
+		this.handleUrlChange({ detail: parse_hash() });
 	}
 
 	disconnect() {
@@ -73,6 +78,7 @@ export default class extends Controller {
 		window.removeEventListener("post:open", this.handlePostOpen);
 		window.removeEventListener("reader:summary", this.handlePostOpen);
 		window.removeEventListener("discover:open", this.handleDiscoverOpen);
+		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
 	}
 
 	handleAuthReady() {
@@ -85,6 +91,7 @@ export default class extends Controller {
 		const mode = event.detail?.mode || "manage";
 		const feed_url = (event.detail?.feedUrl || "").trim();
 		this.mode = mode;
+		this.route_pane_active = this.mode == "manage" && parse_hash().pane == "feeds";
 		this.element.hidden = false;
 		this.showPane();
 		this.updateFormVisibility();
@@ -112,12 +119,14 @@ export default class extends Controller {
 	}
 
 	handleClose() {
-		this.hidePane();
+		this.closePane();
 	}
 
 	startNewFeed(event) {
 		event.preventDefault();
 		this.mode = "subscribe";
+		this.route_pane_active = false;
+		this.clearFeedsRouteIfActive();
 		this.updateFormVisibility();
 		this.clearStatus();
 		requestAnimationFrame(() => {
@@ -126,13 +135,28 @@ export default class extends Controller {
 	}
 
 	handlePostOpen() {
-		this.hidePane();
+		this.closePane();
 		this.setReaderEmptyState(false);
 	}
 
 	handleDiscoverOpen() {
-		this.hidePane();
+		this.closePane();
 		this.setReaderEmptyState(false);
+	}
+
+	handleUrlChange(event) {
+		const state = event.detail || parse_hash();
+		if (state?.pane == "feeds") {
+			this.route_pane_active = true;
+			window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
+			this.handleOpen({ detail: { mode: "manage" } });
+			return;
+		}
+
+		if (this.route_pane_active) {
+			this.route_pane_active = false;
+			this.closePane({ clear_route: false });
+		}
 	}
 
 	showPane() {
@@ -156,6 +180,15 @@ export default class extends Controller {
 			this.readerViewTarget.hidden = false;
 		}
 		this.restoreReaderEmptyState();
+	}
+
+	closePane(options = {}) {
+		const clear_route = options.clear_route != false;
+		if (clear_route) {
+			this.clearFeedsRouteIfActive();
+		}
+		this.route_pane_active = false;
+		this.hidePane();
 	}
 
 	updateFormVisibility() {
@@ -1368,6 +1401,12 @@ export default class extends Controller {
 
 	resetScrollPosition() {
 		this.element.scrollTop = 0;
+	}
+
+	clearFeedsRouteIfActive() {
+		if (parse_hash().pane == "feeds") {
+			replace_state({});
+		}
 	}
 
 	hasVisibleOverlayPane() {

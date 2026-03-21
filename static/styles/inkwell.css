@@ -1605,26 +1605,28 @@ button:focus:not(:focus-visible) {
 .subscriptions-list {
 	display: flex;
 	flex-direction: column;
-	gap: 0.9rem;
+	gap: 10px;
 }
 
 .subscription-item {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 1rem;
-	padding: 0.5rem 0rem;
+	flex-wrap: wrap;
+	gap: 0.85rem;
+	padding: 0.6rem;
 	min-height: 3.5rem;
 	background: var(--ink-card-background);
+	border: 1px solid var(--ink-card-border);
+	border-radius: 10px;
 }
 
 .subscription-item--edit {
-	gap: 0.75rem;
-	align-items: center;
+	gap: 0.85rem;
 }
 
 input[type="text"].subscription-edit {
-	flex: 1 1 auto;
+	flex: 1 1 260px;
 	min-width: 0;
 	font-size: 0.75rem;
 	line-height: 1.2;
@@ -1637,6 +1639,10 @@ input[type="text"].subscription-edit {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.35rem;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	margin-left: auto;
 }
 
 .subscriptions-spinner--inline {
@@ -1646,14 +1652,15 @@ input[type="text"].subscription-edit {
 }
 
 .subscription-item button {
-	margin-left: 5px;
+	margin-left: 0;
+	white-space: nowrap;
 }
 
 .subscription-main {
 	display: flex;
 	align-items: center;
-	gap: 1rem;
-	flex: 1 1 auto;
+	gap: 0.85rem;
+	flex: 1 1 260px;
 	min-width: 0;
 }
 
@@ -1678,7 +1685,11 @@ input[type="text"].subscription-edit {
 .subscription-buttons {
 	display: inline-flex;
 	align-items: center;
-	flex: 0 0 auto;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	justify-content: flex-end;
+	margin-left: auto;
 }
 
 .subscription-info {
@@ -1724,6 +1735,15 @@ input[type="text"].subscription-edit {
 	color: var(--ink-muted);
 	font-style: italic;
 	font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+	.subscription-actions,
+	.subscription-buttons {
+		width: 100%;
+		margin-left: 0;
+		justify-content: flex-start;
+	}
 }
 
 .reader-header {

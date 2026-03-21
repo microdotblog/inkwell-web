@@ -1,4 +1,5 @@
 import { Controller } from "../stimulus.js";
+import { push_state } from "../router.js?20260321.1";
 
 const HIDE_READ_KEY = "inkwell_hide_read";
 
@@ -64,6 +65,9 @@ export default class extends Controller {
 	openSubscriptions(event) {
 		const menu_mode = event.currentTarget?.dataset.userMenuMode || "manage";
 		window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
+		if (menu_mode == "manage") {
+			push_state({ pane: "feeds" });
+		}
 		window.dispatchEvent(
 			new CustomEvent("subscriptions:open", { detail: { mode: menu_mode } })
 		);
