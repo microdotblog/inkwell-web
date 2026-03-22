@@ -42,6 +42,7 @@
 	--ink-card-background: #fff;
 	--ink-card-border: rgba(29, 26, 22, 0.08);
 	--ink-card-shadow: rgba(29, 26, 22, 0.12);
+	--ink-list-item-padding: 0.6rem;
 	--ink-status-background: rgba(29, 26, 22, 0.08);
 	--ink-right-pane-background: #fff;
 	--ink-empty-background: #f6f1e6;
@@ -1230,7 +1231,7 @@ button:focus:not(:focus-visible) {
 	display: flex;
 	align-items: flex-start;
 	gap: 0.7rem;
-	padding: 0;
+	padding: var(--ink-list-item-padding);
 	border-radius: 10px;
 	background: var(--ink-card-background);
 }
@@ -1289,8 +1290,7 @@ button:focus:not(:focus-visible) {
 }
 
 .discover-post {
-	padding-top: 0;
-	padding-bottom: 0;
+	padding: var(--ink-list-item-padding);
 }
 
 .discover-post-body {
@@ -1639,7 +1639,7 @@ button:focus:not(:focus-visible) {
 	justify-content: space-between;
 	flex-wrap: wrap;
 	gap: 0.85rem;
-	padding: 0.6rem;
+	padding: var(--ink-list-item-padding);
 	min-height: 3.5rem;
 	background: var(--ink-card-background);
 	border: 1px solid var(--ink-card-border);
