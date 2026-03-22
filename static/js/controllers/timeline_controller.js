@@ -13,7 +13,7 @@ import {
 	unstarFeedEntries
 } from "../api/feeds.js";
 import { loadReadIds, markAllRead, markRead } from "../storage/reads.js";
-import { parse_hash, push_state, replace_state, ROUTE_CHANGE } from "../router.js";
+import { parse_hash, push_state, replace_state, ROUTE_CHANGE } from "../router.js?20260322.1";
 
 const SEGMENT_BUCKETS = {
   today: ["day-1"],
@@ -82,6 +82,10 @@ export default class extends Controller {
 		this.handleTimelineOpenBookmarks = this.handleTimelineOpenBookmarks.bind(this);
 		this.handleTimelineOpenFeeds = this.handleTimelineOpenFeeds.bind(this);
 		this.handleUrlChange = this.handleUrlChange.bind(this);
+		const initial_route = parse_hash();
+		if (initial_route.pane == TIMELINE_MODE_BOOKMARKS) {
+			this.timeline_mode = TIMELINE_MODE_BOOKMARKS;
+		}
 		this.listTarget.addEventListener("click", this.handleClick);
 		this.listTarget.addEventListener("error", this.handleAvatarError, true);
 		this.searchInputTarget.addEventListener("keydown", this.handleSearchKeydown);
@@ -247,14 +251,29 @@ export default class extends Controller {
 
 	handleTimelineOpenFeeds() {
 		this.scrollTimelineToTop(true);
+		this.activeFeedId = null;
+		this.activeFeedLabel = "";
+		this.resetFeedFilteredPosts();
+		if (this.activePostId) {
+			this.clearActivePost(true);
+		}
+		if (this.timeline_mode == TIMELINE_MODE_FEEDS) {
+			this.render();
+			return;
+		}
 		this.switchTimelineMode(TIMELINE_MODE_FEEDS);
 	}
 
-	switchTimelineMode(next_mode) {
+	switchTimelineMode(next_mode, options = {}) {
 		const mode = next_mode == TIMELINE_MODE_BOOKMARKS
 			? TIMELINE_MODE_BOOKMARKS
 			: TIMELINE_MODE_FEEDS;
+		const skip_url_update = options.skip_url_update == true;
+		const route_state = options.route_state || null;
 		if (this.timeline_mode == mode) {
+			if (route_state) {
+				this.apply_route_from_url(route_state);
+			}
 			return;
 		}
 		const previous_mode = this.timeline_mode;
@@ -267,12 +286,17 @@ export default class extends Controller {
 		this.activeFeedLabel = "";
 		this.resetFeedFilteredPosts();
 		if (previous_mode == TIMELINE_MODE_BOOKMARKS && mode == TIMELINE_MODE_FEEDS && this.restoreCachedFeedsTimeline()) {
-			const state = parse_hash();
+			const state = route_state || parse_hash();
 			this.activePostId = null;
 			this.unreadOverridePostId = null;
-			this.apply_route_from_url(state, false);
-			replace_state({ feedId: this.activeFeedId || null, postId: null });
-			window.dispatchEvent(new CustomEvent("reader:blank"));
+			if (skip_url_update) {
+				this.apply_route_from_url(state);
+			}
+			else {
+				this.apply_route_from_url(state, false);
+				replace_state({ feedId: this.activeFeedId || null, postId: null });
+				window.dispatchEvent(new CustomEvent("reader:blank"));
+			}
 			return;
 		}
 		this.syncTimeline();
@@ -687,6 +711,12 @@ export default class extends Controller {
 			this.render();
 			return;
 		}
+		if (state.pane) {
+			this.clearActivePost(true);
+			this.applying_route = false;
+			this.render();
+			return;
+		}
 		if (state.postId != null && state.postId != "") {
 			const post = this.findPostById(state.postId);
 			if (post) {
@@ -716,6 +746,24 @@ export default class extends Controller {
 
 	handleUrlChange(event) {
 		const state = event.detail || parse_hash();
+		if (state.pane == TIMELINE_MODE_BOOKMARKS) {
+			if (this.timeline_mode != TIMELINE_MODE_BOOKMARKS) {
+				this.switchTimelineMode(TIMELINE_MODE_BOOKMARKS, {
+					skip_url_update: true,
+					route_state: state
+				});
+				return;
+			}
+			this.apply_route_from_url(state);
+			return;
+		}
+		if (this.timeline_mode == TIMELINE_MODE_BOOKMARKS) {
+			this.switchTimelineMode(TIMELINE_MODE_FEEDS, {
+				skip_url_update: true,
+				route_state: state
+			});
+			return;
+		}
 		this.apply_route_from_url(state);
 	}
 

@@ -4,7 +4,7 @@ import { DEFAULT_AVATAR_URL } from "../api/posts.js";
 import { fetchRecapEmailSettings, markFeedEntriesUnread, updateRecapEmailSettings } from "../api/feeds.js";
 import { createPostBookmark } from "../api/micropub.js";
 import { markRead, markUnread } from "../storage/reads.js";
-import { parse_hash } from "../router.js";
+import { parse_hash } from "../router.js?20260322.1";
 
 const preview_spinner_markup = "<p class=\"loading\"><img class=\"subscriptions-spinner subscriptions-spinner--inline\" src=\"/images/progress_spinner.svg\" alt=\"Loading preview\" style=\"width: 20px; height: 20px;\"></p>";
 const recap_email_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -75,6 +75,9 @@ export default class extends Controller {
 		const route = parse_hash();
 		if (route.postId || route.feedId || route.feedUrl) {
 			this.showResolving();
+		}
+		else if (route.pane) {
+			this.showBlank();
 		}
 		else {
 			this.showPlaceholder();

@@ -1,5 +1,6 @@
 import { Controller } from "../stimulus.js";
 import { fetchBlogrollDirectory, fetchDiscoverPosts } from "../api/feeds.js";
+import { parse_hash, ROUTE_CHANGE } from "../router.js?20260322.1";
 
 const DEFAULT_AVATAR_URL = "/images/blank_avatar.png";
 const RECENTLY_ADDED_TOPIC_KEY = "recently-added";
@@ -39,8 +40,10 @@ export default class extends Controller {
 		this.is_loading_discover_posts = false;
 		this.has_loaded_discover_posts = false;
 		this.discover_posts_error = "";
+		this.route_pane_active = false;
 		this.handleOpen = this.handleOpen.bind(this);
 		this.handleClose = this.handleClose.bind(this);
+		this.handleUrlChange = this.handleUrlChange.bind(this);
 		this.handleDiscoverPostAvatarError = this.handleDiscoverPostAvatarError.bind(this);
 		window.addEventListener("discover:open", this.handleOpen);
 		window.addEventListener("subscriptions:open", this.handleClose);
@@ -49,8 +52,10 @@ export default class extends Controller {
 		window.addEventListener("reader:summary", this.handleClose);
 		window.addEventListener("reader:welcome", this.handleClose);
 		window.addEventListener("reader:blank", this.handleClose);
+		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.element.addEventListener("error", this.handleDiscoverPostAvatarError, true);
 		this.render();
+		this.handleUrlChange({ detail: parse_hash() });
 	}
 
 	disconnect() {
@@ -61,21 +66,39 @@ export default class extends Controller {
 		window.removeEventListener("reader:summary", this.handleClose);
 		window.removeEventListener("reader:welcome", this.handleClose);
 		window.removeEventListener("reader:blank", this.handleClose);
+		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.element.removeEventListener("error", this.handleDiscoverPostAvatarError, true);
 	}
 
 	async handleOpen() {
+		this.route_pane_active = parse_hash().pane == "discover";
 		this.showPane();
 		await this.loadDirectory();
 		this.render();
 	}
 
 	handleClose() {
+		this.route_pane_active = parse_hash().pane == "discover";
 		this.hidePane();
+	}
+
+	async handleUrlChange(event) {
+		const state = event.detail || parse_hash();
+		if (state?.pane == "discover") {
+			this.route_pane_active = true;
+			await this.handleOpen();
+			return;
+		}
+
+		if (this.route_pane_active) {
+			this.route_pane_active = false;
+			this.hidePane();
+		}
 	}
 
 	showPane() {
 		if (this.is_visible) {
+			this.syncOverlayPaneState();
 			this.resetScrollPosition();
 			return;
 		}
@@ -84,11 +107,13 @@ export default class extends Controller {
 		this.paneTarget.hidden = false;
 		this.readerViewTarget.hidden = true;
 		this.is_visible = true;
+		this.syncOverlayPaneState();
 		this.resetScrollPosition();
 	}
 
 	hidePane() {
 		if (!this.is_visible) {
+			this.syncOverlayPaneState();
 			return;
 		}
 
@@ -97,6 +122,7 @@ export default class extends Controller {
 		if (!this.hasVisibleOverlayPane()) {
 			this.readerViewTarget.hidden = false;
 		}
+		this.syncOverlayPaneState();
 	}
 
 	async loadDirectory() {
@@ -792,5 +818,9 @@ export default class extends Controller {
 			const pane_el = this.element.querySelector(selector);
 			return pane_el && pane_el.hidden == false;
 		});
+	}
+
+	syncOverlayPaneState() {
+		this.element.classList.toggle("has-overlay-pane", this.hasVisibleOverlayPane());
 	}
 }

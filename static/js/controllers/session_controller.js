@@ -1,5 +1,5 @@
 import { Controller } from "../stimulus.js";
-import { parse_hash } from "../router.js";
+import { parse_hash, ROUTE_CHANGE } from "../router.js?20260322.1";
 
 export default class extends Controller {
 	connect() {
@@ -8,6 +8,7 @@ export default class extends Controller {
 		this.handlePostOpen = this.handlePostOpen.bind(this);
 		this.handleDetailOpen = this.handleDetailOpen.bind(this);
 		this.handleDetailClose = this.handleDetailClose.bind(this);
+		this.handleUrlChange = this.handleUrlChange.bind(this);
 		window.addEventListener("post:open", this.handlePostOpen);
 		window.addEventListener("reader:summary", this.handleDetailOpen);
 		window.addEventListener("reader:resolvingRoute", this.handleDetailOpen);
@@ -17,8 +18,9 @@ export default class extends Controller {
 		window.addEventListener("reader:clear", this.handleDetailClose);
 		window.addEventListener("reader:welcome", this.handleDetailClose);
 		window.addEventListener("reader:blank", this.handleDetailClose);
+		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		const route = parse_hash();
-		this.setDetailOpen(Boolean(route.postId));
+		this.setDetailOpen(this.isRoutedDetailOpen(route));
 	}
 
 	disconnect() {
@@ -31,6 +33,7 @@ export default class extends Controller {
 		window.removeEventListener("reader:clear", this.handleDetailClose);
 		window.removeEventListener("reader:welcome", this.handleDetailClose);
 		window.removeEventListener("reader:blank", this.handleDetailClose);
+		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
 	}
 
 	handlePostOpen(event) {
@@ -45,13 +48,29 @@ export default class extends Controller {
 
 	handleDetailClose() {
 		this.currentPost = null;
+		if (this.isRoutedDetailOpen(parse_hash())) {
+			this.setDetailOpen(true);
+			return;
+		}
 		this.setDetailOpen(false);
 	}
 
 	showTimeline(event) {
 		event?.preventDefault();
-		this.setDetailOpen(false);
+		window.dispatchEvent(new CustomEvent("subscriptions:close"));
 		window.dispatchEvent(new CustomEvent("timeline:back"));
+		this.setDetailOpen(false);
+	}
+
+	handleUrlChange(event) {
+		const route = event.detail || parse_hash();
+		if (this.isRoutedDetailOpen(route)) {
+			this.setDetailOpen(true);
+			return;
+		}
+		if (!this.currentPost) {
+			this.setDetailOpen(false);
+		}
 	}
 
 	setDetailOpen(is_open) {
@@ -62,5 +81,9 @@ export default class extends Controller {
 			return;
 		}
 		this.layout_element.classList.toggle("is-detail-open", Boolean(is_open));
+	}
+
+	isRoutedDetailOpen(route) {
+		return Boolean(route?.postId || route?.pane);
 	}
 }

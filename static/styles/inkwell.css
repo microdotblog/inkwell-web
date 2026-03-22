@@ -42,6 +42,7 @@
 	--ink-card-background: #fff;
 	--ink-card-border: rgba(29, 26, 22, 0.08);
 	--ink-card-shadow: rgba(29, 26, 22, 0.12);
+	--ink-list-item-padding: 0.6rem;
 	--ink-status-background: rgba(29, 26, 22, 0.08);
 	--ink-right-pane-background: #fff;
 	--ink-empty-background: #f6f1e6;
@@ -1101,6 +1102,31 @@ button:focus:not(:focus-visible) {
 	padding: 0;
 }
 
+.right-pane.is-empty.has-overlay-pane {
+	justify-content: initial;
+	padding: 1rem;
+	background: var(--ink-right-pane-background);
+	overflow-y: auto;
+	isolation: auto;
+}
+
+.right-pane.is-empty.has-overlay-pane::before,
+.right-pane.is-empty.has-overlay-pane::after {
+	content: none;
+	background-image: none;
+}
+
+.right-pane.is-empty.has-overlay-pane .right-content {
+	display: block;
+	flex: initial;
+	width: 100%;
+	max-width: 700px;
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+	z-index: 1;
+}
+
 .right-pane .right-content {
   width: 100%;
   max-width: 700px;
@@ -1205,7 +1231,7 @@ button:focus:not(:focus-visible) {
 	display: flex;
 	align-items: flex-start;
 	gap: 0.7rem;
-	padding: 0;
+	padding: var(--ink-list-item-padding);
 	border-radius: 10px;
 	background: var(--ink-card-background);
 }
@@ -1264,8 +1290,7 @@ button:focus:not(:focus-visible) {
 }
 
 .discover-post {
-	padding-top: 0;
-	padding-bottom: 0;
+	padding: var(--ink-list-item-padding);
 }
 
 .discover-post-body {
@@ -1605,26 +1630,28 @@ button:focus:not(:focus-visible) {
 .subscriptions-list {
 	display: flex;
 	flex-direction: column;
-	gap: 0.9rem;
+	gap: 10px;
 }
 
 .subscription-item {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 1rem;
-	padding: 0.5rem 0rem;
+	flex-wrap: wrap;
+	gap: 0.85rem;
+	padding: var(--ink-list-item-padding);
 	min-height: 3.5rem;
 	background: var(--ink-card-background);
+	border: 1px solid var(--ink-card-border);
+	border-radius: 10px;
 }
 
 .subscription-item--edit {
-	gap: 0.75rem;
-	align-items: center;
+	gap: 0.85rem;
 }
 
 input[type="text"].subscription-edit {
-	flex: 1 1 auto;
+	flex: 1 1 260px;
 	min-width: 0;
 	font-size: 0.75rem;
 	line-height: 1.2;
@@ -1637,6 +1664,10 @@ input[type="text"].subscription-edit {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.35rem;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	margin-left: auto;
 }
 
 .subscriptions-spinner--inline {
@@ -1646,14 +1677,15 @@ input[type="text"].subscription-edit {
 }
 
 .subscription-item button {
-	margin-left: 5px;
+	margin-left: 0;
+	white-space: nowrap;
 }
 
 .subscription-main {
 	display: flex;
 	align-items: center;
-	gap: 1rem;
-	flex: 1 1 auto;
+	gap: 0.85rem;
+	flex: 1 1 260px;
 	min-width: 0;
 }
 
@@ -1678,7 +1710,11 @@ input[type="text"].subscription-edit {
 .subscription-buttons {
 	display: inline-flex;
 	align-items: center;
-	flex: 0 0 auto;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	justify-content: flex-end;
+	margin-left: auto;
 }
 
 .subscription-info {
@@ -1724,6 +1760,15 @@ input[type="text"].subscription-edit {
 	color: var(--ink-muted);
 	font-style: italic;
 	font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+	.subscription-actions,
+	.subscription-buttons {
+		width: 100%;
+		margin-left: 0;
+		justify-content: flex-start;
+	}
 }
 
 .reader-header {
