@@ -1,5 +1,5 @@
 import { Controller } from "../stimulus.js";
-import { parse_hash, ROUTE_CHANGE } from "../router.js?20260321.1";
+import { parse_hash, ROUTE_CHANGE } from "../router.js?20260322.1";
 
 export default class extends Controller {
 	connect() {
@@ -84,6 +84,6 @@ export default class extends Controller {
 	}
 
 	isRoutedDetailOpen(route) {
-		return Boolean(route?.postId || route?.pane == "feeds");
+		return Boolean(route?.postId || route?.pane);
 	}
 }

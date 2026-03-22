@@ -1,7 +1,7 @@
 import { Controller } from "../stimulus.js";
 import { mockSubscriptions } from "../mock_data.js";
 import { USE_MOCK_DATA } from "../config.js";
-import { parse_hash, replace_state, ROUTE_CHANGE } from "../router.js?20260321.1";
+import { parse_hash, replace_state, ROUTE_CHANGE } from "../router.js?20260322.1";
 import {
 	createFeedSubscription,
 	deleteFeedSubscription,
@@ -92,6 +92,10 @@ export default class extends Controller {
 		const feed_url = (event.detail?.feedUrl || "").trim();
 		this.mode = mode;
 		this.route_pane_active = this.mode == "manage" && parse_hash().pane == "feeds";
+		if (this.mode != "manage") {
+			this.route_pane_active = false;
+			this.clearActivePaneRouteIfActive();
+		}
 		this.element.hidden = false;
 		this.showPane();
 		this.updateFormVisibility();
@@ -1409,6 +1413,12 @@ export default class extends Controller {
 
 	clearFeedsRouteIfActive() {
 		if (parse_hash().pane == "feeds") {
+			replace_state({});
+		}
+	}
+
+	clearActivePaneRouteIfActive() {
+		if (parse_hash().pane) {
 			replace_state({});
 		}
 	}

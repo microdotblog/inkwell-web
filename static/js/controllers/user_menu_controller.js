@@ -1,5 +1,5 @@
 import { Controller } from "../stimulus.js";
-import { push_state } from "../router.js?20260321.1";
+import { parse_hash, push_state, replace_state } from "../router.js?20260322.1";
 
 const HIDE_READ_KEY = "inkwell_hide_read";
 
@@ -64,6 +64,9 @@ export default class extends Controller {
 
 	openSubscriptions(event) {
 		const menu_mode = event.currentTarget?.dataset.userMenuMode || "manage";
+		if (menu_mode != "manage") {
+			this.clearActivePaneRoute();
+		}
 		window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
 		if (menu_mode == "manage") {
 			push_state({ pane: "feeds" });
@@ -74,19 +77,27 @@ export default class extends Controller {
 	}
 
 	openHelp() {
+		if (this.clearActivePaneRoute()) {
+			window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
+		}
 		window.dispatchEvent(new CustomEvent("reader:welcome"));
 		window.dispatchEvent(new CustomEvent("subscriptions:close"));
 	}
 
 	openHighlights() {
+		window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
+		push_state({ pane: "highlights" });
 		window.dispatchEvent(new CustomEvent("highlights:open"));
 	}
 
 	openDiscover() {
+		window.dispatchEvent(new CustomEvent("timeline:openFeeds"));
+		push_state({ pane: "discover" });
 		window.dispatchEvent(new CustomEvent("discover:open"));
 	}
 
 	openBookmarks() {
+		push_state({ pane: "bookmarks" });
 		window.dispatchEvent(new CustomEvent("subscriptions:close"));
 		window.dispatchEvent(new CustomEvent("reader:blank"));
 		window.dispatchEvent(new CustomEvent("timeline:openBookmarks"));
@@ -108,5 +119,13 @@ export default class extends Controller {
 	removeListeners() {
 		document.removeEventListener("click", this.handleDocumentClick);
 		document.removeEventListener("keydown", this.handleKeydown);
+	}
+
+	clearActivePaneRoute() {
+		if (!parse_hash().pane) {
+			return false;
+		}
+		replace_state({});
+		return true;
 	}
 }

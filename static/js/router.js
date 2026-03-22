@@ -1,12 +1,18 @@
 const ROUTE_CHANGE = "url:change";
+const PANE_ROUTES = new Set(["feeds", "bookmarks", "highlights", "discover"]);
+let last_known_hash = "";
+
+function normalize_hash(raw_hash) {
+	return `${raw_hash || ""}`.replace(/^#/, "").trim();
+}
 
 function get_hash() {
 	const raw = typeof window != "undefined" && window.location ? window.location.hash : "";
-	return raw.replace(/^#/, "").trim();
+	return normalize_hash(raw);
 }
 
 function parse_hash(hash_string) {
-	const hash = (hash_string != null ? hash_string : get_hash()).replace(/^#/, "").trim();
+	const hash = normalize_hash(hash_string != null ? hash_string : get_hash());
 	if (hash == "" || hash == "/") {
 		return { feedId: null, feedUrl: null, postId: null, pane: null };
 	}
@@ -53,12 +59,12 @@ function parse_hash(hash_string) {
 		};
 	}
 
-	if (segments[0] == "feeds") {
+	if (segments.length == 1 && PANE_ROUTES.has(segments[0])) {
 		return {
 			feedId: null,
 			feedUrl: null,
 			postId: null,
-			pane: "feeds"
+			pane: segments[0]
 		};
 	}
 
@@ -70,8 +76,8 @@ function build_hash(state) {
 	const post_id = state.postId != null && state.postId != "" ? state.postId : null;
 	const pane = state.pane != null && state.pane != "" ? state.pane : null;
 
-	if (pane == "feeds") {
-		return "#/feeds";
+	if (pane && PANE_ROUTES.has(pane)) {
+		return `#/${pane}`;
 	}
 
 	if (feed_id && post_id) {
@@ -100,23 +106,33 @@ function get_base_url() {
 function replace_state(state) {
 	const hash = build_hash(state);
 	const url = get_base_url() + hash;
+	last_known_hash = normalize_hash(hash);
 	window.history.replaceState({ route: state }, document.title, url);
 }
 
 function push_state(state) {
 	const hash = build_hash(state);
 	const url = get_base_url() + hash;
+	last_known_hash = normalize_hash(hash);
 	window.history.pushState({ route: state }, document.title, url);
+}
+
+function dispatch_route_change() {
+	const hash = get_hash();
+	if (hash == last_known_hash) {
+		return;
+	}
+	last_known_hash = hash;
+	window.dispatchEvent(new CustomEvent(ROUTE_CHANGE, { detail: parse_hash(hash) }));
 }
 
 function init_listener() {
 	if (typeof window == "undefined") {
 		return;
 	}
-	window.addEventListener("popstate", () => {
-		const state = parse_hash();
-		window.dispatchEvent(new CustomEvent(ROUTE_CHANGE, { detail: state }));
-	});
+	last_known_hash = get_hash();
+	window.addEventListener("popstate", dispatch_route_change);
+	window.addEventListener("hashchange", dispatch_route_change);
 }
 
 export {

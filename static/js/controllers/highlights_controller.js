@@ -3,6 +3,7 @@ import { deleteMicroBlogHighlight, fetchMicroBlogHighlightsFeed } from "../api/h
 import { fetchConversationReplies } from "../api/feeds.js";
 import { DEFAULT_AVATAR_URL } from "../api/posts.js";
 import { deleteHighlight, getAllHighlights, getHighlightsForPost, mergeRemoteHighlights } from "../storage/highlights.js";
+import { parse_hash, ROUTE_CHANGE } from "../router.js?20260322.1";
 
 const EMPTY_POST_MESSAGE = "No highlights yet.";
 const EMPTY_ALL_MESSAGE = "No highlights saved yet.";
@@ -35,6 +36,7 @@ export default class extends Controller {
 		this.globalHighlights = [];
 		this.search_query = "";
 		this.isVisible = false;
+		this.route_pane_active = false;
 		this.post_load_token = 0;
 		this.handleHighlight = this.handleHighlight.bind(this);
 		this.handleHighlightUpdate = this.handleHighlightUpdate.bind(this);
@@ -45,6 +47,7 @@ export default class extends Controller {
 		this.handleOpenAll = this.handleOpenAll.bind(this);
 		this.handleSubscriptionsOpen = this.handleSubscriptionsOpen.bind(this);
 		this.handleDiscoverOpen = this.handleDiscoverOpen.bind(this);
+		this.handleUrlChange = this.handleUrlChange.bind(this);
 		this.handleReplyAvatarError = this.handleReplyAvatarError.bind(this);
 		window.addEventListener("highlight:create", this.handleHighlight);
 		window.addEventListener("highlight:update", this.handleHighlightUpdate);
@@ -56,9 +59,11 @@ export default class extends Controller {
 		window.addEventListener("highlights:open", this.handleOpenAll);
 		window.addEventListener("subscriptions:open", this.handleSubscriptionsOpen);
 		window.addEventListener("discover:open", this.handleDiscoverOpen);
+		window.addEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.element.addEventListener("error", this.handleReplyAvatarError, true);
 		this.render();
 		this.renderGlobal();
+		this.handleUrlChange({ detail: parse_hash() });
 	}
 
 	disconnect() {
@@ -72,6 +77,7 @@ export default class extends Controller {
 		window.removeEventListener("highlights:open", this.handleOpenAll);
 		window.removeEventListener("subscriptions:open", this.handleSubscriptionsOpen);
 		window.removeEventListener("discover:open", this.handleDiscoverOpen);
+		window.removeEventListener(ROUTE_CHANGE, this.handleUrlChange);
 		this.element.removeEventListener("error", this.handleReplyAvatarError, true);
 	}
 
@@ -134,17 +140,34 @@ export default class extends Controller {
 	}
 
 	async handleOpenAll() {
+		this.route_pane_active = parse_hash().pane == "highlights";
 		await this.loadAllHighlights();
 		this.showPane();
 		this.renderGlobal();
 	}
 
 	handleSubscriptionsOpen() {
+		this.route_pane_active = parse_hash().pane == "highlights";
 		this.hidePane();
 	}
 
 	handleDiscoverOpen() {
+		this.route_pane_active = parse_hash().pane == "highlights";
 		this.hidePane();
+	}
+
+	async handleUrlChange(event) {
+		const state = event.detail || parse_hash();
+		if (state?.pane == "highlights") {
+			this.route_pane_active = true;
+			await this.handleOpenAll();
+			return;
+		}
+
+		if (this.route_pane_active) {
+			this.route_pane_active = false;
+			this.hidePane();
+		}
 	}
 
 	async loadConversation(post_url, load_token) {
