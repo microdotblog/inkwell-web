@@ -1,7 +1,7 @@
 import { Controller } from "../stimulus.js";
 import { mockSubscriptions } from "../mock_data.js";
 import { USE_MOCK_DATA } from "../config.js";
-import { parse_hash, replace_state, ROUTE_CHANGE } from "../router.js?20260322.1";
+import { parse_hash, replace_state, ROUTE_CHANGE } from "../router.js";
 import {
 	createFeedSubscription,
 	deleteFeedSubscription,

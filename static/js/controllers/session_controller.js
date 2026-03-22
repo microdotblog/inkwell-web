@@ -1,5 +1,5 @@
 import { Controller } from "../stimulus.js";
-import { parse_hash, ROUTE_CHANGE } from "../router.js?20260322.1";
+import { parse_hash, ROUTE_CHANGE } from "../router.js";
 
 export default class extends Controller {
 	connect() {

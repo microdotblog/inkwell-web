@@ -13,7 +13,7 @@ import {
 	unstarFeedEntries
 } from "../api/feeds.js";
 import { loadReadIds, markAllRead, markRead } from "../storage/reads.js";
-import { parse_hash, push_state, replace_state, ROUTE_CHANGE } from "../router.js?20260322.1";
+import { parse_hash, push_state, replace_state, ROUTE_CHANGE } from "../router.js";
 
 const SEGMENT_BUCKETS = {
   today: ["day-1"],
