@@ -1,6 +1,6 @@
 import { Controller } from "../stimulus.js";
 import { fetchBlogrollDirectory, fetchDiscoverPosts } from "../api/feeds.js";
-import { parse_hash, ROUTE_CHANGE } from "../router.js?20260322.1";
+import { parse_hash, ROUTE_CHANGE } from "../router.js";
 
 const DEFAULT_AVATAR_URL = "/images/blank_avatar.png";
 const RECENTLY_ADDED_TOPIC_KEY = "recently-added";

@@ -3,7 +3,7 @@ import { deleteMicroBlogHighlight, fetchMicroBlogHighlightsFeed } from "../api/h
 import { fetchConversationReplies } from "../api/feeds.js";
 import { DEFAULT_AVATAR_URL } from "../api/posts.js";
 import { deleteHighlight, getAllHighlights, getHighlightsForPost, mergeRemoteHighlights } from "../storage/highlights.js";
-import { parse_hash, ROUTE_CHANGE } from "../router.js?20260322.1";
+import { parse_hash, ROUTE_CHANGE } from "../router.js";
 
 const EMPTY_POST_MESSAGE = "No highlights yet.";
 const EMPTY_ALL_MESSAGE = "No highlights saved yet.";

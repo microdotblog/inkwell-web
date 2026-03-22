@@ -1,5 +1,5 @@
 import { Controller } from "../stimulus.js";
-import { parse_hash, push_state, replace_state } from "../router.js?20260322.1";
+import { parse_hash, push_state, replace_state } from "../router.js";
 
 const HIDE_READ_KEY = "inkwell_hide_read";
 
