@@ -27,3 +27,15 @@ test("discover cards reuse the same padding as subscriptions", () => {
 	const discover_post_rule = get_rule(".discover-post");
 	assert.match(discover_post_rule, /padding:\s*var\(--ink-list-item-padding\);/);
 });
+
+test("reader UI themes set an explicit pane text color", () => {
+	const light_rule = get_rule(".right-pane.right-pane--reader-ui-light");
+	assert.match(light_rule, /color:\s*var\(--ink-text\);/);
+	assert.match(light_rule, /--pico-color:\s*var\(--ink-text\);/);
+	assert.match(light_rule, /--pico-muted-color:\s*var\(--ink-muted\);/);
+
+	const dark_rule = get_rule(".right-pane.right-pane--reader-ui-dark");
+	assert.match(dark_rule, /color:\s*var\(--ink-text\);/);
+	assert.match(dark_rule, /--pico-color:\s*var\(--ink-text\);/);
+	assert.match(dark_rule, /--pico-muted-color:\s*var\(--ink-muted\);/);
+});
