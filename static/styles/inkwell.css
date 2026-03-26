@@ -966,6 +966,9 @@ button:focus:not(:focus-visible) {
 
 .right-pane.right-pane--reader-ui-light {
 	color-scheme: light;
+	color: var(--ink-text);
+	--pico-color: var(--ink-text);
+	--pico-muted-color: var(--ink-muted);
 	--ink-text: #1d1a16;
 	--ink-muted: #6b6258;
 	--ink-link: #4779b2;
@@ -991,6 +994,9 @@ button:focus:not(:focus-visible) {
 
 .right-pane.right-pane--reader-ui-dark {
 	color-scheme: dark;
+	color: var(--ink-text);
+	--pico-color: var(--ink-text);
+	--pico-muted-color: var(--ink-muted);
 	--ink-text: #F4F6FB;
 	--ink-muted: #B5BDCB;
 	--ink-link: #7CB7FF;
@@ -2248,6 +2254,7 @@ input[type="search"]::-webkit-search-decoration {
 	margin: 0 0 0.25rem;
 	font-size: 0.82rem;
 	font-weight: 600;
+	color: var(--ink-text);
 }
 
 .reply-author a {
