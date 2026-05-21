@@ -7,6 +7,7 @@ import { parse_hash, ROUTE_CHANGE } from "../router.js";
 
 const EMPTY_POST_MESSAGE = "No highlights yet.";
 const EMPTY_ALL_MESSAGE = "No highlights saved yet.";
+const highlight_ignored_selector = ".reader-post-header";
 
 export default class extends Controller {
 	static targets = [
@@ -683,7 +684,15 @@ export default class extends Controller {
 
 	buildReaderHighlightSegments(content_el, ranges) {
 		const segments = [];
-		const walker = document.createTreeWalker(content_el, NodeFilter.SHOW_TEXT, null);
+		const walker = document.createTreeWalker(
+			content_el,
+			NodeFilter.SHOW_TEXT,
+			{
+				acceptNode: (node) => this.shouldIgnoreHighlightTextNode(node)
+					? NodeFilter.FILTER_REJECT
+					: NodeFilter.FILTER_ACCEPT
+			}
+		);
 		let node = walker.nextNode();
 		let absolute_offset = 0;
 
@@ -721,6 +730,11 @@ export default class extends Controller {
 		}
 
 		return segments;
+	}
+
+	shouldIgnoreHighlightTextNode(node) {
+		const parent = node?.parentElement || null;
+		return Boolean(parent?.closest(highlight_ignored_selector));
 	}
 
 	wrapReaderHighlightRange(range) {
