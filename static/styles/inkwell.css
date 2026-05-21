@@ -46,6 +46,7 @@
 	--ink-status-background: rgba(29, 26, 22, 0.08);
 	--ink-right-pane-background: #fff;
 	--ink-empty-background: #f6f1e6;
+	--ink-reader-byline-color: #888;
 	--ink-toolbar-background: #1f1c18;
 	--ink-toolbar-text: #fff;
 	--ink-toolbar-shadow: rgba(0, 0, 0, 0.25);
@@ -1124,6 +1125,7 @@ button:focus:not(:focus-visible) {
 	--ink-text: #1d1a16;
 	--ink-muted: #6b6258;
 	--ink-link: #4779b2;
+	--ink-reader-byline-color: #888;
 	--ink-avatar-border-muted: rgba(29, 26, 22, 0.1);
 	--ink-popover-background: #fff;
 	--ink-popover-border: rgba(29, 26, 22, 0.12);
@@ -1152,6 +1154,7 @@ button:focus:not(:focus-visible) {
 	--ink-text: #F4F6FB;
 	--ink-muted: #B5BDCB;
 	--ink-link: #7CB7FF;
+	--ink-reader-byline-color: #999;
 	--ink-avatar-border-muted: rgba(218, 226, 240, 0.24);
 	--ink-popover-background: #1C2430;
 	--ink-popover-border: rgba(212, 223, 242, 0.18);
@@ -2269,23 +2272,27 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 .reader-post-header {
-	margin-bottom: 1.3rem;
+	margin-bottom: 1.6rem;
+}
+
+.reader-post-header--has-title {
+	padding-top: calc(0.35rem - 2px);
 }
 
 .reader-content .reader-post-title {
-	margin: 0 0 0.15rem 0;
-	font-size: 1.2rem;
+	margin: 0 0 0.25rem 0;
+	font-size: inherit;
 	line-height: 1.25;
 	font-weight: 700;
-	color: var(--ink-text);
+	color: inherit;
 	letter-spacing: 0;
 }
 
-.reader-post-author {
+.reader-content .reader-post-author {
 	margin: 0;
-	font-size: 1rem;
+	font-size: inherit;
 	line-height: 1.35;
-	color: var(--ink-muted);
+	color: var(--ink-reader-byline-color);
 }
 
 .reader-content p {

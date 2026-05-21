@@ -728,6 +728,9 @@ export default class extends Controller {
 
 		const header = document.createElement("div");
 		header.className = "reader-post-header";
+		if (has_title) {
+			header.classList.add("reader-post-header--has-title");
+		}
 
 		if (has_title) {
 			const title_el = document.createElement("h1");
