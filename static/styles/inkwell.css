@@ -2116,6 +2116,26 @@ input[type="search"]::-webkit-search-decoration {
 	max-width: 70%;
 }
 
+.reader-post-header {
+	margin-bottom: 1.3rem;
+}
+
+.reader-content .reader-post-title {
+	margin: 0 0 0.15rem 0;
+	font-size: 1.2rem;
+	line-height: 1.25;
+	font-weight: 700;
+	color: var(--ink-text);
+	letter-spacing: 0;
+}
+
+.reader-post-author {
+	margin: 0;
+	font-size: 1rem;
+	line-height: 1.35;
+	color: var(--ink-muted);
+}
+
 .reader-content p {
 	margin-bottom: 1rem;
 	color: inherit;

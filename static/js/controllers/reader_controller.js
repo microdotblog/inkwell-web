@@ -139,16 +139,20 @@ export default class extends Controller {
 		if (payload.html) {
 			safe_html = this.sanitizeHtml(payload.html);
 		}
-		this.currentPostTitle = payload.title || post.title || "Untitled";
+		const final_post_title = (payload.title || post.title || "").trim();
+		const final_post_author = (payload.byline || post.author || "").trim();
+		const final_post_has_title = this.hasPostTitle(final_post_title, post.summary);
+		this.currentPostTitle = final_post_title || "Untitled";
 		this.setTitle(this.currentPostTitle);
 		this.setMeta(post);
 		this.contentTarget.innerHTML = safe_html;
+		this.prependPostHeader(final_post_title, final_post_author, final_post_has_title);
 		this.contentTarget.dataset.postId = post.id;
 		this.contentTarget.dataset.postUrl = post.url;
-		this.contentTarget.dataset.postTitle = post_title;
+		this.contentTarget.dataset.postTitle = final_post_title;
 		this.contentTarget.dataset.postSource = post.source || "";
 		this.contentTarget.dataset.postPublishedAt = post.published_at || "";
-		this.contentTarget.dataset.postHasTitle = post_has_title ? "true" : "false";
+		this.contentTarget.dataset.postHasTitle = final_post_has_title ? "true" : "false";
 		this.dispatch("ready", { detail: { postId: post.id }, prefix: "reader" });
 	}
 
@@ -713,6 +717,33 @@ export default class extends Controller {
 		}
 
 		return true;
+	}
+
+	prependPostHeader(title, author, has_title) {
+		const trimmed_title = (title || "").trim();
+		const trimmed_author = (author || "").trim();
+		if (!has_title && !trimmed_author) {
+			return;
+		}
+
+		const header = document.createElement("div");
+		header.className = "reader-post-header";
+
+		if (has_title) {
+			const title_el = document.createElement("h1");
+			title_el.className = "reader-post-title";
+			title_el.textContent = trimmed_title;
+			header.append(title_el);
+		}
+
+		if (trimmed_author) {
+			const author_el = document.createElement("p");
+			author_el.className = "reader-post-author";
+			author_el.textContent = trimmed_author;
+			header.append(author_el);
+		}
+
+		this.contentTarget.prepend(header);
 	}
 
 	sanitizeHtml(markup) {
