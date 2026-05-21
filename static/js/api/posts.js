@@ -134,7 +134,7 @@ async function fetchBookmarksTimelineData() {
 			title: item?.title || summary || post.source || "Untitled",
 			summary,
 			content: item?.content_html || (summary ? `<p>${summary}</p>` : ""),
-			author: post.source || ""
+			author: post.author || ""
 		});
 		return post;
 	});
@@ -144,7 +144,8 @@ async function fetchBookmarksTimelineData() {
 
 function mapBookmarkItemToPost(item, index) {
 	const author = resolveBookmarkAuthor(item);
-	const source = author?.name || "Bookmarked";
+	const author_name = author?.name || "";
+	const source = author_name || "Bookmarked";
 	const published_at = item?.date_published || item?.date_modified || new Date().toISOString();
 	const url = (item?.url || "").trim();
 	const bookmark_id = item?.id != null ? String(item.id) : "";
@@ -155,6 +156,7 @@ function mapBookmarkItemToPost(item, index) {
 		feed_id: "",
 		source,
 		source_url: resolveBookmarkSourceUrl(author),
+		author: author_name,
 		title: item?.title || "",
 		summary: item?.summary || "",
 		url,
@@ -212,6 +214,7 @@ function mapEntriesToPosts(entries, subscription_map, unread_set, icon_map, star
 			feed_id: resolved_feed_id,
 			source: resolveSource(subscription),
 			source_url: resolveSourceUrl(subscription),
+			author: entry.author || "",
 			title: entry.title,
 			summary: entry.summary || "",
 			url: entry.url,

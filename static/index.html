@@ -6,23 +6,49 @@
     <title>Inkwell</title>
 	<link rel="icon" type="image/png" href="/images/inkwell_icon_32.png">
 	<link rel="apple-touch-icon" href="/images/inkwell_icon_200.png">
-    <link rel="modulepreload" href="/js/stimulus.vendor.js?20260213.1">
-	<link rel="stylesheet" href="/styles/pico.css?20260213.1">
-	<link rel="stylesheet" href="/styles/inkwell.css?20260326.1">
+    <link rel="modulepreload" href="/js/stimulus.vendor.js?20260521.4">
+	<link rel="stylesheet" href="/styles/pico.css?20260521.4">
+	<link rel="stylesheet" href="/styles/inkwell.css?20260521.4">
   </head>
   <body>
     <main data-controller="auth session" data-auth-state="loading">
-      <section class="auth-screen" data-auth-target="signin">
-        <div class="auth-card">
-          <p class="eyebrow">Inkwell</p>
-          <p class="lede">
-            Feed reader with Micro.blog sync and highlighting.
-          </p>
-          <button data-action="auth#signin">
-            Sign in with Micro.blog
-          </button>
-        </div>
-      </section>
+		<section class="auth-screen" data-auth-target="signin">
+			<div class="auth-home">
+				<div class="auth-hero">
+					<div class="auth-card">
+						<img class="auth-logo" src="/images/inkwell_icon_500.png" alt="Inkwell" width="150" height="150">
+
+						<div class="auth-card-content">
+							<p class="eyebrow">Inkwell</p>
+							<p class="lede">
+								Feed reader with Micro.blog sync and highlighting.
+							</p>
+							<button data-action="auth#signin">
+								Sign in with Micro.blog
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<p class="auth-platforms">
+					<span>Also available for:</span>
+					<a href="https://help.micro.blog/t/inkwell-for-mac/4267">macOS</a>
+					<a href="https://testflight.apple.com/join/1VJ8vYR6">iOS</a>
+					<a href="https://play.google.com/store/apps/details?id=blog.micro.inkwell">Android</a>
+				</p>
+
+				<div class="home-showcase" aria-label="Inkwell preview">
+					<a
+						href="/images/homepage/screenshot.png"
+						class="home-image home-image--main"
+						data-home-image="screenshot.png"
+						style="--home-image: url('/images/homepage/screenshot.png')"
+						role="img"
+						aria-label="Inkwell reader preview"
+					></a>
+				</div>
+			</div>
+		</section>
 
       <section class="app-shell" data-auth-target="app" hidden>
         <div class="layout">
@@ -494,6 +520,6 @@
       </section>
     </main>
 
-    <script type="module" src="/js/app.js?20260322.2"></script>
+    <script type="module" src="/js/app.js?20260521.4"></script>
   </body>
 </html>

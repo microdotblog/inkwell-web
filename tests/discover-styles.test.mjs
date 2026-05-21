@@ -33,9 +33,11 @@ test("reader UI themes set an explicit pane text color", () => {
 	assert.match(light_rule, /color:\s*var\(--ink-text\);/);
 	assert.match(light_rule, /--pico-color:\s*var\(--ink-text\);/);
 	assert.match(light_rule, /--pico-muted-color:\s*var\(--ink-muted\);/);
+	assert.match(light_rule, /--ink-reader-byline-color:\s*#888;/);
 
 	const dark_rule = get_rule(".right-pane.right-pane--reader-ui-dark");
 	assert.match(dark_rule, /color:\s*var\(--ink-text\);/);
 	assert.match(dark_rule, /--pico-color:\s*var\(--ink-text\);/);
 	assert.match(dark_rule, /--pico-muted-color:\s*var\(--ink-muted\);/);
+	assert.match(dark_rule, /--ink-reader-byline-color:\s*#999;/);
 });

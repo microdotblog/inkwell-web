@@ -2,6 +2,8 @@ import { Controller } from "../stimulus.js";
 import { createMicroBlogHighlight } from "../api/highlights.js";
 import { saveHighlight, updateHighlight } from "../storage/highlights.js";
 
+const highlight_ignored_selector = ".reader-post-header";
+
 export default class extends Controller {
 	static targets = ["content", "toolbar"];
 
@@ -41,6 +43,11 @@ export default class extends Controller {
 
 		const range = selection.getRangeAt(0);
 		if (!this.contentTarget.contains(range.commonAncestorContainer)) {
+			this.resetSelectionState();
+			this.hideToolbar();
+			return;
+		}
+		if (this.rangeIntersectsIgnoredContent(range)) {
 			this.resetSelectionState();
 			this.hideToolbar();
 			return;
@@ -99,6 +106,11 @@ export default class extends Controller {
 
 		const range = selection.getRangeAt(0);
 		if (!this.contentTarget.contains(range.commonAncestorContainer)) {
+			this.resetSelectionState();
+			this.hideToolbar();
+			return;
+		}
+		if (this.rangeIntersectsIgnoredContent(range)) {
 			this.resetSelectionState();
 			this.hideToolbar();
 		}
@@ -224,10 +236,15 @@ export default class extends Controller {
 		}
 
 		try {
-			const root_range = document.createRange();
-			root_range.selectNodeContents(this.contentTarget);
-			root_range.setEnd(selection_range.startContainer, selection_range.startOffset);
-			const start_offset = root_range.toString().length;
+			const start_offset = this.getBodyTextOffset(selection_range.startContainer, selection_range.startOffset);
+			if (start_offset == null) {
+				return {
+					selection_text: this.currentSelectionRaw || this.currentSelection,
+					start_offset: null,
+					end_offset: null
+				};
+			}
+
 			const selection_text = selection_range.toString();
 			const end_offset = start_offset + selection_text.length;
 
@@ -240,6 +257,47 @@ export default class extends Controller {
 				end_offset: null
 			};
 		}
+	}
+
+	getBodyTextOffset(target_node, target_offset) {
+		let offset = 0;
+		const walker = document.createTreeWalker(
+			this.contentTarget,
+			NodeFilter.SHOW_TEXT,
+			{
+				acceptNode: (node) => this.shouldIgnoreTextNode(node)
+					? NodeFilter.FILTER_REJECT
+					: NodeFilter.FILTER_ACCEPT
+			}
+		);
+		let node = walker.nextNode();
+		while (node) {
+			if (node == target_node) {
+				return offset + target_offset;
+			}
+
+			offset += (node.textContent || "").length;
+			node = walker.nextNode();
+		}
+
+		return null;
+	}
+
+	shouldIgnoreTextNode(node) {
+		const parent = node?.parentElement || null;
+		return Boolean(parent?.closest(highlight_ignored_selector));
+	}
+
+	rangeIntersectsIgnoredContent(range) {
+		const ignored_elements = this.contentTarget.querySelectorAll(highlight_ignored_selector);
+		return [...ignored_elements].some((element) => {
+			try {
+				return range.intersectsNode(element);
+			}
+			catch (error) {
+				return false;
+			}
+		});
 	}
 
 	async syncHighlightToMicroBlog(highlight, { text, start_offset, end_offset }) {
