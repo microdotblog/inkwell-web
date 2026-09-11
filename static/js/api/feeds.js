@@ -505,7 +505,7 @@ export async function fetchFeedIcons() {
 }
 
 export async function fetchBlogrollDirectory() {
-	return fetchFeedsJson("/blogroll.org.json");
+	return fetchFeedsJson("/blogroll.org.json", { include_token: false });
 }
 
 export async function fetchDiscoverPosts() {
@@ -802,16 +802,17 @@ export async function updateRecapEmailSettings(settings = {}) {
 }
 
 async function fetchFeedsJson(path, options = {}) {
+	const { include_token = true, ...fetch_options } = options;
   const url = new URL(path, `${getFeedsBaseUrl()}/`);
-  const headers = new Headers(options.headers || {});
-  const token = getMicroBlogToken();
+	const headers = new Headers(fetch_options.headers || {});
+	const token = include_token ? getMicroBlogToken() : "";
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
   headers.set("Accept", "application/json");
 
   try {
-    const response = await fetch(url, { ...options, headers });
+		const response = await fetch(url, { ...fetch_options, headers });
     if (!response.ok) {
       const response_text = await response.text();
       const request_error = new Error(`Feeds request failed: ${response.status}`);
