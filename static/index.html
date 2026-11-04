@@ -4,50 +4,105 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Inkwell</title>
+	<meta name="description" content="A little space for the blogs you love. Read your favorite feeds, save highlights, and catch up with Inkwell for Micro.blog on iPhone, iPad, Android, Mac, and the web.">
 	<link rel="icon" type="image/png" href="/images/inkwell_icon_32.png">
 	<link rel="apple-touch-icon" href="/images/inkwell_icon_200.png">
     <link rel="modulepreload" href="/js/stimulus.vendor.js?20260521.4">
 	<link rel="stylesheet" href="/styles/pico.css?20260521.4">
-	<link rel="stylesheet" href="/styles/inkwell.css?20270911.1">
+	<link rel="stylesheet" href="/styles/inkwell.css?20261104.1">
   </head>
   <body>
     <main data-controller="auth session" data-auth-state="loading">
-		<section class="auth-screen" data-auth-target="signin">
-			<div class="auth-home">
-				<div class="auth-hero">
-					<div class="auth-card">
-						<img class="auth-logo" src="/images/inkwell_icon_500.png" alt="Inkwell" width="150" height="150">
+		<section class="auth-screen" data-auth-target="signin" aria-label="Welcome to Inkwell">
+			<header class="home-header" id="home">
+				<div class="home-wrap home-header-inner">
+					<a class="home-brand" href="#home" aria-label="Inkwell home">
+						<img src="/images/inkwell_icon_200.png" alt="" width="42" height="42">
+						<span>Inkwell<span class="home-brand-period">.</span></span>
+					</a>
+					<nav class="home-nav" aria-label="Inkwell navigation">
+						<a href="#app">The app</a>
+						<a href="#highlights">Highlights &amp; recaps</a>
+						<a href="#web">On the web</a>
+					</nav>
+				</div>
+			</header>
 
-						<div class="auth-card-content">
-							<p class="eyebrow">Inkwell</p>
-							<p class="lede">
-								Feed reader with Micro.blog sync and highlighting.
-							</p>
-							<button data-action="auth#signin">
-								Sign in with Micro.blog
-							</button>
+			<section class="home-hero-section" id="app" aria-labelledby="home-title">
+				<div class="home-wrap home-hero">
+					<div class="home-hero-copy">
+						<h1 id="home-title">A little space for<br><em>the blogs you love.</em></h1>
+						<p class="home-intro">Meet Inkwell, your <a href="https://micro.blog/">Micro.blog</a> companion for reading the open web.</p>
+						<p class="home-description">Follow your favorite blogs, save the words that stay with you, and pick up where you left off.</p>
+						<button class="home-signin" type="button" data-action="auth#signin">Sign in with Micro.blog <span aria-hidden="true">↗</span></button>
+						<div class="home-downloads" aria-label="Download Inkwell">
+							<a class="home-store" href="https://apps.apple.com/us/app/ink-well-for-micro-blog/id6761992307">
+								<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.8 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.7.8-3.4.8s-1.8-.8-3-.8c-1.5 0-2.9.9-3.7 2.2-1.6 2.7-.4 6.7 1.1 8.9.8 1.1 1.7 2.3 2.9 2.2 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1.1 2.8-2.1c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.6-1-2.6-3.3ZM15.5 5.8c.6-.8 1.1-1.9 1-3-.9.1-2.1.6-2.8 1.4-.6.7-1.2 1.8-1.1 2.8 1 .1 2.2-.5 2.9-1.2Z"/></svg>
+								<span><small>Download for</small><strong>iPhone &amp; iPad</strong></span>
+							</a>
+							<a class="home-store" href="https://play.google.com/store/apps/details?id=blog.micro.inkwell">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 5-2-3m12 3 2-3M4 10h16M4 10a8 8 0 0 1 16 0v7H4zM8 17v4m8-4v4M1 11v5m22-5v5"/><path d="M8 7h.01M16 7h.01" stroke-width="2.6"/></svg>
+								<span><small>Get it for</small><strong>Android</strong></span>
+							</a>
 						</div>
+						<p class="home-more">Also available on the web and as a <a href="https://help.micro.blog/t/inkwell-for-mac/4267">native app for macOS</a>.</p>
+					</div>
+					<div class="home-phones" aria-label="Inkwell on iPhone">
+						<a class="home-phone home-phone-back" href="/images/homepage/mobile-timeline.webp" target="_blank" rel="noopener" aria-label="View the full Inkwell timeline screenshot">
+							<img src="/images/homepage/mobile-timeline.webp" width="804" height="1748" alt="Inkwell’s Today timeline with favorite blogs and the Today, Recent, and Fading tabs.">
+							<span class="home-phone-island" aria-hidden="true"></span>
+						</a>
+						<a class="home-phone home-phone-front" href="/images/homepage/mobile-reading.webp" target="_blank" rel="noopener" aria-label="View the full Inkwell reading screenshot">
+							<img src="/images/homepage/mobile-reading.webp" width="804" height="1748" alt="An article from Six Colors in Inkwell’s reader, with a soft purple background and clear typography.">
+							<span class="home-phone-island" aria-hidden="true"></span>
+						</a>
 					</div>
 				</div>
+			</section>
 
-				<p class="auth-platforms">
-					<span>Also available for:</span>
-					<a href="https://help.micro.blog/t/inkwell-for-mac/4267">macOS</a>
-					<a href="https://apps.apple.com/us/app/ink-well-for-micro-blog/id6761992307">iOS</a>
-					<a href="https://play.google.com/store/apps/details?id=blog.micro.inkwell">Android</a>
-				</p>
+			<section class="home-wrap home-features" aria-label="Highlights and reading recaps">
+				<article class="home-feature home-feature-highlights" id="highlights">
+					<p class="home-label">Highlights</p>
+					<h2>Keep the words<br><em>that stay with you.</em></h2>
+					<p>Highlight a passage as you read. Find it again later, or turn it into a post on your own blog.</p>
+					<div class="home-feature-preview">
+						<a class="home-phone" href="/images/homepage/mobile-highlights.webp" target="_blank" rel="noopener" aria-label="View the full Inkwell highlights screenshot">
+							<img src="/images/homepage/mobile-highlights.webp" width="804" height="1748" alt="Saved passages in Inkwell’s Highlights, marked in soft yellow with links to their original posts." loading="lazy">
+							<span class="home-phone-island" aria-hidden="true"></span>
+						</a>
+					</div>
+				</article>
+				<article class="home-feature home-feature-recaps" id="recaps">
+					<p class="home-label">Reading Recap</p>
+					<h2>Catch up,<br><em>at your own pace.</em></h2>
+					<p>Older posts move to Fading. With Micro.blog Premium, a Reading Recap helps you catch up on what you missed.</p>
+					<div class="home-feature-preview">
+						<a class="home-phone" href="/images/homepage/mobile-recap.webp" target="_blank" rel="noopener" aria-label="View the full Inkwell reading recap screenshot">
+							<img src="/images/homepage/mobile-recap.webp" width="804" height="1748" alt="A Reading Recap grouping posts from WESTENBERG, with topic tags, photos, and a quoted passage." loading="lazy">
+							<span class="home-phone-island" aria-hidden="true"></span>
+						</a>
+					</div>
+				</article>
+			</section>
 
-				<div class="home-showcase" aria-label="Inkwell preview">
-					<a
-						href="/images/homepage/screenshot.png"
-						class="home-image home-image--main"
-						data-home-image="screenshot.png"
-						style="--home-image: url('/images/homepage/screenshot.png')"
-						role="img"
-						aria-label="Inkwell reader preview"
-					></a>
+			<section class="home-desktop" id="web" aria-labelledby="home-web-title">
+				<div class="home-wrap home-desktop-inner">
+					<div class="home-desktop-copy">
+						<h2 id="home-web-title">A little more room<br><em>to read.</em></h2>
+						<p>Your feeds and highlights come along with you. Settle in with Inkwell on your Mac, or open it right here in your browser.</p>
+						<a class="home-text-link" href="https://help.micro.blog/t/inkwell-for-mac/4267">Get Inkwell for Mac <span aria-hidden="true">↗</span></a>
+					</div>
+					<a class="home-browser" href="/images/homepage/screenshot.png" target="_blank" rel="noopener" aria-label="View the full Inkwell desktop screenshot">
+						<span class="home-browser-toolbar" aria-hidden="true"><span class="home-browser-dots"><i></i><i></i><i></i></span><span>micro.ink</span><span>↗</span></span>
+						<img src="/images/homepage/screenshot.png" width="2126" height="1236" alt="Inkwell on desktop, with a timeline of blog posts beside the full article and reader controls." loading="lazy">
+					</a>
 				</div>
-			</div>
+			</section>
+
+			<footer class="home-wrap home-footer">
+				<a class="home-brand" href="#home" aria-label="Back to Inkwell home"><img src="/images/inkwell_icon_200.png" alt="" width="32" height="32"><span>Inkwell<span class="home-brand-period">.</span></span></a>
+				<nav class="home-nav" aria-label="Inkwell footer navigation"><a href="https://help.micro.blog/">Help</a><a href="https://github.com/microdotblog/inkwell-web">Source code</a><a href="https://micro.blog/">Micro.blog <span aria-hidden="true">↗</span></a></nav>
+			</footer>
 		</section>
 
       <section class="app-shell" data-auth-target="app" hidden>
